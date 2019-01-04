@@ -40,5 +40,73 @@ In this video we will:
 1. Activate B.
 1. Activate A, so B,C and D will be also active. Then we will close C, so D will be inactive until we execute C again, which inmediatelly is active.
 
-[(https://img.youtube.com/vi/ozYrQdCbGA4/0.jpg)](https://www.youtube.com/watch?v=ozYrQdCbGA4)
+[![BICA Example](https://img.youtube.com/vi/ozYrQdCbGA4/0.jpg)](https://www.youtube.com/watch?v=ozYrQdCbGA4)
+
+The code of a node that implements a BICA component is very simple:
+
+```
+#include <ros/ros.h>
+#include <ros/console.h>
+
+#include <bica/Component.h>
+
+class TestA: public bica::Component
+{
+public:
+	TestA()
+	{
+    addDependency("node_B");
+    addDependency("node_C");
+	}
+
+	void step()
+	{
+		if(!isActive()) return;
+
+		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
+	}
+};
+
+int main(int argc, char** argv)
+{
+	ros::init(argc, argv, "node_A");
+
+	TestA test_a;
+
+	ros::Rate loop_rate(10);
+	while(test_a.ok())
+	{
+		test_a.step();
+
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
+	return 0;
+}
+```
+* A BICA component inherits from bica :: Component
+* Declare its dependencies with `addDependency (id)`. `id` is the name of the node that implements this component (you can match it with the name of your component for clarity)
+* In your `main()`, create an instance of this class and call the frequency you want to your step () method. The first thing you do in this method is to check if it is active.
+
+You can also implement your components in Python:
+
+```
+#!/usr/bin/env python
+
+import rospy
+from bica.bica import Component
+
+class TestP(Component):
+  def step(self):
+    rospy.loginfo("[" +  rospy.get_name() + "] step")
+
+if __name__ == '__main__':
+  rospy.init_node('node_P', anonymous=False)
+  rate = rospy.Rate(10) # 10hz
+
+  test_p = TestP(10)
+
+  while test_p.ok():
+    pass
+```
 
