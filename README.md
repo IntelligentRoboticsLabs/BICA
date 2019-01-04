@@ -110,3 +110,8 @@ if __name__ == '__main__':
     pass
 ```
 
+## FSM and BICA-GUI
+
+Any of your components can be a finite state machine, even creating hierarchical state machines. We have developed a tool to create these components graphically. This tool automatically generates the C ++ code. 
+
+![alt text](https://raw.githubusercontent.com/fmrico/BICA/images/images/hfsm.png)
