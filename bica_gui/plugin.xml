@@ -1,0 +1,13 @@
+<library path="lib/libbica_gui">
+  <class name="bica_gui" type="bica_gui::Vicode" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      rqt Vicode
+    </description>
+    <qtgui>
+
+      <label>Vicode</label>
+      <icon type="theme">applications-utilities</icon>
+      <statustip>Great user interface to create FSM.</statustip>
+    </qtgui>
+  </class>
+</library>
