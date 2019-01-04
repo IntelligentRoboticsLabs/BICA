@@ -6,7 +6,7 @@
 
 BICA has a long history. It was designed and implemented in 2008 for the RoboCup SPL competition, being the behavioral architecture that allowed a Nao robot to play soccer in this competition. It was executed inside a NaoQi module and allowed to implement behaviors that arose from the concurrent execution of many components. There were perceptual components (image processing, sound ...), acting (walk, kick, leds, attention ...) or reasoning. Component hierarchies were created, where some components explicitly activated others, avoiding synchronization problems and saving computation time.
 
-With the arrival of ROS, the implementation changed, with each component being a ROS node that could define what other components needed for its operation. BICA executed the dependencies of each component. With this architecture we have participated in competitions such as RoCKIn (robot MYRAbot), RoboCup @Home (robot RB-1 Robotnik) and we continue using it, whith (ROSPlan)[https://github.com/KCL-Planning/ROSPlan], in the RoboCup SSPL with the robot Pepper. We also use it in our industrial projects. It provides a mechanism to create independent components that only consume processing time when a component requires the result of its computation.
+With the arrival of ROS, the implementation changed, with each component being a ROS node that could define what other components needed for its operation. BICA executed the dependencies of each component. With this architecture we have participated in competitions such as RoCKIn (robot MYRAbot), RoboCup @Home (robot RB-1 Robotnik) and we continue using it, whith [ROSPlan](https://github.com/KCL-Planning/ROSPlan), in the RoboCup SSPL with the robot Pepper. We also use it in our industrial projects. It provides a mechanism to create independent components that only consume processing time when a component requires the result of its computation.
 
 You can find more references in these papers:
 
@@ -116,4 +116,74 @@ if __name__ == '__main__':
 
 Any of your components can be a finite state machine, even creating hierarchical state machines. We have developed a tool to create these components graphically. This tool automatically generates the C ++ code.
 
-![alt text](https://raw.githubusercontent.com/fmrico/BICA/images/images/hfsm.png)
+![](https://raw.githubusercontent.com/IntelligentRoboticsLabs/BICA/images/images/hfsm.png)
+
+You can define states, transitions and what components must be active in each state. You can even debug the active state at runtime.
+
+[![BICA Example](https://img.youtube.com/vi/ImnmOF_CO1E/0.jpg)](https://www.youtube.com/watch?v=ImnmOF_CO1E)
+
+BICA GUI generates a class in C ++ from which you can inherit to create your component. You can implement the methods that you need:
+ * Each state generates two methods `*_iterative` and `*_once`. The first is a method that will be called continually while the component is in that state. The second is called only once when it is transited to this state. In the base class they are empty. Redefine them in your component.
+* Redefines the transitions and returns `true` when the transition has to be made.
+
+Example: (Complete example y bica_examples)
+
+```
+#include <ros/ros.h>
+#include "test_M.h"
+
+
+class test_M_impl: public bica::test_M
+{
+
+  void State_B_code_once()
+  {
+    ROS_INFO("[%s] State B ", ros::this_node::getName().c_str());
+  }
+
+  void State_C_code_iterative()
+  {
+    ROS_INFO("[%s] State C ", ros::this_node::getName().c_str());
+  }
+
+  void State_A_code_once()
+  {
+    ROS_INFO("[%s] State A ", ros::this_node::getName().c_str());
+  }
+
+  bool State_A_2_State_B()
+  {
+    return (ros::Time::now() - state_ts_).toSec() > 5.0;
+  }
+
+  bool State_B_2_State_C()
+  {
+    return (ros::Time::now() - state_ts_).toSec() > 5.0;
+  }
+
+  bool State_C_2_State_A()
+  {
+    return (ros::Time::now() - state_ts_).toSec() > 5.0;
+  }
+
+};
+
+int main(int argc, char** argv)
+{
+	ros::init(argc, argv, "node_M");
+
+	test_M_impl test_m;
+
+	ros::Rate loop_rate(7);
+	while(test_m.ok())
+	{
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
+	return 0;
+}
+```
+
+## Contributing
+
+Contributions are welcome. Don't forger to run `catkin roslint` before.
