@@ -1,5 +1,7 @@
 # BICA
 
+[![Build Status](https://travis-ci.com/fmrico/BICA.svg?branch=master)](https://travis-ci.com/fmrico/BICA)
+
 **BICA (Behavior-based Iterative Component Architecture) provides a way to create ROS applications that implements complex behaviors in robots.**
 
 BICA has a long history. It was designed and implemented in 2008 for the RoboCup SPL competition, being the behavioral architecture that allowed a Nao robot to play soccer in this competition. It was executed inside a NaoQi module and allowed to implement behaviors that arose from the concurrent execution of many components. There were perceptual components (image processing, sound ...), acting (walk, kick, leds, attention ...) or reasoning. Component hierarchies were created, where some components explicitly activated others, avoiding synchronization problems and saving computation time.
@@ -21,13 +23,13 @@ Each bica component is executed in a ROS node. Its life cycle is as follows:
 
 * Each component has its own frequency of execution.
 * When you launch your application, your nodes will be running, but they will be inactive until some other component activates them. Thus hierarchies of components can be formed.
-* A component declares what other components need to be running when it is active. They are its dependecies. 
+* A component declares what other components need to be running when it is active. They are its dependecies.
 * Un componente se activa cuando algún  componente que lo declaró como depencia se activa. También se activa si este componente se declara como raiz de una jerarquía de ejecución.
 * A component is deactivated when there is no active component that has declared it as a dependency.
 
 Example:
 
-In this video we can show the execution of the nodes in bica_examples folder of this repo. 
+In this video we can show the execution of the nodes in bica_examples folder of this repo.
 
 * Component A depends on B and C
 * Component C depends con D
@@ -112,6 +114,6 @@ if __name__ == '__main__':
 
 ## FSM and BICA-GUI
 
-Any of your components can be a finite state machine, even creating hierarchical state machines. We have developed a tool to create these components graphically. This tool automatically generates the C ++ code. 
+Any of your components can be a finite state machine, even creating hierarchical state machines. We have developed a tool to create these components graphically. This tool automatically generates the C ++ code.
 
 ![alt text](https://raw.githubusercontent.com/fmrico/BICA/images/images/hfsm.png)
