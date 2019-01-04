@@ -29,5 +29,16 @@ Example:
 
 In this video we can show the execution of the nodes in bica_examples folder of this repo. 
 
-https://youtu.be/ozYrQdCbGA4
+* Component A depends on B and C
+* Component C depends con D
+* Components log a message when they are active.
+
+In this video we will:
+
+1. Activate A, so B,C and D will be also active. For activating A we will usa a bica tool called launcher by executing `rosrun bica launcher node_A`
+1. Activate C, so D will be also active.
+1. Activate B.
+1. Activate A, so B,C and D will be also active. Then we will close C, so D will be inactive until we execute C again, which inmediatelly is active.
+
+[(https://img.youtube.com/vi/ozYrQdCbGA4/0.jpg)](https://www.youtube.com/watch?v=ozYrQdCbGA4)
 
