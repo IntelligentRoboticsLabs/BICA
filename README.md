@@ -10,7 +10,7 @@ With the arrival of ROS, the implementation changed, with each component being a
 
 You can find more references in these papers:
 
-* "Planning-centered Architecture for RoboCup SSPL @Home". Francisco Martín, Jonathan Ginés, David Vargas, Francisco J. Rodríguez-Lera, Vicente Matellán. WAF2018, publisehd in Advances in Intelligent Systems and Computing series. November 2018.
+* **"Planning-centered Architecture for RoboCup SSPL @Home". Francisco Martín, Jonathan Ginés, David Vargas, Francisco J. Rodríguez-Lera, Vicente Matellán. WAF2018, publisehd in Advances in Intelligent Systems and Computing series. November 2018.**
 * "A Simple, Efficient, and Scalable Behavior-based Architecture for Robotic Applications", Francisco Martín Rico, Carlos E. Agüero Durán. ROBOT'2015 Second Iberian Robotics Conference.
 * "Humanoid Soccer Player Design", Francisco Martín, Carlos Agüero, José María Cañas y Eduardo Perdices. Robot Soccer. Ed: Vladan Papic, pp 67-100. IN-TECH, ISBN, 978-953-307-036-0. 2010.
 * "Behavior-based Iterative Component Architecture for soccer applications with the Nao humanoid". Carlos E. Agüero, Jose M. Canas, Francisco Martin and Eduardo Perdices 5Th Workshop on Humanoids Soccer Robots. Nashville, TN, USA. Dic.
