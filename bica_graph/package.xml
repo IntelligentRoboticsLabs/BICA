@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bica_graph</name>
+
+  <version>0.1.0</version>
+  <description>The bica_graph package</description>
+
+  <maintainer email="fmrico@gmail.com">paco</maintainer>
+
+  <license>BSD</license>
+
+  <author email="fmrico@gmail.com">Francisco Martin Rico</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>bica_msgs</build_depend>
+
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>bica_msgs</exec_depend>
+
+  <build_depend>roslint</build_depend>
+  <test_depend>rostest</test_depend>
+
+  <export>
+
+  </export>
+</package>
