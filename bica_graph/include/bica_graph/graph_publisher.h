@@ -34,8 +34,8 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_PUBLISHER_H
-#define BICA_GRAPH_PUBLISHER_H
+#ifndef BICA_GRAPH_GRAPH_PUBLISHER_H
+#define BICA_GRAPH_GRAPH_PUBLISHER_H
 
 #include <ros/ros.h>
 
@@ -71,4 +71,4 @@ private:
 
 }  // namespace bica_graph
 
-#endif  // BICA_GRAPH_PUBLISHER_H
+#endif  // BICA_GRAPH_GRAPH_PUBLISHER_H

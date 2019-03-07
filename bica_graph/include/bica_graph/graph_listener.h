@@ -34,8 +34,8 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_LISTENER_H
-#define BICA_GRAPH_LISTENER_H
+#ifndef BICA_GRAPH_GRAPH_LISTENER_H
+#define BICA_GRAPH_GRAPH_LISTENER_H
 
 #include <ros/ros.h>
 
@@ -58,7 +58,6 @@ public:
   explicit GraphListener(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph);
 
 private:
-
   /// The callback for incoming graph messages.
   /**
   * \param[in] msg The incoming graph message
@@ -73,4 +72,4 @@ private:
 
 }  // namespace bica_graph
 
-#endif  // BICA_GRAPH_LISTENER_H
+#endif  // BICA_GRAPH_GRAPH_LISTENER_H

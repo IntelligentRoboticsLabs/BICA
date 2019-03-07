@@ -132,7 +132,9 @@ std::ostream& bica_graph::operator<<(std::ostream& lhs, const Node& rhs)
     {
       auto r =  std::dynamic_pointer_cast<bica_graph::TFRelation>(*it);
       lhs << *r << std::endl;
-    } else {
+    }
+    else
+    {
       lhs << **it << std::endl;
     }
   }
