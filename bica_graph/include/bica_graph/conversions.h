@@ -34,93 +34,28 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <list>
+#ifndef BICA_GRAPH_CONVERSIONS_H
+#define BICA_GRAPH_CONVERSIONS_H
 
 #include <bica_graph/graph.h>
+#include <bica_msgs/Graph.h>
 
-using bica_graph::BicaGraph;
-
-BicaGraph::BicaGraph()
-: locked_(false)
+namespace bica_graph
 {
-}
+  /// Convert a a bica_graph::Graph graph to a bica_msgs::Graph message.
+  /**
+  * \param[in] graph The graph
+  * \returns the pointer of a new created message
+  */
+  bica_msgs::Graph::ConstPtr graph_to_msg(const bica_graph::BicaGraph& graph);
 
-BicaGraph::BicaGraph(const std::shared_ptr<Node>& node)
-: locked_(true)
-{
-  nodes_.push_back(node);
-}
+  /// Convert a bica_msgs::Graph message to a bica_graph::Graph graph.
+  /**
+  * \param[in] msg The incoming message
+  * \returns the pointer of a new created graph
+  */
+  bica_graph::BicaGraph::SharedPtr msg_to_graph(const bica_msgs::Graph::ConstPtr& msg);
 
-size_t
-BicaGraph::count_nodes() const
-{
-  return nodes_.size();
-}
+}  // namespace bica_graph
 
-bool
-BicaGraph::is_sub_graph() const
-{
-  return locked_;
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::create_node(const std::string& id, const std::string& type)
-{
-  auto node = std::make_shared<bica_graph::Node>(id, type);
-  nodes_.push_back(node);
-
-  return node;
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::get_node(const std::string& id)
-{
-  std::shared_ptr<bica_graph::Node> ret = nullptr;
-
-  for (auto it = nodes_.begin(); it!= nodes_.end(); ++it)
-  {
-    if ((*it)->get_id() == id)
-    {
-      ret = *it;
-    }
-  }
-
-  return ret;
-}
-
-bool bica_graph::operator==(const BicaGraph& lhs, const BicaGraph& rhs)
-{
-  if (lhs.nodes_.size() != rhs.nodes_.size())
-  {
-    return false;
-  }
-
-  for (std::pair<std::list<std::shared_ptr<Node>>::const_iterator, std::list<std::shared_ptr<Node>>::const_iterator>
-        it(lhs.nodes_.begin(), rhs.nodes_.begin());
-       it.first != lhs.nodes_.end() && it.second != rhs.nodes_.end();
-       ++it.first, ++it.second)
-  {
-    if (**it.first != **it.second)
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const BicaGraph& rhs)
-{
-  lhs << "======================================================" << std::endl;
-  lhs << "Number of nodes: " << rhs.nodes_.size() << std::endl;
-  for (auto it = rhs.nodes_.begin(); it!= rhs.nodes_.end(); ++it)
-  {
-    lhs << **it << std::endl;
-  }
-  lhs << "======================================================" << std::endl;
-  return lhs;
-}
+#endif  // BICA_GRAPH_CONVERSIONS_H

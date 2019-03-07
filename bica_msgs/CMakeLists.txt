@@ -25,3 +25,7 @@ generate_messages(
 catkin_package(
    CATKIN_DEPENDS message_runtime geometry_msgs std_msgs
 )
+
+install(DIRECTORY include/bica_msgs/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  PATTERN "*.h")

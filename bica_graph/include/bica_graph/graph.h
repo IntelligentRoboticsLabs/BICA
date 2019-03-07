@@ -40,6 +40,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include <bica_graph/node.h>
 #include <bica_graph/exceptions.h>
@@ -68,13 +69,13 @@ public:
   /**
   * \returns number of nodes in the graph
   */
-  size_t count_nodes();
+  size_t count_nodes() const;
 
   /// Return if this graph is built from a node graph. In this case, it is locked and no more nodes can be added
   /**
   * \returns true if it is a subgraph
   */
-  bool is_sub_graph();
+  bool is_sub_graph() const;
 
   /// Create a node and insert it in the graph.
   /**
@@ -84,10 +85,43 @@ public:
   */
   std::shared_ptr<Node> create_node(const std::string& id, const std::string& type);
 
+  /// Get a node pointer.
+  /**
+  * \param[in] id The id of the  node.
+  * \returns The shared pointer to the node
+  */
+  std::shared_ptr<Node> get_node(const std::string& id);
+
+
+  /// Get the list of nodes of in the graph.
+  /**
+  * \returns the list of nodes as a const reference
+  */
+  const std::list<std::shared_ptr<Node>>& get_nodes() const {return nodes_;}
+
+  /// Compare tho graphs.
+  /**
+  * \param[in] other The graph to compare.
+  * \returns true if both graphs are equals
+  */
+  friend bool operator==(const BicaGraph& lhs, const BicaGraph& rhs);
+
+  /// Fill a text stream for printing graphs.
+  /**
+  * \param[in] lhs The stream to print to.
+  * \param[in] other The graph to stream.
+  * \returns the ostream
+  */
+  friend std::ostream& operator<<(std::ostream& lhs, const BicaGraph& rhs);
+
 private:
   std::list<std::shared_ptr<Node>> nodes_;
   bool locked_;
 };
+
+
+bool operator==(const BicaGraph& lhs, const BicaGraph& rhs);
+std::ostream& operator<<(std::ostream& lhs, const BicaGraph& rhs);
 
 }  // namespace bica_graph
 

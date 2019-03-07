@@ -42,6 +42,9 @@
 
 #include <bica_graph/macros.h>
 
+#include <bica_msgs/Relation.h>
+#include <bica_msgs/Node.h>
+
 namespace bica_graph
 {
 
@@ -67,7 +70,7 @@ public:
   /**
   * \returns the type of the relation.
   */
-  std::string get_type() const {return type_;}
+  const std::string get_type() const {return type_;}
 
   /// <get the source of the relation.
   /**
@@ -81,11 +84,49 @@ public:
   */
   const std::shared_ptr<Node>& get_target() const {return target_;}
 
+  /// Create a msg from this relation.
+  /**
+  * \returns a const pointer of the to a msg representing this relation
+  */
+  bica_msgs::RelationConstPtr transform_to_msg();
+
+  /// Add this relation to a node message.
+  /**
+   * \param[in] node The node message to add this relation.
+  */
+  virtual void add_to_msg(bica_msgs::NodePtr node);
+
+  /// Compare two relations.
+  /**
+  * \param[in] other The relations to compare.
+  * \returns true if both relations are equals
+  */
+  friend bool operator==(const Relation& lhs, const Relation& rhs);
+
+  /// Compare two relations.
+  /**
+  * \param[in] other The relations to compare.
+  * \returns true if both relations are different
+  */
+  friend bool operator!=(const Relation& lhs, const Relation& rhs);
+
+  /// Fill a text stream for printing relations.
+  /**
+  * \param[in] lhs The stream to print to.
+  * \param[in] rhs The relation to stream.
+  * \returns the ostream
+  */
+  friend std::ostream& operator<<(std::ostream& lhs, const Relation& rhs);
+
 protected:
   std::shared_ptr<Node> target_;
   std::shared_ptr<Node> source_;
   std::string type_;
 };
+
+bool operator==(const Relation& lhs, const Relation& rhs);
+bool operator!=(const Relation& lhs, const Relation& rhs);
+std::ostream& operator<<(std::ostream& lhs, const Relation& rhs);
 
 }  // namespace bica_graph
 

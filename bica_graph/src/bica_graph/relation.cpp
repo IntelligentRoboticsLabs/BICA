@@ -37,10 +37,62 @@
 #include <string>
 
 #include <bica_graph/relation.h>
+#include <bica_graph/node.h>
 
 using bica_graph::Relation;
 
 Relation::Relation(const std::string& type, const std::shared_ptr<Node>& source, const std::shared_ptr<Node>& target)
 : source_(source), target_(target), type_(type)
 {
+}
+
+bica_msgs::RelationConstPtr
+Relation::transform_to_msg()
+{
+  bica_msgs::RelationPtr msg (new bica_msgs::Relation());
+
+  msg->type = type_;
+  msg->source = source_->get_id();
+  msg->target = target_->get_id();
+
+  return msg;
+}
+
+void
+Relation::add_to_msg(bica_msgs::NodePtr node)
+{
+  node->relations.push_back(*this->transform_to_msg());
+}
+
+
+bool bica_graph::operator==(const Relation& lhs, const Relation& rhs)
+{
+  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
+  {
+    return false;
+  }
+
+  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
+  {
+    return false;
+  }
+
+  if (lhs.type_ != rhs.type_)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool bica_graph::operator!=(const Relation& lhs, const Relation& rhs)
+{
+  return !(lhs == rhs);
+}
+
+std::ostream& bica_graph::operator<<(std::ostream& lhs, const Relation& rhs)
+{
+  lhs << "Relation [" << rhs.type_ <<"] " <<
+    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() << std::endl;
+  return lhs;
 }

@@ -34,93 +34,52 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <list>
-
+#include <bica_graph/conversions.h>
 #include <bica_graph/graph.h>
+#include <bica_graph/node.h>
+#include <bica_graph/relation.h>
+#include <bica_graph/tf_relation.h>
 
-using bica_graph::BicaGraph;
+#include <bica_msgs/Node.h>
 
-BicaGraph::BicaGraph()
-: locked_(false)
+bica_msgs::GraphConstPtr
+bica_graph::graph_to_msg(const bica_graph::BicaGraph& graph)
 {
-}
+  bica_msgs::GraphPtr msg (new bica_msgs::Graph());
 
-BicaGraph::BicaGraph(const std::shared_ptr<Node>& node)
-: locked_(true)
-{
-  nodes_.push_back(node);
-}
-
-size_t
-BicaGraph::count_nodes() const
-{
-  return nodes_.size();
-}
-
-bool
-BicaGraph::is_sub_graph() const
-{
-  return locked_;
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::create_node(const std::string& id, const std::string& type)
-{
-  auto node = std::make_shared<bica_graph::Node>(id, type);
-  nodes_.push_back(node);
-
-  return node;
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::get_node(const std::string& id)
-{
-  std::shared_ptr<bica_graph::Node> ret = nullptr;
-
-  for (auto it = nodes_.begin(); it!= nodes_.end(); ++it)
+  for (auto node : graph.get_nodes())
   {
-    if ((*it)->get_id() == id)
+    bica_msgs::NodePtr node_msg (new bica_msgs::Node());
+    for (auto relation : node->get_relations())
     {
-      ret = *it;
+      relation->add_to_msg(node_msg);
     }
+
+    node_msg->id = node->get_id();
+    node_msg->type = node->get_type();
+
+    msg->nodes.push_back(*node_msg);
   }
 
-  return ret;
+  return msg;
 }
 
-bool bica_graph::operator==(const BicaGraph& lhs, const BicaGraph& rhs)
+bica_graph::BicaGraph::SharedPtr
+bica_graph::msg_to_graph(const bica_msgs::GraphConstPtr& msg)
 {
-  if (lhs.nodes_.size() != rhs.nodes_.size())
+  auto graph = std::make_shared<bica_graph::BicaGraph>();
+
+  for (int i = 0; i < msg->nodes.size(); i++)
   {
-    return false;
+    auto node = graph->create_node(msg->nodes[i].id, msg->nodes[i].type);
   }
 
-  for (std::pair<std::list<std::shared_ptr<Node>>::const_iterator, std::list<std::shared_ptr<Node>>::const_iterator>
-        it(lhs.nodes_.begin(), rhs.nodes_.begin());
-       it.first != lhs.nodes_.end() && it.second != rhs.nodes_.end();
-       ++it.first, ++it.second)
+  for (int i = 0; i < msg->nodes.size(); i++)
   {
-    if (**it.first != **it.second)
-    {
-      return false;
-    }
+    auto node = graph->get_node(msg->nodes[i].id);
+    node->add_relations_from_msg(msg->nodes[i], graph);
   }
 
-  return true;
-}
 
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const BicaGraph& rhs)
-{
-  lhs << "======================================================" << std::endl;
-  lhs << "Number of nodes: " << rhs.nodes_.size() << std::endl;
-  for (auto it = rhs.nodes_.begin(); it!= rhs.nodes_.end(); ++it)
-  {
-    lhs << **it << std::endl;
-  }
-  lhs << "======================================================" << std::endl;
-  return lhs;
+  return graph;
 }

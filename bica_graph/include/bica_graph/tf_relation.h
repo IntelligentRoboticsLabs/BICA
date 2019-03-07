@@ -41,6 +41,7 @@
 #include <string>
 
 #include <geometry_msgs/TransformStamped.h>
+#include <bica_msgs/TFRelation.h>
 
 #include <bica_graph/macros.h>
 #include <bica_graph/node.h>
@@ -67,10 +68,50 @@ public:
   */
   const geometry_msgs::TransformStamped& get_transform() const {return tf_;}
 
+  /// Create a msg from this relation.
+  /**
+  * \returns a const pointer of the to a msg representing this relation
+  */
+  bica_msgs::TFRelationConstPtr transform_to_msg();
+
+  /// Add this relation to a node message.
+  /**
+   * \param[in] node The node message to add this relation.
+  */
+  virtual void add_to_msg(bica_msgs::NodePtr node);
+
+
+  /// Compare two relations.
+  /**
+  * \param[in] other The TF relations to compare.
+  * \returns true if both TF relations are equals
+  */
+  friend bool operator==(const TFRelation& lhs, const TFRelation& rhs);
+
+  /// Compare two relations.
+  /**
+  * \param[in] other The TF relations to compare.
+  * \returns true if both TF relations are different
+  */
+  friend bool operator!=(const TFRelation& lhs, const TFRelation& rhs);
+
+  /// Fill a text stream for printing tf relations.
+  /**
+  * \param[in] lhs The stream to print to.
+  * \param[in] rhs The tf relation to stream.
+  * \returns the ostream
+  */
+  friend std::ostream& operator<<(std::ostream& lhs, const TFRelation& rhs);
+
+
 protected:
   geometry_msgs::TransformStamped tf_;
 
 };
+
+bool operator==(const TFRelation& lhs, const TFRelation& rhs);
+bool operator!=(const TFRelation& lhs, const TFRelation& rhs);
+std::ostream& operator<<(std::ostream& lhs, const TFRelation& rhs);
 
 }  // namespace bica_graph
 

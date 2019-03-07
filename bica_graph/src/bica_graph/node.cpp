@@ -35,6 +35,8 @@
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
 #include <string>
+#include <utility>
+#include <list>
 
 #include <bica_graph/node.h>
 
@@ -64,4 +66,69 @@ Node::add_tf_relation(
   auto relation = std::make_shared<bica_graph::TFRelation>(tf, shared_from_this(), target);
   relations_.push_back(relation);
   return relation;
+}
+
+void
+Node::add_relations_from_msg(const bica_msgs::Node& node, std::shared_ptr<bica_graph::BicaGraph> graph)
+{
+  for (int i = 0; i < node.relations.size(); i++)
+  {
+    assert(node.relations[i].source == id_);
+    add_relation(node.relations[i].type, graph->get_node(node.relations[i].target));
+  }
+
+  for (int i = 0; i < node.tf_relations.size(); i++)
+  {
+    assert(node.tf_relations[i].source == id_);
+    add_tf_relation(node.tf_relations[i].transform, graph->get_node(node.relations[i].target));
+  }
+}
+
+bool bica_graph::operator==(const Node& lhs, const Node& rhs)
+{
+  if (lhs.id_ != rhs.id_)
+  {
+    return false;
+  }
+
+  if (lhs.type_ != rhs.type_)
+  {
+    return false;
+  }
+
+  if (lhs.relations_.size() != rhs.relations_.size())
+  {
+    return false;
+  }
+
+  for (std::pair<
+        std::list<std::shared_ptr<Relation>>::const_iterator, std::list<std::shared_ptr<Relation>>::const_iterator>
+        it(lhs.relations_.begin(), rhs.relations_.begin());
+       it.first != lhs.relations_.end() && it.second != rhs.relations_.end();
+       ++it.first, ++it.second)
+  {
+    if (**it.first != **it.second)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+bool bica_graph::operator!=(const Node& lhs, const Node& rhs)
+{
+  return !(lhs == rhs);
+}
+
+std::ostream& bica_graph::operator<<(std::ostream& lhs, const Node& rhs)
+{
+  lhs << "Node [" << rhs.id_ << "(" << rhs.type_ <<")] "<< std::endl;
+  lhs << "Number of relation: " << rhs.relations_.size() << std::endl;
+  for (auto it = rhs.relations_.begin(); it!= rhs.relations_.end(); ++it)
+  {
+    lhs << **it << std::endl;
+  }
+  return lhs;
 }

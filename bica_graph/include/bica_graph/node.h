@@ -42,6 +42,7 @@
 #include <string>
 
 #include <geometry_msgs/TransformStamped.h>
+#include <bica_msgs/Graph.h>
 
 #include <bica_graph/macros.h>
 #include <bica_graph/graph.h>
@@ -51,6 +52,7 @@ namespace bica_graph
 {
 class Relation;
 class TFRelation;
+class BicaGraph;
 
 class Node : public std::enable_shared_from_this<Node>
 {
@@ -103,6 +105,34 @@ public:
   */
   const std::list<std::shared_ptr<Relation>>& get_relations() const {return relations_;}
 
+  /// Create relations comming from a message
+  /**
+  * \param[in] node The msg that contains relations
+  * \param[in] graph The graph where the nodo exists.
+  */
+  void add_relations_from_msg(const bica_msgs::Node& node, std::shared_ptr<BicaGraph> graph);
+
+  /// Compare two nodes.
+  /**
+  * \param[in] other The node to compare.
+  * \returns true if both nodes are equals
+  */
+  friend bool operator==(const Node& lhs, const Node& rhs);
+
+  /// Compare tho nodes.
+  /**
+  * \param[in] other The node to compare.
+  * \returns true if both nodes are not equals
+  */
+  friend bool operator!=(const Node& lhs, const Node& rhs);
+
+  /// Fill a text stream for printing modes.
+  /**
+  * \param[in] lhs The stream to print to.
+  * \param[in] other The node to stream.
+  * \returns the ostream
+  */
+  friend std::ostream& operator<<(std::ostream& lhs, const Node& rhs);
 
 protected:
   std::list<std::shared_ptr<Relation>> relations_;
@@ -110,6 +140,10 @@ protected:
   std::string id_;
   std::string type_;
 };
+
+bool operator==(const Node& lhs, const Node& rhs);
+bool operator!=(const Node& lhs, const Node& rhs);
+std::ostream& operator<<(std::ostream& lhs, const Node& rhs);
 
 }  // namespace bica_graph
 

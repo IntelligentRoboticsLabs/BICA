@@ -1,3 +1,3 @@
-geometry_msgs/TransformStamped tranform
+geometry_msgs/TransformStamped transform
 string source
 string target

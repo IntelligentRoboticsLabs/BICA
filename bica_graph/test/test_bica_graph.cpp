@@ -45,6 +45,8 @@
 #include <bica_graph/relation.h>
 #include <bica_graph/tf_relation.h>
 #include <bica_graph/exceptions.h>
+#include <bica_graph/conversions.h>
+#include <bica_msgs/Graph.h>
 
 TEST(BicaGraph, test_graph_construction)
 {
@@ -126,9 +128,125 @@ TEST(BicaGraph, test_node_and_tf_relation)
   ASSERT_EQ(1, r->get_transform().transform.rotation.w);
 }
 
+TEST(BicaGraph, test_conversion_to_msg)
+{
+  auto graph = std::make_shared<bica_graph::BicaGraph>();
+
+  auto node = graph->create_node("leia", "robot");
+  auto bedroom =  graph->create_node("bedroom", "room");
+  auto relation1 = node->add_relation("is", bedroom);
+  auto relation2 = node->add_relation("isbis", bedroom);
+
+  geometry_msgs::TransformStamped tf;
+  tf.header.seq = 1;
+  tf.header.frame_id = "/world";
+  tf.child_frame_id = "/robot";
+  tf.transform.translation.x = 1;
+  tf.transform.translation.y = 1;
+  tf.transform.translation.z = 1;
+  tf.transform.rotation.x = 0;
+  tf.transform.rotation.y = 0;
+  tf.transform.rotation.z = 0;
+  tf.transform.rotation.w = 1;
+
+  auto relation_tf = node->add_tf_relation(tf, bedroom);
+
+  bica_msgs::Graph::ConstPtr msg = graph_to_msg(*graph);
+
+  ASSERT_EQ(2, msg->nodes.size());
+
+  for (int i = 0; i < msg->nodes.size(); i++)
+  {
+    if (i == 0)
+    {
+      ASSERT_EQ("leia", msg->nodes[i].id);
+      ASSERT_EQ("robot", msg->nodes[i].type);
+
+      ASSERT_EQ(2, msg->nodes[i].relations.size());
+      ASSERT_EQ(1, msg->nodes[i].tf_relations.size());
+    }
+
+    if (i == 1)
+    {
+      ASSERT_EQ("bedroom", msg->nodes[i].id);
+      ASSERT_EQ("room", msg->nodes[i].type);
+
+      ASSERT_EQ(0, msg->nodes[i].relations.size());
+      ASSERT_EQ(0, msg->nodes[i].tf_relations.size());
+    }
+  }
+}
+
+TEST(BicaGraph, test_conversion_from_msg)
+{
+  bica_msgs::Graph::Ptr msg(new bica_msgs::Graph());
+
+  bica_msgs::Node node;
+  node.id = "leia";
+  node.type = "robot";
+  bica_msgs::Node bedroom;
+  bedroom.id = "bedroom";
+  bedroom.type = "room";
+
+  bica_msgs::Relation relation1;
+  relation1.source = "leia";
+  relation1.type = "is";
+  relation1.target = "bedroom";
+  bica_msgs::Relation relation2;
+  relation2.source = "leia";
+  relation2.type = "isbis";
+  relation2.target = "bedroom";
+
+  bica_msgs::TFRelation relation_tf;
+  relation_tf.source = "leia";
+  relation_tf.target = "bedroom";
+  relation_tf.transform.header.seq = 1;
+  relation_tf.transform.header.frame_id = "/world";
+  relation_tf.transform.child_frame_id = "/robot";
+  relation_tf.transform.transform.translation.x = 1;
+  relation_tf.transform.transform.translation.y = 1;
+  relation_tf.transform.transform.translation.z = 1;
+  relation_tf.transform.transform.rotation.x = 0;
+  relation_tf.transform.transform.rotation.y = 0;
+  relation_tf.transform.transform.rotation.z = 0;
+  relation_tf.transform.transform.rotation.w = 1;
+
+  node.relations.push_back(relation1);
+  node.relations.push_back(relation2);
+  node.tf_relations.push_back(relation_tf);
+
+  msg->nodes.push_back(node);
+  msg->nodes.push_back(bedroom);
+
+  auto graph_msg = bica_graph::msg_to_graph(msg);
+
+  auto graph = std::make_shared<bica_graph::BicaGraph>();
+
+  auto g_node = graph->create_node("leia", "robot");
+  auto g_bedroom =  graph->create_node("bedroom", "room");
+  auto g_relation1 = g_node->add_relation("is", g_bedroom);
+  auto g_relation2 = g_node->add_relation("isbis", g_bedroom);
+
+  geometry_msgs::TransformStamped tf;
+  tf.header.seq = 1;
+  tf.header.frame_id = "/world";
+  tf.child_frame_id = "/robot";
+  tf.transform.translation.x = 1;
+  tf.transform.translation.y = 1;
+  tf.transform.translation.z = 1;
+  tf.transform.rotation.x = 0;
+  tf.transform.rotation.y = 0;
+  tf.transform.rotation.z = 0;
+  tf.transform.rotation.w = 1;
+
+  auto g_relation_tf = g_node->add_tf_relation(tf, g_bedroom);
+
+  ASSERT_EQ(*graph_msg, *graph);
+}
+
 int main(int argc, char* argv[])
 {
- testing::InitGoogleTest(&argc, argv);
+  testing::InitGoogleTest(&argc, argv);
 
   return RUN_ALL_TESTS();
 }
