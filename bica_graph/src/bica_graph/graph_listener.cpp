@@ -34,74 +34,18 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <bica_graph/tf_relation.h>
+#include <bica_graph/graph_listener.h>
+#include <bica_graph/conversions.h>
 
-using bica_graph::TFRelation;
+using bica_graph::GraphListener;
 
-TFRelation::TFRelation(
-  const geometry_msgs::TransformStamped& tf,
-  const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target)
-:Relation("tf", source, target), tf_(tf)
+GraphListener::GraphListener(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph)
+: nh_(nh), graph_(graph)
 {
+  graph_sub_ = nh_.subscribe("graph", 1, &GraphListener::graph_callback, this);
 }
 
-bica_msgs::TFRelationConstPtr
-TFRelation::transform_to_msg()
+void GraphListener::graph_callback(const bica_msgs::Graph::ConstPtr& msg)
 {
-  bica_msgs::TFRelationPtr msg (new bica_msgs::TFRelation());
-
-  msg->transform = tf_;
-  msg->source = source_->get_id();
-  msg->target = target_->get_id();
-
-  return msg;
-}
-
-void
-TFRelation::add_to_msg(bica_msgs::NodePtr node)
-{
-  node->tf_relations.push_back(*this->transform_to_msg());
-}
-
-bool bica_graph::operator==(const TFRelation& lhs, const TFRelation& rhs)
-{
-  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
-  {
-    return false;
-  }
-
-  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
-  {
-    return false;
-  }
-
-  if (lhs.type_ != rhs.type_)
-  {
-    return false;
-  }
-
-  // (fmrico): Is this enough? Transform can be different, but the transform must exist.
-  if ( (lhs.tf_.header.frame_id != rhs.tf_.header.frame_id) ||
-       (lhs.tf_.child_frame_id != rhs.tf_.child_frame_id)
-     )
-  {
-    return false;
-  }
-  return true;
-}
-
-bool bica_graph::operator!=(const TFRelation& lhs, const TFRelation& rhs)
-{
-  return !(lhs == rhs);
-}
-
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const TFRelation& rhs)
-{
-  lhs << "TF Relation [" << rhs.type_ << "] "<<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() <<
-    "time [" << rhs.tf_.header.stamp.sec << ", " << rhs.tf_.header.stamp.nsec <<
-    "]"<< std::endl;
-
-  return lhs;
+  *graph_ = *bica_graph::msg_to_graph(msg);
 }

@@ -34,74 +34,41 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <bica_graph/tf_relation.h>
+#ifndef BICA_GRAPH_PUBLISHER_H
+#define BICA_GRAPH_PUBLISHER_H
 
-using bica_graph::TFRelation;
+#include <ros/ros.h>
 
-TFRelation::TFRelation(
-  const geometry_msgs::TransformStamped& tf,
-  const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target)
-:Relation("tf", source, target), tf_(tf)
+#include <bica_graph/graph.h>
+#include <bica_msgs/Graph.h>
+
+namespace bica_graph
 {
-}
 
-bica_msgs::TFRelationConstPtr
-TFRelation::transform_to_msg()
+class GraphPublisher
 {
-  bica_msgs::TFRelationPtr msg (new bica_msgs::TFRelation());
+public:
+  BICA_GRAPH_SMART_PTR_DEFINITIONS(GraphPublisher)
 
-  msg->transform = tf_;
-  msg->source = source_->get_id();
-  msg->target = target_->get_id();
+  /// Create a graph publisher.
+  /**
+  * \param[in] nh A nodehandle.
+  * \param[in] graph The graph to serve.
+  */
+  explicit GraphPublisher(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph);
 
-  return msg;
-}
+  /// Publish de graph
+  /**
+  */
+  void send_graph();
 
-void
-TFRelation::add_to_msg(bica_msgs::NodePtr node)
-{
-  node->tf_relations.push_back(*this->transform_to_msg());
-}
+private:
+  ros::NodeHandle nh_;
+  BicaGraph::SharedPtr graph_;
 
-bool bica_graph::operator==(const TFRelation& lhs, const TFRelation& rhs)
-{
-  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
-  {
-    return false;
-  }
+  ros::Publisher graph_pub_;
+};
 
-  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
-  {
-    return false;
-  }
+}  // namespace bica_graph
 
-  if (lhs.type_ != rhs.type_)
-  {
-    return false;
-  }
-
-  // (fmrico): Is this enough? Transform can be different, but the transform must exist.
-  if ( (lhs.tf_.header.frame_id != rhs.tf_.header.frame_id) ||
-       (lhs.tf_.child_frame_id != rhs.tf_.child_frame_id)
-     )
-  {
-    return false;
-  }
-  return true;
-}
-
-bool bica_graph::operator!=(const TFRelation& lhs, const TFRelation& rhs)
-{
-  return !(lhs == rhs);
-}
-
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const TFRelation& rhs)
-{
-  lhs << "TF Relation [" << rhs.type_ << "] "<<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() <<
-    "time [" << rhs.tf_.header.stamp.sec << ", " << rhs.tf_.header.stamp.nsec <<
-    "]"<< std::endl;
-
-  return lhs;
-}
+#endif  // BICA_GRAPH_PUBLISHER_H

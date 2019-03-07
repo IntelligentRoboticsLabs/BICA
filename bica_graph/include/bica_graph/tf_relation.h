@@ -103,6 +103,12 @@ public:
   */
   friend std::ostream& operator<<(std::ostream& lhs, const TFRelation& rhs);
 
+  /// Return the transform of this tf relation.
+  /**
+  * \returns a ref to the geometry_msgs::TransformStamped
+  */
+  geometry_msgs::TransformStamped& get_tf() {return tf_;}
+
 
 protected:
   geometry_msgs::TransformStamped tf_;

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(bica_graph)
 
 add_compile_options(-std=c++11)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -30,6 +30,8 @@ set(BICA_GRAPH_SRCS
   src/${PROJECT_NAME}/relation.cpp
   src/${PROJECT_NAME}/tf_relation.cpp
   src/${PROJECT_NAME}/conversions.cpp
+  src/${PROJECT_NAME}/graph_publisher.cpp
+  src/${PROJECT_NAME}/graph_listener.cpp
 )
 
 set(BICA_GRAPH_HDRS
@@ -38,6 +40,8 @@ set(BICA_GRAPH_HDRS
   include/${PROJECT_NAME}/relation.h
   include/${PROJECT_NAME}/exceptions.h
   include/${PROJECT_NAME}/conversions.h
+  include/${PROJECT_NAME}/graph_publisher.h
+  include/${PROJECT_NAME}/graph_listener.h
 )
 
 add_library(${PROJECT_NAME} ${BICA_GRAPH_SRCS})

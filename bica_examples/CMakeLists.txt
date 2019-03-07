@@ -2,12 +2,15 @@ cmake_minimum_required(VERSION 2.8.3)
 project(bica_examples)
 
 add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(catkin REQUIRED COMPONENTS
   bica
   roscpp
   rospy
   std_msgs
+  bica_graph
+  bica_msgs
 )
 
 catkin_package(
@@ -39,3 +42,12 @@ add_executable(node_M
   )
 add_dependencies(node_M ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(node_M ${catkin_LIBRARIES})
+
+add_executable(graph_server_node src/graph/graph_server_node.cpp)
+add_dependencies(graph_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(graph_server_node ${catkin_LIBRARIES})
+
+
+add_executable(graph_client_node src/graph/graph_client_node.cpp)
+add_dependencies(graph_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(graph_client_node ${catkin_LIBRARIES})

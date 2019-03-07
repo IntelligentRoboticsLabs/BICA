@@ -114,6 +114,14 @@ public:
   */
   friend std::ostream& operator<<(std::ostream& lhs, const BicaGraph& rhs);
 
+  /// Replace the content of this graph with other
+  /**
+  ** This links both graphs. Use only to copy from a temp graph
+  * \param[in] other The graph to clone
+  * \returns a reference to the updated graph
+  */
+  BicaGraph& operator=(const BicaGraph& other);
+
 private:
   std::list<std::shared_ptr<Node>> nodes_;
   bool locked_;

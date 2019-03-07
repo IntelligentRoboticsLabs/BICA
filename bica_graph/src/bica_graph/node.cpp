@@ -128,7 +128,13 @@ std::ostream& bica_graph::operator<<(std::ostream& lhs, const Node& rhs)
   lhs << "Number of relation: " << rhs.relations_.size() << std::endl;
   for (auto it = rhs.relations_.begin(); it!= rhs.relations_.end(); ++it)
   {
-    lhs << **it << std::endl;
+    if ((*it)->get_type() == "tf")
+    {
+      auto r =  std::dynamic_pointer_cast<bica_graph::TFRelation>(*it);
+      lhs << *r << std::endl;
+    } else {
+      lhs << **it << std::endl;
+    }
   }
   return lhs;
 }

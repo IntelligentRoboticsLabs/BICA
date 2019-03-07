@@ -76,6 +76,18 @@ BicaGraph::create_node(const std::string& id, const std::string& type)
   return node;
 }
 
+BicaGraph&
+BicaGraph::operator=(const BicaGraph& other)
+{
+  // (fmrico): Copy a graph is copying the list of references. Both graphs
+  //           are linked. This is very dangerous and only must be done when
+  //           copying for temporary grpahs
+  nodes_ = other.get_nodes();
+
+  return *this;
+}
+
+
 std::shared_ptr<bica_graph::Node>
 BicaGraph::get_node(const std::string& id)
 {
