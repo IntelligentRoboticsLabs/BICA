@@ -39,7 +39,7 @@
 
 using bica_graph::GraphPublisher;
 
-GraphPublisher::GraphPublisher(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph)
+GraphPublisher::GraphPublisher(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph)
 : nh_(nh), graph_(graph)
 {
   graph_pub_ = nh_.advertise<bica_msgs::Graph>("graph", 1, true);

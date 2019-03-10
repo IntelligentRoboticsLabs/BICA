@@ -57,6 +57,10 @@ public:
 
   /// Create a new relation.
   /**
+  * Tipically, a Relation is not created throught Node::add_relation
+  * \param[in] type The type of the relation
+  * \param[in] source The source of the relation
+  * \param[in] target The target of the relation
   */
   Relation(const std::string& type, const std::shared_ptr<Node>& source, const std::shared_ptr<Node>& target);
 

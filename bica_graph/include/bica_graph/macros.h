@@ -34,6 +34,11 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
+/* This code is based on https://github.com/ros2/rclcpp/blob/master/rclcpp/include/rclcpp/macros.hpp
+ * Copyright 2014 Open Source Robotics Foundation, Inc.
+ * Licensed under the Apache License, Version 2.0
+*/
+
 #include <memory>
 #include <utility>
 

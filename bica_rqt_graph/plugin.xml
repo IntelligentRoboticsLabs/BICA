@@ -1,0 +1,17 @@
+<library path="src">
+  <class name="BicaGraph" type="bica_rqt_graph.bica_graph.BicaGraph" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A Python GUI plugin to visualize a BICA graph.
+    </description>
+    <qtgui>
+      <group>
+        <label>Introspection</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to introspection.</statustip>
+      </group>
+      <label>BICA Graph</label>
+      <icon type="theme">preferences-system-network</icon>
+      <statustip>A Python GUI plugin for visualizing the BICA computation graph.</statustip>
+    </qtgui>
+  </class>
+</library>

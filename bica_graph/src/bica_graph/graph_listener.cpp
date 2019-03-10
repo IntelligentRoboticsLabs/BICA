@@ -39,7 +39,7 @@
 
 using bica_graph::GraphListener;
 
-GraphListener::GraphListener(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph)
+GraphListener::GraphListener(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph)
 : nh_(nh), graph_(graph)
 {
   graph_sub_ = nh_.subscribe("graph", 1, &GraphListener::graph_callback, this);

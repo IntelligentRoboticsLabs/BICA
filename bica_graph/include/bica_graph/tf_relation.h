@@ -56,6 +56,10 @@ public:
 
   /// Create a new relation.
   /**
+  * Tipically, a Relation is not created throught Node::add_relation
+  * \param[in] tf The transform of the relation
+  * \param[in] source The source of the relation
+  * \param[in] target The target of the relation
   */
   TFRelation(
     const geometry_msgs::TransformStamped& tf,

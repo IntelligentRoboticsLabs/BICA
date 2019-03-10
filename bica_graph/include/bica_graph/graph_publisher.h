@@ -55,7 +55,7 @@ public:
   * \param[in] nh A nodehandle.
   * \param[in] graph The graph to serve.
   */
-  explicit GraphPublisher(ros::NodeHandle& nh, const std::shared_ptr<bica_graph::BicaGraph>& graph);
+  explicit GraphPublisher(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph);
 
   /// Publish de graph
   /**
