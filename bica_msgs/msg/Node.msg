@@ -1,3 +1,4 @@
+time stamp
 string id
 string type
 bica_msgs/Relation[] relations

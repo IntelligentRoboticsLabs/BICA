@@ -62,7 +62,8 @@ public:
   * \param[in] source The source of the relation
   * \param[in] target The target of the relation
   */
-  Relation(const std::string& type, const std::shared_ptr<Node>& source, const std::shared_ptr<Node>& target);
+  Relation(const std::string& type, const std::shared_ptr<Node>& source,
+    const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
 
   /// Create a destructor .
   /**
@@ -75,6 +76,18 @@ public:
   * \returns the type of the relation.
   */
   const std::string get_type() const {return type_;}
+
+  /// update de time stamp of the node.
+  /**
+  *
+  */
+  void update_time_stamp();
+
+  /// get the time stamp of the relation.
+  /**
+  * \returns the time stamp of the relation.
+  */
+  ros::Time get_time_stamp() const {return ts_;}
 
   /// <get the source of the relation.
   /**
@@ -126,6 +139,8 @@ protected:
   std::shared_ptr<Node> target_;
   std::shared_ptr<Node> source_;
   std::string type_;
+
+  ros::Time ts_;
 };
 
 bool operator==(const Relation& lhs, const Relation& rhs);

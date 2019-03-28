@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   bica_graph
   bica_msgs
+  image_transport
+  cv_bridge
+  pcl_ros
 )
 
 catkin_package(
@@ -51,3 +54,11 @@ target_link_libraries(graph_server_node ${catkin_LIBRARIES})
 add_executable(graph_client_node src/graph/graph_client_node.cpp)
 add_dependencies(graph_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(graph_client_node ${catkin_LIBRARIES})
+
+add_executable(follower_node src/follow_ball/follower_node.cpp)
+add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(follower_node ${catkin_LIBRARIES})
+
+add_executable(ball_detector_node src/follow_ball/ball_detector_node.cpp)
+add_dependencies(ball_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ball_detector_node ${catkin_LIBRARIES})

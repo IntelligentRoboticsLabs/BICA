@@ -70,10 +70,48 @@ BicaGraph::is_sub_graph() const
 std::shared_ptr<bica_graph::Node>
 BicaGraph::create_node(const std::string& id, const std::string& type)
 {
-  auto node = std::make_shared<bica_graph::Node>(id, type);
-  nodes_.push_back(node);
+  return create_node(id, type, ros::Time::now());
+}
+
+std::shared_ptr<bica_graph::Node>
+BicaGraph::create_node(const std::string& id, const std::string& type, const ros::Time& time_stamp)
+{
+  auto node = get_node(id);
+
+  if (node == nullptr)
+  {
+    node = std::make_shared<bica_graph::Node>(id, type, time_stamp);
+    nodes_.push_back(node);
+  }
+  else
+  {
+    node->update_time_stamp();
+  }
 
   return node;
+}
+
+void
+BicaGraph::remove_node(const std::string& id)
+{
+  auto node = get_node(id);
+
+  if (node != nullptr)
+  {
+    node->remove_all_relations();
+
+    auto it = nodes_.begin();
+
+    while (it!= nodes_.end())
+    {
+      if ((*it)->get_id() == id)
+      {
+        it = nodes_.erase(it);
+      }
+      else
+        ++it;
+    }
+  }
 }
 
 BicaGraph&
@@ -95,7 +133,7 @@ BicaGraph::get_node(const std::string& id)
 
   for (auto it = nodes_.begin(); it!= nodes_.end(); ++it)
   {
-    if ((*it)->get_id() == id)
+    if ((*it)->get_id() == id)  // Todo (fmrico): Use also the type and throw an exception if different
     {
       ret = *it;
     }

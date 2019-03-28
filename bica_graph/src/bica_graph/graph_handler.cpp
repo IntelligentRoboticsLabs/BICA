@@ -34,73 +34,26 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <string>
+#include <bica_graph/graph_handler.h>
 
-#include <bica_graph/relation.h>
-#include <bica_graph/node.h>
+using bica_graph::GraphHandler;
 
-using bica_graph::Relation;
-
-Relation::Relation(const std::string& type, const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target, const ros::Time& time_stamp)
-: source_(source), target_(target), type_(type), ts_(time_stamp)
+GraphHandler::GraphHandler(ros::NodeHandle& nh)
+: nh_(nh),
+  graph_(new bica_graph::BicaGraph()),
+  graph_list_(nh_, graph_),
+  graph_pub_(nh_, graph_)
 {
+}
+
+void BicaGraph::SharedPtr
+GraphHandler::get_graph()
+{
+  return graph_;
 }
 
 void
-Relation::update_time_stamp()
+GraphHandler::commit_changes()
 {
-  ts_ = ros::Time::now();
-}
-
-bica_msgs::RelationConstPtr
-Relation::transform_to_msg()
-{
-  bica_msgs::RelationPtr msg (new bica_msgs::Relation());
-
-  msg->type = type_;
-  msg->source = source_->get_id();
-  msg->target = target_->get_id();
-  msg->stamp = ts_;
-
-  return msg;
-}
-
-void
-Relation::add_to_msg(bica_msgs::NodePtr node)
-{
-  node->relations.push_back(*this->transform_to_msg());
-}
-
-
-bool bica_graph::operator==(const Relation& lhs, const Relation& rhs)
-{
-  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
-  {
-    return false;
-  }
-
-  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
-  {
-    return false;
-  }
-
-  if (lhs.type_ != rhs.type_)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool bica_graph::operator!=(const Relation& lhs, const Relation& rhs)
-{
-  return !(lhs == rhs);
-}
-
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const Relation& rhs)
-{
-  lhs << "Relation [" << rhs.type_ <<"] " <<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() << std::endl;
-  return lhs;
+  graph_pub_.send_graph();
 }

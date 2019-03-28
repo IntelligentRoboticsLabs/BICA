@@ -34,73 +34,48 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <string>
+#ifndef BICA_GRAPH_GRAPH_HANDLER_H
+#define BICA_GRAPH_GRAPH_HANDLER_H
 
-#include <bica_graph/relation.h>
-#include <bica_graph/node.h>
+#include <ros/ros.h>
 
-using bica_graph::Relation;
+#include <bica_graph/graph.h>
+#include <bica_msgs/Graph.h>
+#include <bica_graph/graph_listener.h>
 
-Relation::Relation(const std::string& type, const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target, const ros::Time& time_stamp)
-: source_(source), target_(target), type_(type), ts_(time_stamp)
+namespace bica_graph
 {
-}
 
-void
-Relation::update_time_stamp()
+class GraphHandler
 {
-  ts_ = ros::Time::now();
-}
+public:
+  BICA_GRAPH_SMART_PTR_DEFINITIONS(GraphHandler)
 
-bica_msgs::RelationConstPtr
-Relation::transform_to_msg()
-{
-  bica_msgs::RelationPtr msg (new bica_msgs::Relation());
+  /// Create a graph hanlder.
+  /**
+  */
+  explicit GraphHandler();
 
-  msg->type = type_;
-  msg->source = source_->get_id();
-  msg->target = target_->get_id();
-  msg->stamp = ts_;
-
-  return msg;
-}
-
-void
-Relation::add_to_msg(bica_msgs::NodePtr node)
-{
-  node->relations.push_back(*this->transform_to_msg());
-}
+  /// Create a node and insert it in the graph.
+  /**
+  * \param[in] id The id of the new node.
+  * \param[in] type The type of the node.
+  * \returns true if it is a subgraph
+  */
+  std::shared_ptr<Node> create_node(const std::string& id,
+    const std::string& type);
 
 
-bool bica_graph::operator==(const Relation& lhs, const Relation& rhs)
-{
-  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
-  {
-    return false;
-  }
+private:
 
-  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
-  {
-    return false;
-  }
 
-  if (lhs.type_ != rhs.type_)
-  {
-    return false;
-  }
+  ros::NodeHandle nh_;
+  BicaGraph::SharedPtr graph_;
 
-  return true;
-}
+  ros::Subscriber graph_sub_;
 
-bool bica_graph::operator!=(const Relation& lhs, const Relation& rhs)
-{
-  return !(lhs == rhs);
-}
+};
 
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const Relation& rhs)
-{
-  lhs << "Relation [" << rhs.type_ <<"] " <<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() << std::endl;
-  return lhs;
-}
+}  // namespace bica_graph
+
+#endif  // BICA_GRAPH_GRAPH_HANDLER_H

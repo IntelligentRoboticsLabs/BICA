@@ -65,14 +65,24 @@ TEST(BicaGraph, test_node_and_relation)
   auto relation1 = node->add_relation("is", bedroom);
   auto relation2 = node->add_relation("isbis", bedroom);
 
-
   ASSERT_EQ(2, graph->count_nodes());
   ASSERT_EQ(2, node->get_relations().size());
+  ASSERT_EQ(2, bedroom->get_incoming_relations().size());
   ASSERT_EQ("leia", node->get_id());
   ASSERT_EQ("is", relation1->get_type());
   ASSERT_EQ("is", node->get_relations().front()->get_type());
+  ASSERT_EQ("is", bedroom->get_incoming_relations().front()->get_type());
   ASSERT_EQ("leia", node->get_relations().front()->get_source()->get_id());
+  ASSERT_EQ("leia", bedroom->get_incoming_relations().front()->get_source()->get_id());
   ASSERT_EQ("bedroom", node->get_relations().front()->get_target()->get_id());
+  ASSERT_EQ("bedroom", bedroom->get_incoming_relations().front()->get_target()->get_id());
+
+  node->remove_relation("isbis", bedroom);
+  ASSERT_EQ(1, node->get_relations().size());
+
+  graph->remove_node("bedroom");
+  ASSERT_EQ(1, graph->count_nodes());
+  ASSERT_EQ(0, node->get_relations().size());
 }
 
 TEST(BicaGraph, test_node_and_tf_relation)
@@ -82,50 +92,26 @@ TEST(BicaGraph, test_node_and_tf_relation)
   auto node = graph->create_node("leia", "robot");
   auto bedroom =  graph->create_node("bedroom", "room");
 
-  geometry_msgs::TransformStamped tf;
-  tf.header.seq = 1;
-  tf.header.frame_id = "/world";
-  tf.child_frame_id = "/robot";
-  tf.transform.translation.x = 1;
-  tf.transform.translation.y = 1;
-  tf.transform.translation.z = 1;
-  tf.transform.rotation.x = 0;
-  tf.transform.rotation.y = 0;
-  tf.transform.rotation.z = 0;
-  tf.transform.rotation.w = 1;
+  tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
 
-  auto relation1 = node->add_tf_relation(tf, bedroom);
+  auto relation1 = bedroom->add_tf_relation(tf, node);
 
   ASSERT_EQ(2, graph->count_nodes());
-  ASSERT_EQ(1, node->get_relations().size());
+  ASSERT_EQ(1, bedroom->get_relations().size());
   ASSERT_EQ("leia", node->get_id());
   ASSERT_EQ("tf", relation1->get_type());
-  ASSERT_EQ("tf", node->get_relations().front()->get_type());
-  ASSERT_EQ("leia", node->get_relations().front()->get_source()->get_id());
-  ASSERT_EQ("bedroom", node->get_relations().front()->get_target()->get_id());
-  ASSERT_EQ(1, relation1->get_transform().header.seq);
-  ASSERT_EQ("/world", relation1->get_transform().header.frame_id);
-  ASSERT_EQ("/robot", relation1->get_transform().child_frame_id);
-  ASSERT_EQ(1, relation1->get_transform().transform.translation.x);
-  ASSERT_EQ(1, relation1->get_transform().transform.translation.y);
-  ASSERT_EQ(1, relation1->get_transform().transform.translation.z);
-  ASSERT_EQ(0, relation1->get_transform().transform.rotation.x);
-  ASSERT_EQ(0, relation1->get_transform().transform.rotation.y);
-  ASSERT_EQ(0, relation1->get_transform().transform.rotation.z);
-  ASSERT_EQ(1, relation1->get_transform().transform.rotation.w);
+  ASSERT_EQ("tf", bedroom->get_relations().front()->get_type());
+  ASSERT_EQ("bedroom", bedroom->get_relations().front()->get_source()->get_id());
+  ASSERT_EQ("leia", bedroom->get_relations().front()->get_target()->get_id());
+  ASSERT_EQ("bedroom", relation1->get_transform().frame_id_);
+  ASSERT_EQ("leia", relation1->get_transform().child_frame_id_);
+  ASSERT_EQ(tf, relation1->get_transform());
 
-  auto r =  std::dynamic_pointer_cast<bica_graph::TFRelation>(node->get_relations().front());
+  auto r =  std::dynamic_pointer_cast<bica_graph::TFRelation>(bedroom->get_relations().front());
 
-  ASSERT_EQ(1, r->get_transform().header.seq);
-  ASSERT_EQ("/world", r->get_transform().header.frame_id);
-  ASSERT_EQ("/robot", r->get_transform().child_frame_id);
-  ASSERT_EQ(1, r->get_transform().transform.translation.x);
-  ASSERT_EQ(1, r->get_transform().transform.translation.y);
-  ASSERT_EQ(1, r->get_transform().transform.translation.z);
-  ASSERT_EQ(0, r->get_transform().transform.rotation.x);
-  ASSERT_EQ(0, r->get_transform().transform.rotation.y);
-  ASSERT_EQ(0, r->get_transform().transform.rotation.z);
-  ASSERT_EQ(1, r->get_transform().transform.rotation.w);
+  ASSERT_EQ("bedroom", r->get_transform().frame_id_);
+  ASSERT_EQ("leia", r->get_transform().child_frame_id_);
+  ASSERT_EQ(tf, r->get_transform());
 }
 
 TEST(BicaGraph, test_conversion_to_msg)
@@ -137,17 +123,7 @@ TEST(BicaGraph, test_conversion_to_msg)
   auto relation1 = node->add_relation("is", bedroom);
   auto relation2 = node->add_relation("isbis", bedroom);
 
-  geometry_msgs::TransformStamped tf;
-  tf.header.seq = 1;
-  tf.header.frame_id = "/world";
-  tf.child_frame_id = "/robot";
-  tf.transform.translation.x = 1;
-  tf.transform.translation.y = 1;
-  tf.transform.translation.z = 1;
-  tf.transform.rotation.x = 0;
-  tf.transform.rotation.y = 0;
-  tf.transform.rotation.z = 0;
-  tf.transform.rotation.w = 1;
+  tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
 
   auto relation_tf = node->add_tf_relation(tf, bedroom);
 
@@ -200,16 +176,8 @@ TEST(BicaGraph, test_conversion_from_msg)
   bica_msgs::TFRelation relation_tf;
   relation_tf.source = "leia";
   relation_tf.target = "bedroom";
-  relation_tf.transform.header.seq = 1;
-  relation_tf.transform.header.frame_id = "/world";
-  relation_tf.transform.child_frame_id = "/robot";
-  relation_tf.transform.transform.translation.x = 1;
-  relation_tf.transform.transform.translation.y = 1;
-  relation_tf.transform.transform.translation.z = 1;
-  relation_tf.transform.transform.rotation.x = 0;
-  relation_tf.transform.transform.rotation.y = 0;
-  relation_tf.transform.transform.rotation.z = 0;
-  relation_tf.transform.transform.rotation.w = 1;
+  tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
+  tf::transformTFToMsg(tf, relation_tf.transform);
 
   node.relations.push_back(relation1);
   node.relations.push_back(relation2);
@@ -227,26 +195,87 @@ TEST(BicaGraph, test_conversion_from_msg)
   auto g_relation1 = g_node->add_relation("is", g_bedroom);
   auto g_relation2 = g_node->add_relation("isbis", g_bedroom);
 
+  tf::Transform tf2(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
+
+  auto g_relation_tf = g_node->add_tf_relation(tf2, g_bedroom);
+
+  ASSERT_EQ(*graph_msg, *graph);
+}
+
+TEST(BicaGraph, test_timestamps)
+{
+  ros::Time::init();
+  auto graph = std::make_shared<bica_graph::BicaGraph>();
+
+  ros::Time t1 = ros::Time::now();
+
+  auto node = graph->create_node("leia", "robot", t1);
+  auto bedroom =  graph->create_node("bedroom", "room", t1);
+  auto relation1 = node->add_relation("is", bedroom, t1);
+  auto relation2 = node->add_relation("isbis", bedroom, t1);
+
+  ros::Time ts_node = graph->get_node("leia")->get_time_stamp();
+  ASSERT_EQ(ts_node, t1);
+  ros::Time ts_bedroom = graph->get_node("bedroom")->get_time_stamp();
+  ASSERT_EQ(ts_bedroom, t1);
+  ros::Time ts_r1 = graph->get_node("leia")->get_relation(bedroom, "is")->get_time_stamp();
+  ASSERT_EQ(ts_r1, t1);
+  ros::Time ts_r2 = graph->get_node("leia")->get_relation(bedroom, "isbis")->get_time_stamp();
+  ASSERT_EQ(ts_r2, t1);
+
+  graph->get_node("leia")->update_time_stamp();
+  graph->create_node("bedroom", "room");
+  graph->get_node("leia")->get_relation(bedroom, "is")->update_time_stamp();
+  graph->get_node("leia")->get_relation(bedroom, "isbis")->update_time_stamp();
+
+  ros::Time ts_node_2 = graph->get_node("leia")->get_time_stamp();
+  ASSERT_GT((ts_node_2 - t1).toSec(), 0);
+  ASSERT_LT((ts_node_2 - t1).toSec(), 0.1);
+  ros::Time ts_bedroom_2 = graph->get_node("bedroom")->get_time_stamp();
+  ASSERT_GT((ts_bedroom_2 - t1).toSec(), 0);
+  ASSERT_LT((ts_bedroom_2 - t1).toSec(), 0.1);
+  ros::Time ts_r1_2 = graph->get_node("leia")->get_relation(bedroom, "is")->get_time_stamp();
+  ASSERT_GT((ts_r1_2 - t1).toSec(), 0);
+  ASSERT_LT((ts_r1_2 - t1).toSec(), 0.1);
+  ros::Time ts_r2_2 = graph->get_node("leia")->get_relation(bedroom, "isbis")->get_time_stamp();
+  ASSERT_GT((ts_r2_2 - t1).toSec(), 0);
+  ASSERT_LT((ts_r2_2 - t1).toSec(), 0.1);
+}
+
+TEST(BicaGraph, test_handler_api)
+{
+  // auto graph_handler = std::make_shared<bica_graph::GraphHandler>();
+
+  // graph_handler->create_node("leia", "robot");
+  // graph_handler->create_node("bedroom", "room");
+
+  /* graph_handler->add_relation("leia", "is", "bedroom");
+  graph_handler->add_relation("leia", "isbis", "bedroom");
+
   geometry_msgs::TransformStamped tf;
   tf.header.seq = 1;
   tf.header.frame_id = "/world";
   tf.child_frame_id = "/robot";
-  tf.transform.translation.x = 1;
-  tf.transform.translation.y = 1;
-  tf.transform.translation.z = 1;
-  tf.transform.rotation.x = 0;
-  tf.transform.rotation.y = 0;
-  tf.transform.rotation.z = 0;
-  tf.transform.rotation.w = 1;
+  tf.translation.x = 1;
+  tf.translation.y = 1;
+  tf.translation.z = 1;
+  tf.rotation.x = 0;
+  tf.rotation.y = 0;
+  tf.rotation.z = 0;
+  tf.rotation.w = 1;
 
-  auto g_relation_tf = g_node->add_tf_relation(tf, g_bedroom);
+  graph_handler->add_tf_relation("leia", ft, "bedroom");
 
-  ASSERT_EQ(*graph_msg, *graph);
+  auto node_leia = graph_handler->get_node("leia");
+  graph_handler->remove_node("leia");
+  */
 }
 
 int main(int argc, char* argv[])
 {
   testing::InitGoogleTest(&argc, argv);
+  ros::init(argc, argv, "graph_tester");
+  ros::NodeHandle nh;
 
   return RUN_ALL_TESTS();
 }

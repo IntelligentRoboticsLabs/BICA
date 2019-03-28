@@ -39,11 +39,50 @@
 using bica_graph::TFRelation;
 
 TFRelation::TFRelation(
-  const geometry_msgs::TransformStamped& tf,
+  const tf::Transform& tf,
   const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target)
-:Relation("tf", source, target), tf_(tf)
+  const std::shared_ptr<Node>& target,
+  const ros::Time& time_stamp)
+: Relation("tf", source, target, time_stamp)
 {
+  set_transform(tf);
+}
+
+tf::StampedTransform
+TFRelation::get_transform() const
+{
+  tf::StampedTransform tf;
+  try
+  {
+    tf_listener_.waitForTransform(target_->get_id(), source_->get_id(), ros::Time(0), ros::Duration(1.0));
+    tf_listener_.lookupTransform(source_->get_id(), target_->get_id(), ros::Time(0), tf);
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR("get_transform:: %s", ex.what());
+  }
+
+  return tf;
+}
+
+void
+TFRelation::set_transform(const tf::Transform& tf)
+{
+  geometry_msgs::TransformStamped tf_send;
+  tf_send.child_frame_id = target_->get_id();
+  tf_send.header.frame_id = source_->get_id();
+
+  tf_send.header.stamp = ros::Time::now();
+  tf::transformTFToMsg(tf, tf_send.transform);
+
+  try
+  {
+    tf_broadcaster_.sendTransform(tf_send);
+  }
+  catch(tf::TransformException &exception)
+  {
+    ROS_ERROR("set_transform:: %s", exception.what());
+  }
 }
 
 bica_msgs::TFRelationConstPtr
@@ -51,9 +90,20 @@ TFRelation::transform_to_msg()
 {
   bica_msgs::TFRelationPtr msg (new bica_msgs::TFRelation());
 
-  msg->transform = tf_;
+  tf::StampedTransform tf;
+  try
+  {
+    tf_listener_.lookupTransform(target_->get_id(), source_->get_id(), ros::Time(0), tf);
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR("%s", ex.what());
+  }
+
+  tf::transformTFToMsg(tf, msg->transform);
   msg->source = source_->get_id();
   msg->target = target_->get_id();
+  msg->stamp = ts_;
 
   return msg;
 }
@@ -81,13 +131,6 @@ bool bica_graph::operator==(const TFRelation& lhs, const TFRelation& rhs)
     return false;
   }
 
-  // (fmrico): Is this enough? Transform can be different, but the transform must exist.
-  if ( (lhs.tf_.header.frame_id != rhs.tf_.header.frame_id) ||
-       (lhs.tf_.child_frame_id != rhs.tf_.child_frame_id)
-     )
-  {
-    return false;
-  }
   return true;
 }
 
@@ -99,9 +142,7 @@ bool bica_graph::operator!=(const TFRelation& lhs, const TFRelation& rhs)
 std::ostream& bica_graph::operator<<(std::ostream& lhs, const TFRelation& rhs)
 {
   lhs << "TF Relation [" << rhs.type_ << "] "<<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() <<
-    "time [" << rhs.tf_.header.stamp.sec << ", " << rhs.tf_.header.stamp.nsec <<
-    "]"<< std::endl;
+    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() << std::endl;
 
   return lhs;
 }

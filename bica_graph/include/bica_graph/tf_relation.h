@@ -41,6 +41,9 @@
 #include <string>
 
 #include <geometry_msgs/TransformStamped.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+
 #include <bica_msgs/TFRelation.h>
 
 #include <bica_graph/macros.h>
@@ -60,17 +63,25 @@ public:
   * \param[in] tf The transform of the relation
   * \param[in] source The source of the relation
   * \param[in] target The target of the relation
+  * \param[in] time_stamp The time of the creation
   */
   TFRelation(
-    const geometry_msgs::TransformStamped& tf,
+    const tf::Transform& tf,
     const std::shared_ptr<Node>& source,
-    const std::shared_ptr<Node>& target);
+    const std::shared_ptr<Node>& target,
+    const ros::Time& time_stamp);
 
   /// get the transform of the relation.
   /**
   * \returns the transform stamped.
   */
-  const geometry_msgs::TransformStamped& get_transform() const {return tf_;}
+  tf::StampedTransform get_transform() const;
+
+  /// set the transform of the relation.
+  /**
+  * \param[in] tf The updated transform
+  */
+  void set_transform(const tf::Transform& tf);
 
   /// Create a msg from this relation.
   /**
@@ -107,16 +118,10 @@ public:
   */
   friend std::ostream& operator<<(std::ostream& lhs, const TFRelation& rhs);
 
-  /// Return the transform of this tf relation.
-  /**
-  * \returns a ref to the geometry_msgs::TransformStamped
-  */
-  geometry_msgs::TransformStamped& get_tf() {return tf_;}
-
 
 protected:
-  geometry_msgs::TransformStamped tf_;
-
+  tf::TransformListener tf_listener_;
+  tf::TransformBroadcaster tf_broadcaster_;
 };
 
 bool operator==(const TFRelation& lhs, const TFRelation& rhs);

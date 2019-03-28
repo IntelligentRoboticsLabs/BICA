@@ -25,7 +25,7 @@ public:
 
 	void step()
 	{
-		if(!isActive()) return;
+		if (!isActive()) return;
 
 		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
 	}

@@ -57,6 +57,7 @@ bica_graph::graph_to_msg(const bica_graph::BicaGraph& graph)
 
     node_msg->id = node->get_id();
     node_msg->type = node->get_type();
+    node_msg->stamp = node->get_time_stamp();
 
     msg->nodes.push_back(*node_msg);
   }
@@ -71,7 +72,8 @@ bica_graph::msg_to_graph(const bica_msgs::GraphConstPtr& msg)
 
   for (int i = 0; i < msg->nodes.size(); i++)
   {
-    auto node = graph->create_node(msg->nodes[i].id, msg->nodes[i].type);
+    auto node = graph->create_node(msg->nodes[i].id, msg->nodes[i].type,
+      msg->nodes[i].stamp);
   }
 
   for (int i = 0; i < msg->nodes.size(); i++)

@@ -39,33 +39,11 @@ public:
     auto bathroomcorridor = node_bathroom->add_relation("connects", node_corridor);
     auto corridor2bathroom = node_corridor->add_relation("connects", node_bathroom);
 
-    geometry_msgs::TransformStamped tf_apple;
-    tf_apple.header.seq = 1;
-    tf_apple.header.stamp = ros::Time::now();
-    tf_apple.header.frame_id = "/leia";
-    tf_apple.child_frame_id = "/apple";
-    tf_apple.transform.translation.x = 1;
-    tf_apple.transform.translation.y = 0;
-    tf_apple.transform.translation.z = 1;
-    tf_apple.transform.rotation.x = 0;
-    tf_apple.transform.rotation.y = 0;
-    tf_apple.transform.rotation.z = 0;
-    tf_apple.transform.rotation.w = 1;
+    tf::Transform tf_apple(tf::Quaternion(0,0,0,1), tf::Vector3(1,0,1));
 
     auto leia_apple_tf = node_leia->add_tf_relation(tf_apple, node_apple);
 
-    geometry_msgs::TransformStamped tf_jack;
-    tf_jack.header.seq = 1;
-    tf_jack.header.stamp = ros::Time::now();
-    tf_jack.header.frame_id = "/leia";
-    tf_jack.child_frame_id = "/jack";
-    tf_jack.transform.translation.x = 4;
-    tf_jack.transform.translation.y = 2;
-    tf_jack.transform.translation.z = 0;
-    tf_jack.transform.rotation.x = 0;
-    tf_jack.transform.rotation.y = 0;
-    tf_jack.transform.rotation.z = 0;
-    tf_jack.transform.rotation.w = 1;
+    tf::Transform tf_jack(tf::Quaternion(0,0,0,1), tf::Vector3(4,2,0));
 
     auto leia_jack_tf = node_leia->add_tf_relation(tf_jack, node_jack);
 
@@ -81,8 +59,8 @@ public:
       if (relation->get_type() == "tf")
       {
         auto r = std::dynamic_pointer_cast<bica_graph::TFRelation>(relation);
-        geometry_msgs::TransformStamped& tf = r->get_tf();
-        tf.header.stamp = ros::Time::now();
+        tf::StampedTransform tf = r->get_transform();
+        r->set_transform(tf);
       }
     }
 

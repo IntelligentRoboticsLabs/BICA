@@ -83,12 +83,30 @@ public:
   * \param[in] type The type of the node.
   * \returns true if it is a subgraph
   */
-  std::shared_ptr<Node> create_node(const std::string& id, const std::string& type);
+  std::shared_ptr<Node> create_node(const std::string& id,
+    const std::string& type);
+
+  /// Create a node and insert it in the graph.
+  /**
+  * \param[in] id The id of the new node.
+  * \param[in] type The type of the node.
+  * \param[in] time_stamp The time when it is created.
+  * \returns true if it is a subgraph
+  */
+  std::shared_ptr<Node> create_node(const std::string& id,
+    const std::string& type, const ros::Time& time_stamp);
+
+  /// Remove a node and its related connections.
+  /**
+  * \param[in] id The id of the node to remove.
+  */
+  void remove_node(const std::string& id);
+
 
   /// Get a node pointer.
   /**
   * \param[in] id The id of the  node.
-  * \returns The shared pointer to the node
+  * \returns The shared pointer to the node. nullptr if it does not exist
   */
   std::shared_ptr<Node> get_node(const std::string& id);
 
