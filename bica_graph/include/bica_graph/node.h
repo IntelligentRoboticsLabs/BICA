@@ -193,7 +193,7 @@ public:
    * \param[in] target The target node of the relation.
    * \returns The shared pointer to the relation. nullptr if it does not exist
   */
-  std::shared_ptr<Relation> get_tf_relation(
+  std::shared_ptr<TFRelation> get_tf_relation(
     const std::shared_ptr<Node>& target);
 
   /// Get a relation pointer.

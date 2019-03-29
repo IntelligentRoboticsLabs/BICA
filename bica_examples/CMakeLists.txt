@@ -6,6 +6,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 find_package(catkin REQUIRED COMPONENTS
   bica
+  bica_graph
   roscpp
   rospy
   std_msgs

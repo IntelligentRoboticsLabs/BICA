@@ -103,6 +103,27 @@ public:
     const std::string& type,
     const std::string& target);
 
+  /// Create a TF relation to other node.
+  /**
+  * This method creates the relation and links it to this node
+  * \param[in] source The source of the relation.
+  * \param[in] tf The transform
+  * \param[in] target The target of the relation.
+  * \returns the pointer of the new created relation
+  */
+  std::shared_ptr<Relation> add_tf_relation(const std::string& source,
+    const tf::Transform& tf,
+    const std::string& target);
+
+  /// get a TF relation .
+  /**
+  * \param[in] source The source of the relation.
+  * \param[in] target The target of the relation.
+  * \returns the pointer of the tf  relation
+  */
+  std::shared_ptr<TFRelation> get_tf_relation(const std::string& source,
+    const std::string& target);
+
   /// Remove a relation.
   /**
   * \param[in] id The id of the relation to remove.
@@ -111,6 +132,39 @@ public:
     const std::string& type,
     const std::string& target);
 
+  /// Remove a tf relation.
+  /**
+  * \param[in] id The id of the relation to remove.
+  */
+  void remove_tf_relation(const std::string& source,
+    const std::string& target);
+
+  /// Checks if the graph contains a node by id.
+  /**
+  * \param[in] node_id The id of the node to loof for.
+  * \returns true if the node is in the graph
+  */
+  bool contains_node(const std::string& node_id);
+
+  /// Checks if the graph contains a tf relation.
+  /**
+  * \param[in] source The source of the relation.
+  * \param[in] type The type of the relation.
+  * \param[in] target The target of the relation.
+  * \returns true if the relation is in the graph
+  */
+  bool contains_relation(const std::string& source,
+    const std::string& type,
+    const std::string& target);
+
+  /// Checks if the graph contains a tf relation.
+  /**
+  * \param[in] source The source of the relation.
+  * \param[in] target The target of the relation.
+  * \returns true if the relation is in the graph
+  */
+  bool contains_tf_relation(const std::string& source,
+    const std::string& target);
 private:
   void graph_update_callback(const ros::MessageEvent<bica_msgs::GraphUpdate const>& event);
 

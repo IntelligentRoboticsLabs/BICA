@@ -118,6 +118,7 @@ TEST(BicaGraph, test_node_and_tf_relation)
   ASSERT_EQ("bedroom", relation1->get_transform().frame_id_);
   ASSERT_EQ("leia", relation1->get_transform().child_frame_id_);
   ASSERT_EQ(tf, relation1->get_transform());
+  ASSERT_EQ(tf, bedroom->get_tf_relation(node)->get_transform());
 
   auto r =  std::dynamic_pointer_cast<bica_graph::TFRelation>(bedroom->get_relations().front());
 
@@ -393,14 +394,24 @@ TEST(BicaGraph, test_handler_node_api)
   */
 }
 
-
 TEST(BicaGraph, test_handler_relation_api)
 {
   GraphHandlerTest graph_handler_1("handler_3");
   GraphHandlerTest graph_handler_2("handler_4");
 
+
+  ASSERT_FALSE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_FALSE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_node("leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_node("leia"));
+
   graph_handler_1.graph_handler_.create_node("leia", "robot");
   graph_handler_1.graph_handler_.create_node("bedroom", "room");
+
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_node("leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_node("leia"));
 
   ASSERT_EQ(2, graph_handler_1.graph_handler_.count_nodes());
   ASSERT_EQ(0, graph_handler_2.graph_handler_.count_nodes());
@@ -414,6 +425,11 @@ TEST(BicaGraph, test_handler_relation_api)
     rate.sleep();
   }
 
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_node("leia"));
+  ASSERT_TRUE(graph_handler_2.graph_handler_.contains_node("leia"));
+  ASSERT_TRUE(graph_handler_2.graph_handler_.contains_node("leia"));
+
   graph_handler_1.graph_handler_.add_relation("leia", "is", "bedroom");
   graph_handler_1.graph_handler_.add_relation("leia", "isbis", "bedroom");
 
@@ -422,6 +438,11 @@ TEST(BicaGraph, test_handler_relation_api)
 
   ASSERT_EQ(2, node_1->count_relations());
   ASSERT_EQ(0, node_2->count_relations());
+
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
 
   c = 0;
   while (ros::ok() && c < 10)
@@ -433,6 +454,11 @@ TEST(BicaGraph, test_handler_relation_api)
 
   ASSERT_EQ(2, node_1->count_relations());
   ASSERT_EQ(2, node_2->count_relations());
+
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
+  ASSERT_TRUE(graph_handler_2.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_TRUE(graph_handler_2.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
 
   graph_handler_1.graph_handler_.remove_relation("leia", "is", "bedroom");
 
@@ -459,6 +485,150 @@ TEST(BicaGraph, test_handler_relation_api)
 
   ASSERT_EQ(0, node_1->count_relations());
   ASSERT_EQ(0, node_2->count_relations());
+
+  ASSERT_FALSE(graph_handler_1.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_FALSE(graph_handler_1.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_relation("leia", "is", "bedroom"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_relation("leia", "isbis", "bedroom"));
+}
+
+TEST(BicaGraph, test_handler_tf_relation_api)
+{
+  tf::TransformListener tf_listener;
+
+  tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
+
+  GraphHandlerTest graph_handler_1("handler_5");
+  GraphHandlerTest graph_handler_2("handler_6");
+
+  graph_handler_1.graph_handler_.create_node("leia", "robot");
+  graph_handler_1.graph_handler_.create_node("bedroom", "room");
+
+  ASSERT_EQ(nullptr, graph_handler_1.graph_handler_.get_tf_relation("bedroom", "leia"));
+
+  ros::Rate rate(20);
+  int c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  graph_handler_1.graph_handler_.add_tf_relation("bedroom", tf, "leia");
+  ASSERT_NE(nullptr, graph_handler_1.graph_handler_.get_tf_relation("bedroom", "leia"));
+  ASSERT_EQ(tf, graph_handler_1.graph_handler_.get_tf_relation("bedroom", "leia")->get_transform());
+
+  auto node_1 = graph_handler_1.graph_handler_.get_node("bedroom");
+  auto node_2 = graph_handler_2.graph_handler_.get_node("bedroom");
+
+  ASSERT_EQ(1, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_tf_relation("bedroom", "leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_tf_relation("bedroom", "leia"));
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(1, node_1->count_relations());
+  ASSERT_EQ(1, node_2->count_relations());
+
+  ASSERT_TRUE(graph_handler_1.graph_handler_.contains_tf_relation("bedroom", "leia"));
+  ASSERT_TRUE(graph_handler_2.graph_handler_.contains_tf_relation("bedroom", "leia"));
+
+  graph_handler_1.graph_handler_.remove_tf_relation("bedroom", "leia");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(0, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(0, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+
+  ASSERT_FALSE(graph_handler_1.graph_handler_.contains_tf_relation("bedroom", "leia"));
+  ASSERT_FALSE(graph_handler_2.graph_handler_.contains_tf_relation("bedroom", "leia"));
+
+
+  graph_handler_1.graph_handler_.add_tf_relation("bedroom", tf, "leia");
+  ASSERT_EQ(1, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(1, node_1->count_relations());
+  ASSERT_EQ(1, node_2->count_relations());
+  graph_handler_1.graph_handler_.remove_node("bedroom");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+  ASSERT_EQ(0, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+
+  ASSERT_TRUE(tf_listener.canTransform("bedroom", "leia", ros::Time(0)));
+
+  graph_handler_1.graph_handler_.create_node("leia", "robot");
+  graph_handler_1.graph_handler_.create_node("bedroom", "room");
+  graph_handler_1.graph_handler_.add_tf_relation("bedroom", tf, "leia");
+
+  ASSERT_NE(nullptr, graph_handler_1.graph_handler_.get_tf_relation("bedroom", "leia"));
+  ASSERT_EQ(nullptr, graph_handler_2.graph_handler_.get_tf_relation("bedroom", "leia"));
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_NE(nullptr, graph_handler_1.graph_handler_.get_tf_relation("bedroom", "leia"));
+  ASSERT_NE(nullptr, graph_handler_2.graph_handler_.get_tf_relation("bedroom", "leia"));
+
+  graph_handler_1.graph_handler_.remove_node("leia");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  auto node_3 = graph_handler_1.graph_handler_.get_node("bedroom");
+  auto node_4 = graph_handler_2.graph_handler_.get_node("bedroom");
+  ASSERT_EQ(0, node_3->count_relations());
+  ASSERT_EQ(0, node_4->count_relations());
 }
 
 int main(int argc, char* argv[])

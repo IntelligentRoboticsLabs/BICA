@@ -16,7 +16,7 @@
 #include <bica_graph/graph_publisher.h>
 
 #include <bica/Component.h>
-
+#include <bica_graph/graph_handler.h>
 
 class BallDetector: public bica::Component
 {
@@ -25,14 +25,13 @@ public:
 	: nh_(),
 		new_image_(false),
 		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>),
-		 graph_(new bica_graph::BicaGraph()),
-		 graph_pub_(nh_, graph_)
+		graph_handler_(nh_)
 	{
 		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BallDetector::cloudCB, this);
 
-		auto node_leia = graph_->create_node("leia", "robot");
-		auto node_ball =  graph_->create_node("apple", "object");
-
+		graph_handler_.create_node("leia", "robot");
+	  graph_handler_.create_node("ball", "object");
+		graph_handler_.add_relation("leia", "wants_see", "ball");
 	}
 
 	~BallDetector()
@@ -78,7 +77,7 @@ public:
 		return pcrgb_out;
 	}
 
-	tf::StampedTransform getTransform(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered)
+	tf::Transform getTransform(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered)
 	{
 
 			float x, y, z;
@@ -104,13 +103,9 @@ public:
 				z = z/c;
 			}
 
-			tf::StampedTransform transform;
+			tf::Transform transform;
 			transform.setOrigin(tf::Vector3(x, y, z));
 			transform.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
-
-			transform.stamp_ = ros::Time::now();
-			transform.frame_id_ = "base_footprint";
-			transform.child_frame_id_ = "ball";
 
 			return transform;
 	}
@@ -120,6 +115,9 @@ public:
 	{
 		if (!isActive()) return;
 
+		graph_handler_.create_node("leia", "robot");
+		graph_handler_.create_node("ball", "object");
+
 		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
 
 		if (new_image_)
@@ -127,22 +125,18 @@ public:
 			new_image_ = false;
 			pcl::PointCloud<pcl::PointXYZRGB>::Ptr pc_filtered = filterBall();
 
-
-			ROS_INFO("points = %zu ", pc_filtered->size());
 			if (pc_filtered->size() > 0)
 			{
-				tf::StampedTransform transform = getTransform(pc_filtered);
-				try{
-					tfBroadcaster_.sendTransform(transform);
-				} catch(tf::TransformException& ex){
-					ROS_ERROR_STREAM( "Transform error of sensor data: " << ex.what() << ", quitting callback");
-					return;
-				}
+				graph_handler_.remove_relation("leia", "wants_see", "ball");
+				graph_handler_.add_relation("leia", "sees", "ball");
+				graph_handler_.add_tf_relation("leia", getTransform(pc_filtered), "ball");
+			}
+			else
+			{
+				graph_handler_.remove_relation("leia", "sees", "ball");
+				graph_handler_.add_relation("leia", "wants_see", "ball");
 			}
 		}
-
-
-
 	}
 
 private:
@@ -153,16 +147,14 @@ private:
 	tf::TransformListener tfListener_;
 	tf::TransformBroadcaster tfBroadcaster_;
 
-	bica_graph::BicaGraph::SharedPtr graph_;
-	bica_graph::GraphPublisher graph_pub_;
-
+	bica_graph::GraphHandler graph_handler_;
 
 	bool new_image_;
 };
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "node_ball_detector");
+	ros::init(argc, argv, "ball_detector");
 
 	BallDetector ball_detector;
 

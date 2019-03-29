@@ -280,6 +280,69 @@ GraphHandler::add_relation(const std::string& source,
   return relation;
 }
 
+std::shared_ptr<bica_graph::Relation>
+GraphHandler::add_tf_relation(const std::string& source,
+  const tf::Transform& tf,
+  const std::string& target)
+{
+  auto node_source = graph_->get_node(source);
+  auto node_target = graph_->get_node(target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::add_tf_relation Node source (%s) not found",
+      source.c_str());
+    return nullptr;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::add_tf_relation Node target (%s) not found",
+      target.c_str());
+    return nullptr;
+  }
+
+  auto tf_relation = node_source->add_tf_relation(tf, node_target);
+
+  bica_msgs::GraphUpdate msg;
+
+  msg.stamp = tf_relation->get_time_stamp();
+  msg.handler_id = handler_id_;
+  msg.element_type = bica_msgs::GraphUpdate::TF_RELATION;
+  msg.update_type = bica_msgs::GraphUpdate::ADD;
+  msg.relation_source = source;
+  msg.relation_target = target;
+  msg.relation_type = "tf";
+
+  graph_update_pub_.publish(msg);
+
+  return tf_relation;
+}
+
+std::shared_ptr<bica_graph::TFRelation>
+GraphHandler::get_tf_relation(const std::string& source,
+  const std::string& target)
+{
+  auto node_source = graph_->get_node(source);
+  auto node_target = graph_->get_node(target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::get_tf_relation Node source (%s) not found",
+      source.c_str());
+    return nullptr;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::get_tf_relation Node target (%s) not found",
+      target.c_str());
+    return nullptr;
+  }
+
+  return node_source->get_tf_relation(node_target);
+}
+
 void
 GraphHandler::remove_relation(const std::string& source,
   const std::string& type,
@@ -302,17 +365,89 @@ GraphHandler::remove_relation(const std::string& source,
     return;
   }
 
-  node_source->remove_relation(type, node_target);
+  if (node_source->get_relation(node_target, type) != nullptr)
+  {
+    node_source->remove_relation(type, node_target);
 
-  bica_msgs::GraphUpdate msg;
+    bica_msgs::GraphUpdate msg;
 
-  msg.stamp = ros::Time::now();
-  msg.handler_id = handler_id_;
-  msg.element_type = bica_msgs::GraphUpdate::RELATION;
-  msg.update_type = bica_msgs::GraphUpdate::REMOVE;
-  msg.relation_source = source;
-  msg.relation_target = target;
-  msg.relation_type = type;
+    msg.stamp = ros::Time::now();
+    msg.handler_id = handler_id_;
+    msg.element_type = bica_msgs::GraphUpdate::RELATION;
+    msg.update_type = bica_msgs::GraphUpdate::REMOVE;
+    msg.relation_source = source;
+    msg.relation_target = target;
+    msg.relation_type = type;
 
-  graph_update_pub_.publish(msg);
+    graph_update_pub_.publish(msg);
+  }
+}
+
+void
+GraphHandler::remove_tf_relation(const std::string& source,
+  const std::string& target)
+{
+  auto node_source = graph_->get_node(source);
+  auto node_target = graph_->get_node(target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::remove_relation Node source (%s) not found",
+      source.c_str());
+    return;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::remove_relation Node target (%s) not found",
+      target.c_str());
+    return;
+  }
+
+  if (node_source->get_tf_relation(node_target) != nullptr)
+  {
+    node_source->remove_tf_relation(node_target);
+
+    bica_msgs::GraphUpdate msg;
+
+    msg.stamp = ros::Time::now();
+    msg.handler_id = handler_id_;
+    msg.element_type = bica_msgs::GraphUpdate::TF_RELATION;
+    msg.update_type = bica_msgs::GraphUpdate::REMOVE;
+    msg.relation_source = source;
+    msg.relation_target = target;
+    msg.relation_type = "tf";
+
+    graph_update_pub_.publish(msg);
+  }
+}
+
+bool
+GraphHandler::contains_node(const std::string& node_id)
+{
+  return get_node(node_id) != nullptr;
+}
+
+bool
+GraphHandler::contains_relation(const std::string& source,
+  const std::string& type,
+  const std::string& target)
+{
+  auto node_source = get_node(source);
+  auto node_target = get_node(target);
+
+  if (node_source == nullptr)
+    return false;
+
+  if (node_target == nullptr)
+    return false;
+
+  return node_source->get_relation(node_target, type) != nullptr;
+}
+
+bool
+GraphHandler::contains_tf_relation(const std::string& source,
+  const std::string& target)
+{
+  return contains_relation(source, "tf", target);
 }
