@@ -95,6 +95,7 @@ public:
   /**
   * This method creates the relation and links it to this node
   * \param[in] type The type of the relation.
+  * \param[in] target The target of the relation.
   * \returns the pointer of the new created relation
   */
   std::shared_ptr<Relation> add_relation(const std::string& type,
@@ -109,6 +110,15 @@ public:
   */
   std::shared_ptr<TFRelation> add_tf_relation(
     const tf::Transform& tf,
+    const std::shared_ptr<Node>& target);
+
+  /// Create a TF relation to other node, when a TF exists
+  /**
+  * This method creates the TF relation and links it to this node
+  * \param[in] target The node related to this source node.
+  * \returns the pointer of the new created relation
+  */
+  std::shared_ptr<TFRelation> add_tf_relation(
     const std::shared_ptr<Node>& target);
 
   /// Create a relation to other node.
@@ -132,6 +142,16 @@ public:
   */
   std::shared_ptr<TFRelation> add_tf_relation(
     const tf::Transform& tf,
+    const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
+
+  /// Create a TF relation to other node, when a tf exists
+  /**
+  * This method creates the TF relation and links it to this node
+  * \param[in] target The node related to this source node.
+  * \param[in] time_stamp The timestamp where the relation is created.
+  * \returns the pointer of the new created relation
+  */
+  std::shared_ptr<TFRelation> add_tf_relation(
     const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
 
   /// Remove a relation to other node.
@@ -168,6 +188,14 @@ public:
   */
   void remove_incoming_relation(const std::shared_ptr<Relation>& relation);
 
+  /// Get a TF relation pointer.
+  /**
+   * \param[in] target The target node of the relation.
+   * \returns The shared pointer to the relation. nullptr if it does not exist
+  */
+  std::shared_ptr<Relation> get_tf_relation(
+    const std::shared_ptr<Node>& target);
+
   /// Get a relation pointer.
   /**
    * \param[in] target The target node of the relation.
@@ -176,6 +204,12 @@ public:
   */
   std::shared_ptr<Relation> get_relation(
     const std::shared_ptr<Node>& target, const std::string& type);
+
+  /// Count the number of relations from this node.
+  /**
+  * \returns number of relations
+  */
+  size_t count_relations() const {return relations_out_.size();}
 
   /// Get the list of relations of which this node is source
   /**

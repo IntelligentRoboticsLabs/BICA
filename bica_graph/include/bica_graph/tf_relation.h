@@ -71,6 +71,18 @@ public:
     const std::shared_ptr<Node>& target,
     const ros::Time& time_stamp);
 
+  /// Create a new relation, when tf exists.
+  /**
+  * Tipically, a Relation is not created throught Node::add_relation
+  * \param[in] source The source of the relation
+  * \param[in] target The target of the relation
+  * \param[in] time_stamp The time of the creation
+  */
+  TFRelation(
+    const std::shared_ptr<Node>& source,
+    const std::shared_ptr<Node>& target,
+    const ros::Time& time_stamp);
+
   /// get the transform of the relation.
   /**
   * \returns the transform stamped.

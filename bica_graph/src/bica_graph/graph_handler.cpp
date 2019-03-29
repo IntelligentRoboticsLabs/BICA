@@ -36,24 +36,283 @@
 
 #include <bica_graph/graph_handler.h>
 
+#include <string>
+
 using bica_graph::GraphHandler;
 
-GraphHandler::GraphHandler(ros::NodeHandle& nh)
+GraphHandler::GraphHandler(ros::NodeHandle& nh, std::string handler_id)
 : nh_(nh),
   graph_(new bica_graph::BicaGraph()),
-  graph_list_(nh_, graph_),
-  graph_pub_(nh_, graph_)
+  handler_id_(handler_id)
 {
-}
-
-void BicaGraph::SharedPtr
-GraphHandler::get_graph()
-{
-  return graph_;
+  graph_update_pub_ = nh_.advertise<bica_msgs::GraphUpdate>("/graph_updates", 1000);
+  graph_update_sub_ = nh_.subscribe("/graph_updates", 1000, &GraphHandler::graph_update_callback, this);
 }
 
 void
-GraphHandler::commit_changes()
+GraphHandler::graph_update_callback(const ros::MessageEvent<bica_msgs::GraphUpdate const>& event)
 {
-  graph_pub_.send_graph();
+  if ((event.getPublisherName() == ros::this_node::getName()) && (handler_id_ == event.getMessage()->handler_id))
+    return;
+
+  const bica_msgs::GraphUpdateConstPtr& msg = event.getMessage();
+
+  switch (msg->element_type)
+  {
+    case bica_msgs::GraphUpdate::NODE:
+      update_node(msg);
+      break;
+    case bica_msgs::GraphUpdate::RELATION:
+      update_relation(msg);
+      break;
+    case bica_msgs::GraphUpdate::TF_RELATION:
+      update_tf_relation(msg);
+      break;
+    default:
+      ROS_ERROR("GraphHandler::graph_update_callback Message not recognized");
+  }
+}
+
+void
+GraphHandler::update_node(const bica_msgs::GraphUpdateConstPtr& msg)
+{
+  switch (msg->update_type)
+  {
+    case bica_msgs::GraphUpdate::ADD:
+      {
+        auto node = graph_->get_node(msg->node_id);
+
+        if (node == nullptr)
+        {
+          auto new_node = graph_->create_node(msg->node_id, msg->node_type, msg->stamp);
+        }
+        else
+        {
+          if (node->get_type() != msg->node_type)
+          {
+            ROS_ERROR("GraphHandler::update_node Type mismatch for %s (%s != %s)",
+              node->get_id().c_str(), node->get_type().c_str(), msg->node_type.c_str());
+          }
+          else
+            auto updated_node = graph_->create_node(msg->node_id, msg->node_type);
+        }
+      }
+      break;
+    case bica_msgs::GraphUpdate::REMOVE:
+      {
+        auto node = graph_->get_node(msg->node_id);
+
+        if (node != nullptr)
+        {
+          if (node->get_time_stamp() < msg->stamp)
+            graph_->remove_node(msg->node_id);
+        }
+      }
+      break;
+    default:
+      ROS_ERROR("GraphHandler::update_node Operation not recognized");
+  }
+}
+
+void
+GraphHandler::update_relation(const bica_msgs::GraphUpdateConstPtr& msg)
+{
+  auto node_source = graph_->get_node(msg->relation_source);
+  auto node_target = graph_->get_node(msg->relation_target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::update_relation Node source (%s) not found",
+      msg->relation_source.c_str());
+    return;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::update_relation Node target (%s) not found",
+      msg->relation_target.c_str());
+    return;
+  }
+
+  switch (msg->update_type)
+  {
+    case bica_msgs::GraphUpdate::ADD:
+      {
+        auto new_relation = node_source->add_relation(msg->relation_type, node_target);
+      }
+      break;
+    case bica_msgs::GraphUpdate::REMOVE:
+      {
+        auto relation = node_source->get_relation(node_target, msg->relation_type);
+
+        if (relation != nullptr && relation->get_time_stamp() < msg->stamp)
+          node_source->remove_relation(msg->relation_type, node_target);
+      }
+      break;
+    default:
+      ROS_ERROR("GraphHandler::update_relation Operation not recognized");
+  }
+}
+
+void
+GraphHandler::update_tf_relation(const bica_msgs::GraphUpdateConstPtr& msg)
+{
+  auto node_source = graph_->get_node(msg->relation_source);
+  auto node_target = graph_->get_node(msg->relation_target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::update_tf_relation Node source (%s) not found",
+      msg->relation_source.c_str());
+    return;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::update_tf_relation Node target (%s) not found",
+      msg->relation_target.c_str());
+    return;
+  }
+
+  switch (msg->update_type)
+  {
+    case bica_msgs::GraphUpdate::ADD:
+      {
+        auto new_relation = node_source->add_tf_relation(node_target);
+      }
+      break;
+    case bica_msgs::GraphUpdate::REMOVE:
+      {
+        auto relation = node_source->get_tf_relation(node_target);
+
+        if (relation != nullptr && relation->get_time_stamp() < msg->stamp)
+          node_source->remove_tf_relation(node_target);
+      }
+      break;
+    default:
+      ROS_ERROR("GraphHandler::update_tf_relation Operation not recognized");
+  }
+}
+
+std::shared_ptr<bica_graph::Node>
+GraphHandler::create_node(const std::string& id, const std::string& type)
+{
+  auto new_node = graph_->create_node(id, type);
+
+  bica_msgs::GraphUpdate msg;
+
+  msg.stamp = new_node->get_time_stamp();
+  msg.handler_id = handler_id_;
+  msg.element_type = bica_msgs::GraphUpdate::NODE;
+  msg.update_type = bica_msgs::GraphUpdate::ADD;
+  msg.node_id = id;
+  msg.node_type = type;
+
+  graph_update_pub_.publish(msg);
+
+  return new_node;
+}
+
+void
+GraphHandler::remove_node(const std::string& id)
+{
+  graph_->remove_node(id);
+
+  bica_msgs::GraphUpdate msg;
+
+  msg.stamp = ros::Time::now();
+  msg.handler_id = handler_id_;
+  msg.element_type = bica_msgs::GraphUpdate::NODE;
+  msg.update_type = bica_msgs::GraphUpdate::REMOVE;
+  msg.node_id = id;
+
+  graph_update_pub_.publish(msg);
+}
+
+std::shared_ptr<bica_graph::Node>
+GraphHandler::get_node(const std::string& id) const
+{
+  return graph_->get_node(id);
+}
+
+size_t
+GraphHandler::count_nodes() const
+{
+  return graph_->count_nodes();
+}
+
+std::shared_ptr<bica_graph::Relation>
+GraphHandler::add_relation(const std::string& source,
+  const std::string& type,
+  const std::string& target)
+{
+  auto node_source = graph_->get_node(source);
+  auto node_target = graph_->get_node(target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::add_relation Node source (%s) not found",
+      source.c_str());
+    return nullptr;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::add_relation Node target (%s) not found",
+      target.c_str());
+    return nullptr;
+  }
+
+  auto relation = node_source->add_relation(type, node_target);
+
+  bica_msgs::GraphUpdate msg;
+
+  msg.stamp = relation->get_time_stamp();
+  msg.handler_id = handler_id_;
+  msg.element_type = bica_msgs::GraphUpdate::RELATION;
+  msg.update_type = bica_msgs::GraphUpdate::ADD;
+  msg.relation_source = source;
+  msg.relation_target = target;
+  msg.relation_type = type;
+
+  graph_update_pub_.publish(msg);
+
+  return relation;
+}
+
+void
+GraphHandler::remove_relation(const std::string& source,
+  const std::string& type,
+  const std::string& target)
+{
+  auto node_source = graph_->get_node(source);
+  auto node_target = graph_->get_node(target);
+
+  if (node_source == nullptr)
+  {
+    ROS_ERROR("GraphHandler::remove_relation Node source (%s) not found",
+      source.c_str());
+    return;
+  }
+
+  if (node_target == nullptr)
+  {
+    ROS_ERROR("GraphHandler::remove_relation Node target (%s) not found",
+      target.c_str());
+    return;
+  }
+
+  node_source->remove_relation(type, node_target);
+
+  bica_msgs::GraphUpdate msg;
+
+  msg.stamp = ros::Time::now();
+  msg.handler_id = handler_id_;
+  msg.element_type = bica_msgs::GraphUpdate::RELATION;
+  msg.update_type = bica_msgs::GraphUpdate::REMOVE;
+  msg.relation_source = source;
+  msg.relation_target = target;
+  msg.relation_type = type;
+
+  graph_update_pub_.publish(msg);
 }

@@ -48,6 +48,14 @@ TFRelation::TFRelation(
   set_transform(tf);
 }
 
+TFRelation::TFRelation(
+  const std::shared_ptr<Node>& source,
+  const std::shared_ptr<Node>& target,
+  const ros::Time& time_stamp)
+: Relation("tf", source, target, time_stamp)
+{
+}
+
 tf::StampedTransform
 TFRelation::get_transform() const
 {

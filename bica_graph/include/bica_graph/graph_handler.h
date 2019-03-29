@@ -39,8 +39,13 @@
 
 #include <ros/ros.h>
 
+#include <string>
+
 #include <bica_graph/graph.h>
+#include <bica_graph/relation.h>
+#include <bica_graph/tf_relation.h>
 #include <bica_msgs/Graph.h>
+#include <bica_msgs/GraphUpdate.h>
 #include <bica_graph/graph_listener.h>
 
 namespace bica_graph
@@ -53,27 +58,73 @@ public:
 
   /// Create a graph hanlder.
   /**
+  * \param[in] nh The NodeHandle
+  * \param[in] handler_id An optional parameter used to differenciate graph handlers
+      in the same node.
   */
-  explicit GraphHandler();
+  explicit GraphHandler(ros::NodeHandle& nh, std::string handler_id = "default_id");
 
   /// Create a node and insert it in the graph.
   /**
   * \param[in] id The id of the new node.
   * \param[in] type The type of the node.
-  * \returns true if it is a subgraph
   */
   std::shared_ptr<Node> create_node(const std::string& id,
     const std::string& type);
 
+  /// Remove a node.
+  /**
+  * \param[in] id The id of the node to remove.
+  */
+  void remove_node(const std::string& id);
+
+  /// Get the number of nodes in a graph.
+  /**
+   * \returns The number of nodes
+  */
+  size_t count_nodes() const;
+
+  /// Get a node pointer.
+  /**
+   * \param[in] id The id of the  node.
+   * \returns The shared pointer to the node. nullptr if it does not exist
+  */
+  std::shared_ptr<bica_graph::Node> get_node(const std::string& id) const;
+
+  /// Create a relation to other node.
+  /**
+  * This method creates the relation and links it to this node
+  * \param[in] source The source of the relation.
+  * \param[in] type The type of the relation.
+  * \param[in] target The target of the relation.
+  * \returns the pointer of the new created relation
+  */
+  std::shared_ptr<Relation> add_relation(const std::string& source,
+    const std::string& type,
+    const std::string& target);
+
+  /// Remove a relation.
+  /**
+  * \param[in] id The id of the relation to remove.
+  */
+  void remove_relation(const std::string& source,
+    const std::string& type,
+    const std::string& target);
 
 private:
+  void graph_update_callback(const ros::MessageEvent<bica_msgs::GraphUpdate const>& event);
+
+  void update_node(const bica_msgs::GraphUpdateConstPtr& msg);
+  void update_relation(const bica_msgs::GraphUpdateConstPtr& msg);
+  void update_tf_relation(const bica_msgs::GraphUpdateConstPtr& msg);
 
 
   ros::NodeHandle nh_;
+  std::string handler_id_;
   BicaGraph::SharedPtr graph_;
 
-  ros::Subscriber graph_sub_;
-
+  ros::Subscriber graph_update_sub_;
+  ros::Publisher graph_update_pub_;
 };
 
 }  // namespace bica_graph

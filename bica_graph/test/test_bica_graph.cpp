@@ -38,6 +38,8 @@
 #include <ros/ros.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include <geometry_msgs/TransformStamped.h>
 
 #include <bica_graph/graph.h>
@@ -47,6 +49,16 @@
 #include <bica_graph/exceptions.h>
 #include <bica_graph/conversions.h>
 #include <bica_msgs/Graph.h>
+#include <bica_graph/graph_handler.h>
+
+class GraphHandlerTest
+{
+public:
+  explicit GraphHandlerTest(std::string id): nh_(), graph_handler_(nh_, id) {}
+
+  ros::NodeHandle nh_;
+  bica_graph::GraphHandler graph_handler_;
+};
 
 TEST(BicaGraph, test_graph_construction)
 {
@@ -126,6 +138,15 @@ TEST(BicaGraph, test_conversion_to_msg)
   tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 1, 1));
 
   auto relation_tf = node->add_tf_relation(tf, bedroom);
+
+  ros::Rate rate(20);
+  int c = 0;
+  while (ros::ok() && c < 20)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
 
   bica_msgs::Graph::ConstPtr msg = graph_to_msg(*graph);
 
@@ -242,12 +263,113 @@ TEST(BicaGraph, test_timestamps)
   ASSERT_LT((ts_r2_2 - t1).toSec(), 0.1);
 }
 
-TEST(BicaGraph, test_handler_api)
+TEST(BicaGraph, test_handler_node_api)
 {
-  // auto graph_handler = std::make_shared<bica_graph::GraphHandler>();
+  GraphHandlerTest graph_handler_1("handler_1");
+  GraphHandlerTest graph_handler_2("handler_2");
 
-  // graph_handler->create_node("leia", "robot");
-  // graph_handler->create_node("bedroom", "room");
+  graph_handler_1.graph_handler_.create_node("leia", "robot");
+  graph_handler_1.graph_handler_.create_node("bedroom", "room");
+
+  ASSERT_EQ(2, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(0, graph_handler_2.graph_handler_.count_nodes());
+
+  ros::Rate rate(20);
+  int c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(2, graph_handler_2.graph_handler_.count_nodes());
+  auto node_1 = graph_handler_2.graph_handler_.get_node("leia");
+  ASSERT_NE(nullptr, node_1);
+  ASSERT_EQ("leia", node_1->get_id());
+  ASSERT_EQ("robot", node_1->get_type());
+  auto node_2 = graph_handler_2.graph_handler_.get_node("bedroom");
+  ASSERT_NE(nullptr, node_2);
+  ASSERT_EQ("bedroom", node_2->get_id());
+  ASSERT_EQ("room", node_2->get_type());
+
+  graph_handler_2.graph_handler_.create_node("apple", "object");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(3, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(3, graph_handler_2.graph_handler_.count_nodes());
+  auto node_3 = graph_handler_1.graph_handler_.get_node("apple");
+  ASSERT_NE(nullptr, node_3);
+  ASSERT_EQ("apple", node_3->get_id());
+  ASSERT_EQ("object", node_3->get_type());
+
+  graph_handler_2.graph_handler_.remove_node("apple");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(2, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(2, graph_handler_2.graph_handler_.count_nodes());
+  auto node_4 = graph_handler_1.graph_handler_.get_node("apple");
+  ASSERT_EQ(nullptr, node_4);
+
+
+  graph_handler_1.graph_handler_.remove_node("leia");
+  graph_handler_2.graph_handler_.create_node("leia", "robot");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(2, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(2, graph_handler_2.graph_handler_.count_nodes());
+
+  auto node_5 = graph_handler_1.graph_handler_.get_node("leia");
+  auto node_6 = graph_handler_2.graph_handler_.get_node("leia");
+  ASSERT_NE(nullptr, node_5);
+  ASSERT_NE(nullptr, node_6);
+
+
+  /* This is a concurrency problem that can arise, but not easy to fix
+
+  graph_handler_1.graph_handler_.create_node("leia", "robot");
+  graph_handler_2.graph_handler_.remove_node("leia");
+
+  c = 0;
+  while(ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(1, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(1, graph_handler_2.graph_handler_.count_nodes());
+
+  auto node_7 = graph_handler_1.graph_handler_.get_node("leia");
+  auto node_8 = graph_handler_2.graph_handler_.get_node("leia");
+  ASSERT_EQ(nullptr, node_7);
+  ASSERT_EQ(nullptr, node_8);
+  */
+
+  // graph_handler_1.graph_handler_.create_relation("leia", "is", "bedroom");
+
 
   /* graph_handler->add_relation("leia", "is", "bedroom");
   graph_handler->add_relation("leia", "isbis", "bedroom");
@@ -269,6 +391,74 @@ TEST(BicaGraph, test_handler_api)
   auto node_leia = graph_handler->get_node("leia");
   graph_handler->remove_node("leia");
   */
+}
+
+
+TEST(BicaGraph, test_handler_relation_api)
+{
+  GraphHandlerTest graph_handler_1("handler_3");
+  GraphHandlerTest graph_handler_2("handler_4");
+
+  graph_handler_1.graph_handler_.create_node("leia", "robot");
+  graph_handler_1.graph_handler_.create_node("bedroom", "room");
+
+  ASSERT_EQ(2, graph_handler_1.graph_handler_.count_nodes());
+  ASSERT_EQ(0, graph_handler_2.graph_handler_.count_nodes());
+
+  ros::Rate rate(20);
+  int c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  graph_handler_1.graph_handler_.add_relation("leia", "is", "bedroom");
+  graph_handler_1.graph_handler_.add_relation("leia", "isbis", "bedroom");
+
+  auto node_1 = graph_handler_1.graph_handler_.get_node("leia");
+  auto node_2 = graph_handler_2.graph_handler_.get_node("leia");
+
+  ASSERT_EQ(2, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(2, node_1->count_relations());
+  ASSERT_EQ(2, node_2->count_relations());
+
+  graph_handler_1.graph_handler_.remove_relation("leia", "is", "bedroom");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(1, node_1->count_relations());
+  ASSERT_EQ(1, node_2->count_relations());
+
+  graph_handler_1.graph_handler_.remove_node("bedroom");
+
+  c = 0;
+  while (ros::ok() && c < 10)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  ASSERT_EQ(0, node_1->count_relations());
+  ASSERT_EQ(0, node_2->count_relations());
 }
 
 int main(int argc, char* argv[])

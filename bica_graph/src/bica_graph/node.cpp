@@ -70,6 +70,14 @@ Node::add_tf_relation(
   return add_tf_relation(tf, target, ros::Time::now());
 }
 
+
+std::shared_ptr<bica_graph::TFRelation>
+Node::add_tf_relation(
+  const std::shared_ptr<Node>& target)
+{
+  return add_tf_relation(target, ros::Time::now());
+}
+
 std::shared_ptr<bica_graph::Relation>
 Node::add_relation(const std::string& type, const std::shared_ptr<Node>& target,
   const ros::Time& time_stamp)
@@ -131,6 +139,27 @@ Node::add_tf_relation(
   return relation;
 }
 
+std::shared_ptr<bica_graph::TFRelation>
+Node::add_tf_relation(
+  const std::shared_ptr<Node>& target, const ros::Time& time_stamp)
+{
+  auto relation = std::dynamic_pointer_cast<bica_graph::TFRelation>(get_relation(target, "tf"));
+
+  if (relation == nullptr)
+  {
+    relation = std::make_shared<bica_graph::TFRelation>(shared_from_this(),
+      target, ros::Time::now());
+    relations_out_.push_back(relation);
+    target->add_incoming_relation(relation);
+  }
+  else
+  {
+    relation->update_time_stamp();
+  }
+
+  return relation;
+}
+
 void
 Node::remove_relation(const std::string& type,
   const std::shared_ptr<Node>& target)
@@ -154,6 +183,12 @@ void
 Node::remove_tf_relation(const std::shared_ptr<Node>& target)
 {
   remove_relation("tf", target);
+}
+
+std::shared_ptr<bica_graph::Relation>
+Node::get_tf_relation(const std::shared_ptr<Node>& target)
+{
+  return get_relation(target, "tf");
 }
 
 std::shared_ptr<bica_graph::Relation>

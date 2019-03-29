@@ -14,6 +14,7 @@ add_message_files(
    Relation.msg
    TFRelation.msg
    Graph.msg
+   GraphUpdate.msg
  )
 
 generate_messages(

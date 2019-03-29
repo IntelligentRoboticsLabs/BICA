@@ -33,7 +33,7 @@ set(BICA_GRAPH_SRCS
   src/${PROJECT_NAME}/conversions.cpp
   src/${PROJECT_NAME}/graph_publisher.cpp
   src/${PROJECT_NAME}/graph_listener.cpp
-#  src/${PROJECT_NAME}/graph_handler.cpp
+  src/${PROJECT_NAME}/graph_handler.cpp
 )
 
 set(BICA_GRAPH_HDRS
@@ -44,7 +44,7 @@ set(BICA_GRAPH_HDRS
   include/${PROJECT_NAME}/conversions.h
   include/${PROJECT_NAME}/graph_publisher.h
   include/${PROJECT_NAME}/graph_listener.h
-#  include/${PROJECT_NAME}/graph_handler.h
+  include/${PROJECT_NAME}/graph_handler.h
 )
 
 add_library(${PROJECT_NAME} ${BICA_GRAPH_SRCS})
