@@ -30,6 +30,7 @@ public:
 
 			cmd.angular.z = std::max(std::min(atan2(tf_ball.getOrigin().y(), tf_ball.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(tf_ball.getOrigin().length() - 0.6, 0.2);
+			
 			ROS_INFO("I see the ball in %lf %lf", tf_ball.getOrigin().x(), tf_ball.getOrigin().y());
 		}
 		else

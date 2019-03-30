@@ -34,10 +34,6 @@ public:
 		graph_handler_.add_relation("leia", "wants_see", "ball");
 	}
 
-	~BallDetector()
-	{
-	}
-
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
 	{
 		sensor_msgs::PointCloud2 cloud_in_bf;

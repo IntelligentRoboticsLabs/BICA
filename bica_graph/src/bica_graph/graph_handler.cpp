@@ -35,6 +35,7 @@
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
 #include <bica_graph/graph_handler.h>
+#include <bica_graph/conversions.h>
 
 #include <string>
 
@@ -47,6 +48,8 @@ GraphHandler::GraphHandler(ros::NodeHandle& nh, std::string handler_id)
 {
   graph_update_pub_ = nh_.advertise<bica_msgs::GraphUpdate>("/graph_updates", 1000);
   graph_update_sub_ = nh_.subscribe("/graph_updates", 1000, &GraphHandler::graph_update_callback, this);
+  graph_pub_ = nh_.advertise<bica_msgs::Graph>("graph", 1, true);
+  graph_timer_ = nh_.createTimer(ros::Duration(1.0),  &GraphHandler::timer_callback, this);
 }
 
 void
@@ -71,6 +74,14 @@ GraphHandler::graph_update_callback(const ros::MessageEvent<bica_msgs::GraphUpda
     default:
       ROS_ERROR("GraphHandler::graph_update_callback Message not recognized");
   }
+}
+
+void
+GraphHandler::timer_callback(const ros::TimerEvent& event)
+{
+  bica_msgs::Graph::ConstPtr msg = bica_graph::graph_to_msg(*graph_);
+
+  graph_pub_.publish(msg);
 }
 
 void

@@ -32,7 +32,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Francisco Martín Rico - fmrico@gmail.com
+# Author: Francisco Martin Rico - fmrico at gmail.com
 
 import re
 import copy
@@ -43,7 +43,7 @@ import math
 import rospy
 import pydot
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
-
+import tf
 
 try:
     unicode
@@ -57,6 +57,7 @@ except NameError:
 class BicaGraphDotcodeGenerator:
 
     def __init__(self):
+        self.listener_ = tf.TransformListener()
         pass
 
     def generate_dotgraph(
@@ -107,12 +108,18 @@ class BicaGraphDotcodeGenerator:
                     color=[0, 0, 0])
             for relation in node.tf_relations:
 
-                pose = relation.transform.transform.translation
-                orientation_q = relation.transform.transform.rotation
-                orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
-                (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
+                try:
+                    (pose,orientation_q) = self.listener_.lookupTransform(relation.source, relation.target, rospy.Time(0))
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    continue
 
-                tf_label = '{0} {1} {2} ({3} {4})'.format(pose.x, pose.x, pose.z, pitch, yaw)
+                print(pose)
+                print(orientation_q)
+
+                # (roll, pitch, yaw) = euler_from_quaternion (orientation_q)
+                yaw = math.atan2(pose[1], pose[0])
+                pitch = math.atan2(pose[0], pose[2])
+                tf_label = '{0:.2f} {1:.2f} {2:.2f} ({3:.2f} {4:.2f})'.format(pose[0], pose[1], pose[2], yaw, pitch)
                 dotcode_factory.add_edge_to_graph(
                     dotgraph,
                     relation.source,

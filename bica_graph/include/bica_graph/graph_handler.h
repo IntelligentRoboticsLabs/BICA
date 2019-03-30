@@ -167,6 +167,7 @@ public:
     const std::string& target);
 private:
   void graph_update_callback(const ros::MessageEvent<bica_msgs::GraphUpdate const>& event);
+  void timer_callback(const ros::TimerEvent& event);
 
   void update_node(const bica_msgs::GraphUpdateConstPtr& msg);
   void update_relation(const bica_msgs::GraphUpdateConstPtr& msg);
@@ -179,6 +180,8 @@ private:
 
   ros::Subscriber graph_update_sub_;
   ros::Publisher graph_update_pub_;
+  ros::Publisher graph_pub_;
+  ros::Timer graph_timer_;
 };
 
 }  // namespace bica_graph
