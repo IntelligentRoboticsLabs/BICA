@@ -68,7 +68,14 @@ roslint_cpp(
   ${BICA_GRAPH_SRCS} ${BICA_GRAPH_HDRS}
   test/test_bica_graph.cpp
 )
-catkin_add_gtest(${PROJECT_NAME}-test test/test_bica_graph.cpp)
-if(TARGET ${PROJECT_NAME}-test)
-   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} gtest)
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+
+  add_executable(${PROJECT_NAME}_test test/test_bica_graph.cpp)
+  if(TARGET ${PROJECT_NAME}_test)
+    target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} gtest)
+  endif()
+
+  add_rostest(test/test_bica_graph.test)
 endif()
