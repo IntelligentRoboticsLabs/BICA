@@ -1,5 +1,10 @@
 <launch>
 
+	<!-- This launche requires to launch the RoboCup world included in
+		CSUROS (https://github.com/IntelligentRoboticsLabs/CSUROS)
+		using: roslaunch csuro_robots sim_robocup.launch
+	-->
+
 	<node pkg="bica_examples" type="ball_detector_node" name="ball_detector"/>
 	<node pkg="bica_examples" type="follower_node" name="ball_follower"/>
 	<node pkg="bica" type="launcher" name="launch_ball_follower" args="ball_follower"/>
