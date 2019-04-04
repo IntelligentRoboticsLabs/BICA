@@ -56,10 +56,24 @@ add_executable(graph_client_node src/graph/graph_client_node.cpp)
 add_dependencies(graph_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(graph_client_node ${catkin_LIBRARIES})
 
-add_executable(follower_node src/follow_ball/follower_node.cpp)
-add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(follower_node ${catkin_LIBRARIES})
+add_executable(ball_follower_node src/graph/follow_ball/ball_follower_node.cpp)
+add_dependencies(ball_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ball_follower_node ${catkin_LIBRARIES})
 
-add_executable(ball_detector_node src/follow_ball/ball_detector_node.cpp)
+add_executable(ball_detector_node src/graph/follow_ball/ball_detector_node.cpp)
 add_dependencies(ball_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(ball_detector_node ${catkin_LIBRARIES})
+
+add_executable(ballnet_follower_node
+  src/graph/follow_ballnet/ballnet_follower_node.cpp
+  src/graph/follow_ballnet/ball_net_follower.cpp)
+add_dependencies(ballnet_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ballnet_follower_node ${catkin_LIBRARIES})
+
+add_executable(yellow_net_detector_node src/graph/follow_ballnet/yellow_net_detector_node.cpp)
+add_dependencies(yellow_net_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(yellow_net_detector_node ${catkin_LIBRARIES})
+
+add_executable(blue_net_detector_node src/graph/follow_ballnet/blue_net_detector_node.cpp)
+add_dependencies(blue_net_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(blue_net_detector_node ${catkin_LIBRARIES})
