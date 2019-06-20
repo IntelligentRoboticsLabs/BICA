@@ -37,6 +37,11 @@
 #ifndef BICA_GRAPH_GRAPH_CLIENT_H
 #define BICA_GRAPH_GRAPH_CLIENT_H
 
+#include <utility>
+#include <map>
+#include <string>
+#include <list>
+
 #include <tf/tf.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 
@@ -52,7 +57,6 @@ namespace bica_graph
 class GraphClient
 {
 public:
-
   GraphClient();
 
   void add_node(const std::string& id, const std::string& type);
@@ -88,7 +92,7 @@ public:
   }
 
   template<class T>
-  void remove_edge(const std::string& source, const std::string& target, const T& data = T()) {};
+  void remove_edge(const std::string& source, const std::string& target, const T& data = T()) {}
 
   template<class T>
   std::shared_ptr<Edge<T>>
@@ -193,10 +197,6 @@ GraphClient::remove_edge<tf::Transform>(const std::string& source, const std::st
     ROS_ERROR("Failed to call service to remove edge");
   }
 }
-
-
-
-
 }  // namespace bica_graph
 
-#endif  // BICA_GRAPH_GRAPH_H
+#endif  // BICA_GRAPH_GRAPH_CLIENT_H

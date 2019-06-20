@@ -68,23 +68,19 @@ TEST(BicaGraph, test_graph_construction)
   client_1->add_node("leia", "robot");
 
   ros::Time start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 3.0 );
+  while ((ros::Time::now() - start).toSec() < 3.0 ) {}
 
-  //ASSERT_EQ(*server->get_graph(), *client_1->get_graph());
-  //ASSERT_EQ(1, server->get_graph()->count_nodes());
   ASSERT_EQ(1, client_1->count_nodes());
   ASSERT_EQ(1, client_2->count_nodes());
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   client_2->remove_node("leia");
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
-  //ASSERT_EQ(*server->get_graph(), *client_2->get_graph());
-  //ASSERT_EQ(0, server->get_graph()->count_nodes());
   ASSERT_EQ(0, client_1->count_nodes());
   ASSERT_EQ(0, client_2->count_nodes());
 
@@ -93,7 +89,7 @@ TEST(BicaGraph, test_graph_construction)
   client_1->add_edge("leia", std::string("is"), "bedroom");
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_TRUE(client_2->exist_edge("leia", "bedroom", std::string("is")));
 
@@ -101,7 +97,7 @@ TEST(BicaGraph, test_graph_construction)
   client_1->add_edge("bedroom", tf_r2l, "leia");
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_TRUE(client_2->exist_edge<tf::Transform>("bedroom", "leia"));
   auto edge_2 =  std::dynamic_pointer_cast<bica_graph::Edge<tf::Transform>>(
@@ -111,7 +107,7 @@ TEST(BicaGraph, test_graph_construction)
 
   client_1->add_edge("bedroom", 0.95, "leia");
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_TRUE(client_2->exist_edge<double>("bedroom", "leia"));
 
@@ -126,11 +122,10 @@ TEST(BicaGraph, test_graph_construction)
   client_1->remove_edge<std::string>("leia", "bedroom", "is");
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 2.0 );
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_EQ(0, client_1->count_edges("leia", "bedroom"));
   ASSERT_EQ(0, client_2->count_edges("leia", "bedroom"));
-  //ASSERT_EQ(0, server->get_graph()->count_edges("leia", "bedroom"));
   ASSERT_EQ(0, client_1->count_edges("bedroom", "leia"));
   ASSERT_EQ(0, client_2->count_edges("bedroom", "leia"));
   spinner.stop();
@@ -152,7 +147,7 @@ TEST(BicaGraph, test_graph_tf)
   client_1->add_node("ball", "object");
 
   ros::Time start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 1.0 );
+  while ((ros::Time::now() - start).toSec() < 1.0 ) {}
 
   client_1->set_tf_identity("base_footprint", "leia");
   client_1->set_tf_identity("odom", "world");
@@ -164,14 +159,16 @@ TEST(BicaGraph, test_graph_tf)
   client_1->add_edge("leia", tf_r2b, "ball");
 
   start = ros::Time::now();
-  while( (ros::Time::now() - start).toSec() < 1.0 );
+  while ((ros::Time::now() - start).toSec() < 1.0 ) {}
 
   try
   {
     tf::Vector3 v1 = client_1->get_tf("world", "ball").getOrigin();
     ASSERT_EQ(tf::Vector3(4, 0, 0), v1);
-  }catch(bica_graph::exceptions::TransformNotPossible& e){
-    std::cerr<<e.what()<<std::endl;
+  }
+  catch(bica_graph::exceptions::TransformNotPossible& e)
+  {
+    std::cerr << e.what() << std::endl;
     ASSERT_TRUE(false);
   }
 
@@ -192,8 +189,6 @@ TEST(BicaGraph, test_graph_tf)
 
   spinner.stop();
 }
-
-
 
 int main(int argc, char* argv[])
 {

@@ -52,7 +52,11 @@
 namespace bica_graph
 {
 
-typedef enum {UNKNOWN, STRING, DOUBLE, TF} EdgeType;
+typedef enum
+{
+  UNKNOWN, STRING, DOUBLE, TF
+}
+EdgeType;
 
 class EdgeBase : public std::enable_shared_from_this<EdgeBase>
 {
@@ -68,7 +72,7 @@ public:
 
   EdgeType get_type() const {return type_;}
 
-  friend bool operator==(const EdgeBase& lhs,const EdgeBase& rhs);
+  friend bool operator==(const EdgeBase& lhs, const EdgeBase& rhs);
 
   const std::string get_source() const {return source_;}
   const std::string get_target() const {return target_;}
@@ -111,7 +115,7 @@ public:
   {}
 
   const T get() const {return data_;}
-  void set(const T& rhs) {data_=rhs;}
+  void set(const T& rhs) {data_ = rhs;}
 
 private:
   T data_;
@@ -150,8 +154,8 @@ public:
     target_ = target;
   }
 
-  const tf::Transform get() const {
-
+  const tf::Transform get() const
+  {
     tf::StampedTransform tf;
 
     try
@@ -167,7 +171,8 @@ public:
     return tf;
   }
 
-  void set(const tf::Transform& data) {
+  void set(const tf::Transform& data)
+  {
     publish_transform(source_, target_, data);
   }
 
@@ -202,7 +207,8 @@ template<class T> const T EdgeBase::get() const
 template<class T, class U> void EdgeBase::set(const U& rhs)
 { return dynamic_cast<Edge<T>&>(*this).set(rhs); }
 
-bool operator==(const EdgeBase& lhs,const EdgeBase& rhs);
+bool operator==(const EdgeBase& lhs, const EdgeBase& rhs);
 
 }  // namespace bica_graph
-#endif  // BICA_GRAPH_NODE_H
+
+#endif  // BICA_GRAPH_EDGE_H

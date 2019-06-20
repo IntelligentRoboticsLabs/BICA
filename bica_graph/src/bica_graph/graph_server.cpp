@@ -34,6 +34,8 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
+#include <string>
+
 #include "bica_graph/graph_server.h"
 
 namespace bica_graph
@@ -183,11 +185,10 @@ GraphServer::update_service_handler(bica_msgs::UpdateGraph::Request  &req,
   return true;
 }
 
-
 void
 GraphServer::graph_callback(const bica_msgs::Graph::ConstPtr& msg)
 {
-   msg_to_graph(*msg, graph_);
+  msg_to_graph(*msg, graph_);
 }
 
 }  // namespace bica_graph

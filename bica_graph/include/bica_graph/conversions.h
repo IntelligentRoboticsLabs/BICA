@@ -36,10 +36,11 @@
 
 #ifndef BICA_GRAPH_CONVERSIONS_H
 #define BICA_GRAPH_CONVERSIONS_H
+#include <string>
 
-#include <bica_msgs/Graph.h>
-#include <bica_graph/graph.h>
-#include <bica_graph/exceptions.h>
+#include "bica_msgs/Graph.h"
+#include "bica_graph/graph.h"
+#include "bica_graph/exceptions.h"
 
 namespace bica_graph
 {
@@ -72,7 +73,6 @@ namespace bica_graph
   void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& graph);
 
   const char* get_msg_type_string(uint type);
-
 
   template<class T>
   void edge_to_msg(const typename Edge<T>::SharedPtr& edge, bica_msgs::Edge* msg);

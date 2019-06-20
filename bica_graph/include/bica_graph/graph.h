@@ -42,6 +42,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <utility>
 
 #include <bica_graph/macros.h>
 #include <bica_graph/exceptions.h>
@@ -57,7 +58,7 @@ class Graph
 public:
   BICA_GRAPH_SMART_PTR_DEFINITIONS(Graph)
 
-  Graph(const ros::Time& ts = ros::Time::now());
+  explicit Graph(const ros::Time& ts = ros::Time::now());
 
   void add_node(const std::string& id, const std::string& type);
   void add_node(const bica_graph::Node& node);
@@ -106,7 +107,8 @@ public:
     try
     {
       check_source_target(source, target);
-    } catch(bica_graph::exceptions::NodeNotFound& e)
+    }
+    catch(bica_graph::exceptions::NodeNotFound& e)
     {
       return nullptr;
     }
@@ -118,9 +120,7 @@ public:
     EdgeType type_search = to_type<T>();
     if (edge != edges_.end())
     {
-      //auto comp_edge = std::make_shared<Edge<T>>(source, target, data);
-
-      for(std::list<EdgeBase::SharedPtr>::iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
+      for (std::list<EdgeBase::SharedPtr>::iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
       {
         if ((*it)->get_type() != type_search)
           continue;
@@ -136,8 +136,6 @@ public:
           if ((*it)->get_source() == source && (*it)->get_target() == target)
             ret = *it;
         }
-
-
       }
     }
 
@@ -153,7 +151,8 @@ public:
     try
     {
       check_source_target(source, target);
-    } catch(bica_graph::exceptions::NodeNotFound& e)
+    }
+    catch(bica_graph::exceptions::NodeNotFound& e)
     {
       return nullptr;
     }
@@ -165,7 +164,7 @@ public:
     EdgeType type_search = to_type<T>();
     if (edge != edges_.end())
     {
-      for(std::list<EdgeBase::SharedPtr>::const_iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
+      for (std::list<EdgeBase::SharedPtr>::const_iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
       {
         if ((*it)->get_type() != type_search)
           continue;
@@ -214,7 +213,8 @@ public:
             }
             else
               ++it;
-          } else
+          }
+          else
           {
             it = edge->second.erase(it);
             ts_ = ros::Time::now();

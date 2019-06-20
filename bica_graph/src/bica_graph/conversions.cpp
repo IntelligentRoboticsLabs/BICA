@@ -34,7 +34,9 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <bica_graph/conversions.h>
+#include <string>
+
+#include "bica_graph/conversions.h"
 
 namespace bica_graph
 {
@@ -67,14 +69,12 @@ const char* get_msg_type_string(uint type)
   return "unknown";
 }
 
-
-
 void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg)
 {
   msg->stamp = graph.get_time_stamp();
 
   auto nodes = graph.get_nodes();
-  for (auto it_nodes = nodes.begin(); it_nodes!=nodes.end(); ++it_nodes)
+  for (auto it_nodes = nodes.begin(); it_nodes != nodes.end(); ++it_nodes)
   {
     bica_msgs::Node node_msg;
     node_msg.id = it_nodes->first;
@@ -97,7 +97,7 @@ void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg)
 
       try
       {
-        switch((*it_edge_type)->get_type())
+        switch ((*it_edge_type)->get_type())
         {
           case bica_graph::STRING:
             edge_to_msg<std::string>(*it_edge_type, &edge_msg);
@@ -111,7 +111,8 @@ void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg)
           default:
             throw bica_graph::exceptions::OperationNotValid("Unable to transform edge to msg");
         }
-      } catch (bica_graph::exceptions::OperationNotValid& e)
+      }
+      catch (bica_graph::exceptions::OperationNotValid& e)
       {
         ROS_ERROR("graph_to_msg:: %s --> %s : %s", source.c_str(), target.c_str(), e.what());
       }
@@ -177,7 +178,7 @@ void edge_to_msg(const typename Edge<T>::SharedPtr& edge, bica_msgs::Edge* msg)
 template<class T>
 void msg_to_edge(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<T>>& edge)
 {
-  switch(msg.type)
+  switch (msg.type)
   {
     case bica_msgs::Edge::EDGE_TYPE_UNKNOWN:
       throw bica_graph::exceptions::OperationNotValid(
@@ -195,9 +196,8 @@ void msg_to_edge<std::string>(const bica_msgs::Edge& msg, std::shared_ptr<bica_g
   if (msg.type != bica_msgs::Edge::EDGE_TYPE_STRING)
   {
     char message[255];
-    strcpy(message, "Unable to transform msg of type ");
-    strcat(message, get_msg_type_string(msg.type));
-    strcat(message, " to egde std::string");
+    snprintf(message,  sizeof(message),
+      "Unable to transform msg of type %s to egde std::string", get_msg_type_string(msg.type));
     throw bica_graph::exceptions::OperationNotValid(message);
   }
 
@@ -211,9 +211,8 @@ void msg_to_edge<double>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph:
   if (msg.type != bica_msgs::Edge::EDGE_TYPE_DOUBLE)
   {
     char message[255];
-    strcpy(message, "Unable to transform msg of type ");
-    strcat(message, get_msg_type_string(msg.type));
-    strcat(message, " to egde std::string");
+    snprintf(message,  sizeof(message),
+      "Unable to transform msg of type %s to egde std::string", get_msg_type_string(msg.type));
     throw bica_graph::exceptions::OperationNotValid(message);
   }
 
@@ -227,9 +226,8 @@ void msg_to_edge<tf::Transform>(const bica_msgs::Edge& msg, std::shared_ptr<bica
   if (msg.type != bica_msgs::Edge::EDGE_TYPE_TF)
   {
     char message[255];
-    strcpy(message, "Unable to transform msg of type ");
-    strcat(message, get_msg_type_string(msg.type));
-    strcat(message, " to egde std::string");
+    snprintf(message,  sizeof(message),
+      "Unable to transform msg of type %s to egde std::string", get_msg_type_string(msg.type));
     throw bica_graph::exceptions::OperationNotValid(message);
   }
 

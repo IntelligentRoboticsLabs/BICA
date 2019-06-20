@@ -34,12 +34,14 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
+#include <string>
+
 #include "bica_graph/edge.h"
 
 namespace bica_graph
 {
 
-bool operator==(const EdgeBase& lhs,const EdgeBase& rhs)
+bool operator==(const EdgeBase& lhs, const EdgeBase& rhs)
 {
   if (lhs.get_type() != rhs.get_type())
     return false;

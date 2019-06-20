@@ -39,6 +39,7 @@
 #include <string>
 #include <utility>
 #include <list>
+#include <map>
 
 #include "bica_graph/graph.h"
 
@@ -150,7 +151,8 @@ Graph::count_edges(const std::string& source, const std::string& target) const
   try
   {
     check_source_target(source, target);
-  } catch(bica_graph::exceptions::NodeNotFound& e)
+  }
+  catch(bica_graph::exceptions::NodeNotFound& e)
   {
     return 0;
   }
@@ -167,7 +169,6 @@ Graph::count_edges(const std::string& source, const std::string& target) const
   {
     return edge->second.size();
   }
-
 }
 
 void
@@ -217,10 +218,10 @@ Graph::get_time_stamp() const
 void
 Graph::print()
 {
-  std::cout<<"============================================="<<std::endl;
+  std::cout << "=============================================" << std::endl;
   for (auto node : nodes_)
   {
-    std::cout << "Node ["<<node.first<<"] ("<<node.second->get_type()<<")"<<std::endl;
+    std::cout << "Node [" << node.first << "] (" << node.second->get_type() << ")" << std::endl;
   }
   for (auto edges : edges_)
   {
@@ -229,28 +230,30 @@ Graph::print()
       switch (edge->get_type())
       {
         case STRING:
-            std::cout << "Edge ("<<edge->get_source()<<")---["<<edge->get<std::string>()<<"]--->("<<edge->get_target()<<")"<<std::endl;
+            std::cout << "Edge (" << edge->get_source() << ")---[" << edge->get<std::string>()
+              << "]--->(" << edge->get_target() << ")" << std::endl;
             break;
         case DOUBLE:
-            std::cout << "Edge ("<<edge->get_source()<<")---["<<edge->get<double>()<<"]--->("<<edge->get_target()<<")"<<std::endl;
+            std::cout << "Edge (" << edge->get_source() << ")---[" << edge->get<double>()
+              << "]--->(" << edge->get_target() << ")" << std::endl;
             break;
         case TF:
             {
               tf::Transform tf_aux = edge->get<tf::Transform>();
-              std::cout << "Edge ("<<edge->get_source()<<")---[("<<
-                tf_aux.getOrigin().x()<<", "<<
-                tf_aux.getOrigin().y()<<", "<<
-                tf_aux.getOrigin().z()<<
-                ")]--->("<<edge->get_target()<<")"<<std::endl;
+              std::cout << "Edge (" << edge->get_source() << ")---[(" <<
+                tf_aux.getOrigin().x() << ", " <<
+                tf_aux.getOrigin().y() << ", " <<
+                tf_aux.getOrigin().z() <<
+                ")]--->(" << edge->get_target() << ")" << std::endl;
             }
             break;
         default:
-          std::cout << "Edge ("<<edge->get_source()<<")---[UNKNOWN]--->("<<edge->get_target()<<")"<<std::endl;
+          std::cout << "Edge (" << edge->get_source() << ")---[UNKNOWN]--->("
+            << edge->get_target() << ")" << std::endl;
       }
     }
-
   }
-  std::cout<<"============================================="<<std::endl;
+  std::cout << "=============================================" << std::endl;
 }
 
 bool

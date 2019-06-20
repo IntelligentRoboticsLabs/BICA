@@ -52,7 +52,8 @@ TEST(BicaGraph, test_graph_construction)
   {
     graph->add_node("leia", "object");
     ASSERT_TRUE(false);
-  } catch(bica_graph::exceptions::NodeTypeMismatch& e)
+  }
+  catch(bica_graph::exceptions::NodeTypeMismatch& e)
   {
     // printf("Exception: %s\n", e.what());
     ASSERT_TRUE(true);
@@ -62,7 +63,8 @@ TEST(BicaGraph, test_graph_construction)
   {
     graph->get_node("apple");
     ASSERT_TRUE(false);
-  } catch(bica_graph::exceptions::NodeNotFound& e)
+  }
+  catch(bica_graph::exceptions::NodeNotFound& e)
   {
     // printf("Exception: %s\n", e.what());
     ASSERT_TRUE(true);
@@ -113,7 +115,7 @@ TEST(BicaGraph, test_graph_construction)
   ASSERT_EQ(0.5, edge_1->get());
 
   ASSERT_EQ(3, graph->count_nodes());
-  ASSERT_EQ(2, graph->count_edges("leia","bedroom"));
+  ASSERT_EQ(2, graph->count_edges("leia", "bedroom"));
   ASSERT_EQ(2, graph->count_edges("bedroom", "leia"));
   ASSERT_EQ(0, graph->count_edges("apple", "leia"));
 
@@ -129,15 +131,14 @@ TEST(BicaGraph, test_graph_construction)
 
   ASSERT_FALSE(graph->exist_edge<std::string>("leia", "bedroom", "is"));
   ASSERT_FALSE(graph->exist_edge<tf::Transform>("bedroom", "leia"));
-  ASSERT_EQ(1, graph->count_edges("leia","bedroom"));
+  ASSERT_EQ(1, graph->count_edges("leia", "bedroom"));
   ASSERT_EQ(1, graph->count_edges("bedroom", "leia"));
 
   graph->remove_node("bedroom");
   ASSERT_EQ(2, graph->count_nodes());
-  ASSERT_EQ(0, graph->count_edges("leia","bedroom"));
+  ASSERT_EQ(0, graph->count_edges("leia", "bedroom"));
   ASSERT_EQ(0, graph->count_edges("bedroom", "leia"));
   ASSERT_EQ(0, graph->count_edges("apple", "leia"));
-
 
   ros::Time::init();
 
@@ -155,9 +156,6 @@ TEST(BicaGraph, test_graph_construction)
 
 TEST(BicaGraph, test_timestamps)
 {
-
-  //graph->add_node("leia", "robot");
-
 }
 
 TEST(BicaGraph, basic_types_conversions)
@@ -217,7 +215,6 @@ TEST(BicaGraph, basic_types_conversions)
   ASSERT_EQ(*edge_3, *edge_3_2);
 }
 
-
 TEST(BicaGraph, graph_conversions)
 {
   auto graph = std::make_shared<bica_graph::Graph>();
@@ -234,12 +231,10 @@ TEST(BicaGraph, graph_conversions)
   bica_msgs::Graph msg;
   bica_graph::graph_to_msg(*graph, &msg);
 
-
   bica_graph::Graph::SharedPtr graph_2;
   bica_graph::msg_to_graph(msg, graph_2);
 
   ASSERT_EQ(*graph, *graph_2);
-
 }
 
 

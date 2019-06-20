@@ -38,6 +38,7 @@
 #define BICA_GRAPH_EXCEPTIONS_H
 
 #include <stdexcept>
+#include <string>
 
 namespace bica_graph
 {
@@ -46,12 +47,11 @@ namespace exceptions
 class OperationNotValid : public std::exception
 {
 public:
-
-  OperationNotValid(const std::string& message)
+  explicit OperationNotValid(const std::string& message)
   : std::exception(), message_(message)
   {}
 
-  virtual const char * what () const throw ()
+  virtual const char * what() const throw()
   {
       return message_.c_str();
   }
@@ -63,12 +63,11 @@ private:
 class NodeNotFound : public std::exception
 {
 public:
-
-  NodeNotFound(const std::string& message)
+  explicit NodeNotFound(const std::string& message)
   : std::exception(), message_(message)
   {}
 
-  virtual const char * what () const throw ()
+  virtual const char * what() const throw()
   {
       return message_.c_str();
   }
@@ -80,12 +79,11 @@ private:
 class NodeTypeMismatch : public std::exception
 {
 public:
-
-  NodeTypeMismatch(const std::string& message)
+  explicit NodeTypeMismatch(const std::string& message)
   : std::exception(), message_(message)
   {}
 
-  virtual const char * what () const throw ()
+  virtual const char * what() const throw()
   {
     return message_.c_str();
   }
@@ -97,12 +95,11 @@ public:
 class TransformNotPossible : public std::exception
 {
 public:
-
-  TransformNotPossible(const std::string& message)
+  explicit TransformNotPossible(const std::string& message)
   : std::exception(), message_(message)
   {}
 
-  virtual const char * what () const throw ()
+  virtual const char * what() const throw()
   {
       return message_.c_str();
   }

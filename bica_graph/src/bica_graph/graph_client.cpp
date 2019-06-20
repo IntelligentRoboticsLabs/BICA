@@ -34,6 +34,11 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
+#include <utility>
+#include <map>
+#include <string>
+#include <list>
+
 #include "bica_graph/graph_client.h"
 
 namespace bica_graph
@@ -258,7 +263,8 @@ GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
   {
     tf_listener_.waitForTransform(node_src, node_target, ros::Time(0), ros::Duration(0.1));
     tf_listener_.lookupTransform(node_src, node_target, ros::Time(0), tf);
-  } catch (tf::TransformException& ex)
+  }
+  catch (tf::TransformException& ex)
   {
     throw exceptions::TransformNotPossible("Nodes not connected");
   }
