@@ -16,26 +16,42 @@
 
 #include <bica/Component.h>
 
-
-class BlueNetDetector: public bica::Component
+class BallDetector: public bica::Component
 {
 public:
-	BlueNetDetector()
+	BallDetector()
 	: nh_(),
 		new_image_(false),
 		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>)
 	{
-		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BlueNetDetector::cloudCB, this);
+		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BallDetector::cloudCB, this);
 
 		graph_.add_node("leia", "robot");
-	  graph_.add_node("blue_net", "object");
-		graph_.add_edge("leia", std::string("wants_see"), "blue_net");
+		graph_.add_node("ball", "object");
+		graph_.add_node("world", "abstract");
+
+		graph_.add_tf_edge("world", "leia");
+
+		graph_.set_tf_identity("base_footprint", "leia");
+		graph_.set_tf_identity("odom", "world");
+
+	}
+
+	void activateCode()
+	{
+		graph_.add_edge("leia", std::string("wants_see"), "ball");
+	}
+
+	void deActivateCode()
+	{
+		graph_.remove_edge("leia", "ball", std::string("wants_see"));
+		graph_.remove_edge("leia", "ball", std::string("sees"));
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
 	{
 		sensor_msgs::PointCloud2 cloud_in_bf;
-		pcl_ros::transformPointCloud(std::string("base_footprint"),
+		pcl_ros::transformPointCloud(std::string("world"),
 			*cloud_in, cloud_in_bf, tfListener_);
 
 		pcl::fromROSMsg(cloud_in_bf, *pcrgb_);
@@ -58,9 +74,9 @@ public:
 				hsv_scaled.v = hsv.v * 100.0;
 				hsv_scaled.h = hsv.h;
 
-				if( hsv_scaled.h > 179 &&  hsv_scaled.h < 225 &&
-						hsv_scaled.s > 44 &&  hsv_scaled.s < 109 &&
-						hsv_scaled.v > 0 &&  hsv_scaled.v < 70)
+				if( hsv_scaled.h > 0 &&  hsv_scaled.h < 80 &&
+						hsv_scaled.s > 90 &&  hsv_scaled.s < 105 &&
+						hsv_scaled.v > 36 &&  hsv_scaled.v < 67)
 				{
 					pcrgb_out->push_back(*it);
 				}
@@ -109,6 +125,7 @@ public:
 	{
 		if (!isActive()) return;
 
+
 		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
 
 		if (new_image_)
@@ -118,15 +135,17 @@ public:
 
 			if (pc_filtered->size() > 0)
 			{
-				graph_.remove_edge("leia", "blue_net", std::string("wants_see"));
-				graph_.add_edge("leia", std::string("sees"), "blue_net");
-				graph_.add_edge("leia", getTransform(pc_filtered), "blue_net");
+				ROS_INFO("Ball seen (%zu)", pc_filtered->size());
+
+				graph_.remove_edge("leia", "ball", std::string("wants_see"));
+				graph_.add_edge("leia", std::string("sees"), "ball");
+				graph_.add_edge("world", getTransform(pc_filtered), "ball");
 			}
 			else
 			{
-				graph_.remove_edge("leia", "blue_net", std::string("sees"));
-				graph_.remove_edge<tf::Transform>("leia", "blue_net");
-				graph_.add_edge("leia", std::string("wants_see"), "blue_net");
+				ROS_INFO("Ball Not seen");
+				graph_.remove_edge("leia", "ball", std::string("sees"));
+				graph_.add_edge("leia", std::string("wants_see"), "ball");
 			}
 		}
 	}
@@ -146,14 +165,14 @@ private:
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "blue_net_detector");
+	ros::init(argc, argv, "ball_detector");
 
-	BlueNetDetector blue_net_detector;
+	BallDetector ball_detector;
 
 	ros::Rate loop_rate(5);
-	while(blue_net_detector.ok())
+	while(ball_detector.ok())
 	{
-		blue_net_detector.step();
+		ball_detector.step();
 
 		ros::spinOnce();
 		loop_rate.sleep();

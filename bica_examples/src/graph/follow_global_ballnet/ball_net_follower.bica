@@ -1,0 +1,17 @@
+<component id="ball_net_follower">
+ <state x="-767" id="Yellow" y="-828" initial="false">
+  <activation id="yellow_net_detector"/>
+ </state>
+ <state x="-994" id="Blue" y="-624" initial="false">
+  <activation id="blue_net_detector"/>
+ </state>
+ <state x="-1128" id="Ball" y="-845" initial="true">
+  <activation id="ball_detector"/>
+ </state>
+ <component x="-1234" id="ball_detector" y="-977"/>
+ <component x="-768" id="yellow_net_detector" y="-955"/>
+ <component x="-809" id="blue_net_detector" y="-631"/>
+ <transition dst="Ball" src="Blue"/>
+ <transition dst="Yellow" src="Ball"/>
+ <transition dst="Blue" src="Yellow"/>
+</component>

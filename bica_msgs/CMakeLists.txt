@@ -11,12 +11,16 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Node.msg
-   Relation.msg
-   TFRelation.msg
+   Edge.msg
    Graph.msg
    GraphUpdate.msg
  )
 
+ add_service_files(
+    FILES
+    UpdateGraph.srv
+)
+  
 generate_messages(
    DEPENDENCIES
    geometry_msgs

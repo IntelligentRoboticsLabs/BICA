@@ -12,11 +12,9 @@
 
 #include <sensor_msgs/PointCloud2.h>
 
-#include <bica_graph/graph.h>
-#include <bica_graph/graph_publisher.h>
+#include "bica_graph/graph_client.h"
 
 #include <bica/Component.h>
-#include <bica_graph/graph_handler.h>
 
 class BallDetector: public bica::Component
 {
@@ -24,14 +22,16 @@ public:
 	BallDetector()
 	: nh_(),
 		new_image_(false),
-		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>),
-		graph_handler_(nh_)
+		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>)
 	{
 		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BallDetector::cloudCB, this);
 
-		graph_handler_.create_node("leia", "robot");
-	  graph_handler_.create_node("ball", "object");
-		graph_handler_.add_relation("leia", "wants_see", "ball");
+		graph_.add_node("world", "abstract");
+		graph_.add_node("leia", "robot");
+	  graph_.add_node("ball", "object");
+		graph_.add_edge("leia", std::string("wants_see"), "ball");
+
+		ROS_INFO("[%s] inited", ros::this_node::getName().c_str());
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
@@ -111,8 +111,6 @@ public:
 	{
 		if (!isActive()) return;
 
-		graph_handler_.create_node("leia", "robot");
-		graph_handler_.create_node("ball", "object");
 
 		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
 
@@ -123,14 +121,15 @@ public:
 
 			if (pc_filtered->size() > 0)
 			{
-				graph_handler_.remove_relation("leia", "wants_see", "ball");
-				graph_handler_.add_relation("leia", "sees", "ball");
-				graph_handler_.add_tf_relation("leia", getTransform(pc_filtered), "ball");
+				graph_.remove_edge("leia", "ball", std::string("wants_see"));
+				graph_.add_edge("leia", std::string("sees"), "ball");
+				graph_.add_edge("leia", getTransform(pc_filtered), "ball");
 			}
 			else
 			{
-				graph_handler_.remove_relation("leia", "sees", "ball");
-				graph_handler_.add_relation("leia", "wants_see", "ball");
+				graph_.remove_edge("leia", "ball", std::string("sees"));
+				graph_.remove_edge<tf::Transform>("leia", "ball");
+				graph_.add_edge("leia", std::string("wants_see"), "ball");
 			}
 		}
 	}
@@ -143,7 +142,7 @@ private:
 	tf::TransformListener tfListener_;
 	tf::TransformBroadcaster tfBroadcaster_;
 
-	bica_graph::GraphHandler graph_handler_;
+	bica_graph::GraphClient graph_;
 
 	bool new_image_;
 };

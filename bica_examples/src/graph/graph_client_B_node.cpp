@@ -34,21 +34,27 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <bica_graph/graph_publisher.h>
-#include <bica_graph/conversions.h>
+#include "ros/ros.h"
 
-using bica_graph::GraphPublisher;
+#include <bica_graph/graph_client.h>
 
-GraphPublisher::GraphPublisher(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph)
-: nh_(nh), graph_(graph)
+int main(int argc, char* argv[])
 {
-  graph_pub_ = nh_.advertise<bica_msgs::Graph>("graph", 1, true);
-}
+  ros::init(argc, argv, "graph_client_B");
+  ros::NodeHandle n;
 
-void
-GraphPublisher::send_graph()
-{
-  bica_msgs::Graph::ConstPtr msg = bica_graph::graph_to_msg(*graph_);
+  bica_graph::GraphClient client;
 
-  graph_pub_.publish(msg);
+  ros::Rate loop_rate(1);
+
+  while (ros::ok())
+  {
+    client.print();
+
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+
+  return 0;
 }

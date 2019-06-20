@@ -34,73 +34,42 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <string>
+#ifndef BICA_GRAPH_GRAPH_SERVER_H
+#define BICA_GRAPH_GRAPH_SERVER_H
 
-#include <bica_graph/relation.h>
-#include <bica_graph/node.h>
+#include "bica_graph/conversions.h"
+#include "bica_msgs/UpdateGraph.h"
 
-using bica_graph::Relation;
 
-Relation::Relation(const std::string& type, const std::shared_ptr<Node>& source,
-  const std::shared_ptr<Node>& target, const ros::Time& time_stamp)
-: source_(source), target_(target), type_(type), ts_(time_stamp)
+namespace bica_graph
 {
-}
 
-void
-Relation::update_time_stamp()
+class GraphServer
 {
-  ts_ = ros::Time::now();
-}
+public:
+  GraphServer();
+  void publish_graph();
 
-bica_msgs::RelationConstPtr
-Relation::transform_to_msg()
-{
-  bica_msgs::RelationPtr msg (new bica_msgs::Relation());
+private:
 
-  msg->type = type_;
-  msg->source = source_->get_id();
-  msg->target = target_->get_id();
-  msg->stamp = ts_;
+  bool handle_node_update(const bica_msgs::GraphUpdate& update);
+  bool handle_string_edge_update(const bica_msgs::GraphUpdate& update);
+  bool handle_double_edge_update(const bica_msgs::GraphUpdate& update);
+  bool handle_tf_edge_update(const bica_msgs::GraphUpdate& update);
 
-  return msg;
-}
+  bool update_service_handler(bica_msgs::UpdateGraph::Request  &req,
+                              bica_msgs::UpdateGraph::Response &rep);
 
-void
-Relation::add_to_msg(bica_msgs::NodePtr node)
-{
-  node->relations.push_back(*this->transform_to_msg());
-}
+  void graph_callback(const bica_msgs::Graph::ConstPtr& msg);
+  
+protected:
+  Graph::SharedPtr graph_;
 
+  ros::NodeHandle nh_;
+  ros::Publisher graph_sub_;
+  ros::ServiceServer update_srv_server_;
+};
 
-bool bica_graph::operator==(const Relation& lhs, const Relation& rhs)
-{
-  if ((*lhs.target_).get_id() != (*lhs.target_).get_id())
-  {
-    return false;
-  }
+}  // namespace bica_graph
 
-  if ((*lhs.source_).get_id() != (*rhs.source_).get_id())
-  {
-    return false;
-  }
-
-  if (lhs.type_ != rhs.type_)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool bica_graph::operator!=(const Relation& lhs, const Relation& rhs)
-{
-  return !(lhs == rhs);
-}
-
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const Relation& rhs)
-{
-  lhs << "Relation [" << rhs.type_ <<"] " <<
-    (*rhs.source_).get_id() << " -> " << (*rhs.target_).get_id() << std::endl;
-  return lhs;
-}
+#endif  // BICA_GRAPH_GRAPH_H

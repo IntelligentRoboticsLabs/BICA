@@ -16,7 +16,6 @@
 
 #include <bica/Component.h>
 
-
 class BlueNetDetector: public bica::Component
 {
 public:
@@ -27,15 +26,29 @@ public:
 	{
 		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BlueNetDetector::cloudCB, this);
 
+		graph_.add_node("world", "abstract");
 		graph_.add_node("leia", "robot");
 	  graph_.add_node("blue_net", "object");
+
+		graph_.set_tf_identity("base_footprint", "leia");
+		graph_.set_tf_identity("odom", "world");
+	}
+
+	void activateCode()
+	{
 		graph_.add_edge("leia", std::string("wants_see"), "blue_net");
+	}
+
+	void deActivateCode()
+	{
+		graph_.remove_edge("leia", "blue_net", std::string("wants_see"));
+		graph_.remove_edge("leia", "blue_net", std::string("sees"));
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
 	{
 		sensor_msgs::PointCloud2 cloud_in_bf;
-		pcl_ros::transformPointCloud(std::string("base_footprint"),
+		pcl_ros::transformPointCloud(std::string("world"),
 			*cloud_in, cloud_in_bf, tfListener_);
 
 		pcl::fromROSMsg(cloud_in_bf, *pcrgb_);
@@ -109,6 +122,7 @@ public:
 	{
 		if (!isActive()) return;
 
+
 		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
 
 		if (new_image_)
@@ -120,12 +134,11 @@ public:
 			{
 				graph_.remove_edge("leia", "blue_net", std::string("wants_see"));
 				graph_.add_edge("leia", std::string("sees"), "blue_net");
-				graph_.add_edge("leia", getTransform(pc_filtered), "blue_net");
+				graph_.add_edge("world", getTransform(pc_filtered), "blue_net");
 			}
 			else
 			{
 				graph_.remove_edge("leia", "blue_net", std::string("sees"));
-				graph_.remove_edge<tf::Transform>("leia", "blue_net");
 				graph_.add_edge("leia", std::string("wants_see"), "blue_net");
 			}
 		}

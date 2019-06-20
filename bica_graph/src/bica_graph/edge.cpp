@@ -34,18 +34,21 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <bica_graph/graph_listener.h>
-#include <bica_graph/conversions.h>
+#include "bica_graph/edge.h"
 
-using bica_graph::GraphListener;
-
-GraphListener::GraphListener(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph)
-: nh_(nh), graph_(graph)
+namespace bica_graph
 {
-  graph_sub_ = nh_.subscribe("graph", 1, &GraphListener::graph_callback, this);
+
+bool operator==(const EdgeBase& lhs,const EdgeBase& rhs)
+{
+  if (lhs.get_type() != rhs.get_type())
+    return false;
+
+  if (lhs.get_type() == STRING)
+    return lhs.get_source() == rhs.get_source() && lhs.get_target() == rhs.get_target() &&
+      lhs.get<std::string>() == rhs.get<std::string>();
+  else
+    return lhs.get_source() == rhs.get_source() && lhs.get_target() == rhs.get_target();
 }
 
-void GraphListener::graph_callback(const bica_msgs::Graph::ConstPtr& msg)
-{
-  *graph_ = *bica_graph::msg_to_graph(msg);
-}
+}  // namespace bica_graph

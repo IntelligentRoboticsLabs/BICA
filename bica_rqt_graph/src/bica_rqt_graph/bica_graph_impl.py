@@ -40,12 +40,13 @@ from bica_msgs.msg import Graph
 
 class BicaGraphImpl:
     def __init__(self):
-        rospy.Subscriber("graph", Graph, self.graph_callback)
+        rospy.Subscriber("/graph", Graph, self.graph_callback)
         self.graph = None
         self.ready = False
 
     def graph_callback(self, message):
-        self.graph = Graph(message)
+        print("Mensaje recibido")
+        self.graph = message
         self.ready = True
 
     def get_graph(self):

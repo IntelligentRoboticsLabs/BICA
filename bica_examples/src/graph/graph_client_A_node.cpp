@@ -34,41 +34,85 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_GRAPH_PUBLISHER_H
-#define BICA_GRAPH_GRAPH_PUBLISHER_H
+#include "ros/ros.h"
 
-#include <ros/ros.h>
+#include <bica_graph/graph_client.h>
 
-#include <bica_graph/graph.h>
-#include <bica_msgs/Graph.h>
-
-namespace bica_graph
+int main(int argc, char* argv[])
 {
+  ros::init(argc, argv, "graph_client_A");
+  ros::NodeHandle n;
 
-class GraphPublisher
-{
-public:
-  BICA_GRAPH_SMART_PTR_DEFINITIONS(GraphPublisher)
+  bica_graph::GraphClient client;
 
-  /// Create a graph publisher.
-  /**
-  * \param[in] nh A nodehandle.
-  * \param[in] graph The graph to serve.
-  */
-  explicit GraphPublisher(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph);
+  ros::Rate loop_rate(1);
+  int count = 0;
 
-  /// Publish de graph
-  /**
-  */
-  void send_graph();
+  /*client.add_node("leia", "robot");
 
-private:
-  ros::NodeHandle nh_;
-  BicaGraph::SharedPtr graph_;
+  while (ros::ok() && count < 4)
+  {
+    client.print();
 
-  ros::Publisher graph_pub_;
-};
+    count++;
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
 
-}  // namespace bica_graph
+  client.remove_node("leia");
 
-#endif  // BICA_GRAPH_GRAPH_PUBLISHER_H
+  count = 0;
+  while (ros::ok() && count < 4)
+  {
+    client.print();
+
+    count++;
+    ros::spinOnce();
+    loop_rate.sleep();
+  }*/
+
+  client.add_node("leia", "robot");
+  client.add_node("bedroom", "room");
+  client.add_edge("leia", std::string("is"), "bedroom");
+
+  count = 0;
+  while (ros::ok() && count < 4)
+  {
+    client.print();
+
+    count++;
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+  tf::Transform tf_r2l(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  client.add_edge("bedroom", tf_r2l, "leia");
+  client.add_edge("bedroom", 0.95, "leia");
+
+  count = 0;
+  while (ros::ok() && count < 40)
+  {
+    client.print();
+
+    count++;
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+
+  client.remove_edge<double>("bedroom", "leia");
+  client.remove_edge<tf::Transform>("bedroom", "leia");
+  client.remove_edge<std::string>("leia", "bedroom", "is");
+
+  count = 0;
+  while (ros::ok() && count < 4)
+  {
+    client.print();
+
+    count++;
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+  return 0;
+}

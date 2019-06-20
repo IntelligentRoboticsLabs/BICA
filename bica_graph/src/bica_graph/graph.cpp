@@ -40,137 +40,268 @@
 #include <utility>
 #include <list>
 
-#include <bica_graph/graph.h>
+#include "bica_graph/graph.h"
 
-using bica_graph::BicaGraph;
-
-BicaGraph::BicaGraph()
-: locked_(false)
+namespace bica_graph
 {
+
+Graph::Graph(const ros::Time& ts)
+: ts_(ts)
+{
+  ts_ = ts;
 }
 
-BicaGraph::BicaGraph(const std::shared_ptr<Node>& node)
-: locked_(true)
+void
+Graph::add_node(const std::string& id, const std::string& type)
 {
-  nodes_.push_back(node);
+  auto node = nodes_.find(id);
+
+  if (node == nodes_.end())
+  {
+    nodes_[id] = std::make_shared<Node>(id, type);
+    ts_ = ros::Time::now();
+  }
+  else
+  {
+    if ((node->second)->get_type() != type)
+    {
+      throw bica_graph::exceptions::NodeTypeMismatch(
+        "Trying to update a node with same id ["+id+"] and different type ["+
+        type +" != "+ (node->second)->get_type()+"]");
+    }
+
+    ts_ = ros::Time::now();
+  }
+}
+
+void
+Graph::add_node(const bica_graph::Node& node)
+{
+  add_node(node.get_id(), node.get_type());
+}
+
+Node::SharedPtr
+Graph::get_node(const std::string& id)
+{
+  auto node = nodes_.find(id);
+
+  if (node == nodes_.end())
+  {
+    throw bica_graph::exceptions::NodeNotFound("Node not found [" + id + "]");
+  }
+
+  return node->second;
+}
+
+Node::ConstSharedPtr
+Graph::get_const_node(const std::string& id) const
+{
+  auto node = nodes_.find(id);
+
+  if (node == nodes_.end())
+  {
+    throw bica_graph::exceptions::NodeNotFound("Node not found [" + id + "]");
+  }
+
+  return node->second;
 }
 
 size_t
-BicaGraph::count_nodes() const
+Graph::count_nodes() const
 {
   return nodes_.size();
 }
 
 bool
-BicaGraph::is_sub_graph() const
+Graph::exist_node(const std::string& id) const
 {
-  return locked_;
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::create_node(const std::string& id, const std::string& type)
-{
-  return create_node(id, type, ros::Time::now());
-}
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::create_node(const std::string& id, const std::string& type, const ros::Time& time_stamp)
-{
-  auto node = get_node(id);
-
-  if (node == nullptr)
-  {
-    node = std::make_shared<bica_graph::Node>(id, type, time_stamp);
-    nodes_.push_back(node);
-  }
-  else
-  {
-    node->update_time_stamp();
-  }
-
-  return node;
+  return (nodes_.find(id) != nodes_.end());
 }
 
 void
-BicaGraph::remove_node(const std::string& id)
+Graph::add_tf_edge(const std::string& source, const std::string& target)
 {
-  auto node = get_node(id);
+  std::pair<std::string, std::string> idx(source, target);
 
-  if (node != nullptr)
+  auto edge = edges_.find(idx);
+  if (edge == edges_.end())
   {
-    node->remove_all_relations();
+    edges_[idx] = std::list<EdgeBase::SharedPtr>();
+    edges_[idx].push_back(std::make_shared<Edge<tf::Transform>>(source, target));
 
-    auto it = nodes_.begin();
+    ts_ = ros::Time::now();
+  }
+  else
+  {
+    auto edge_typed = std::dynamic_pointer_cast<bica_graph::Edge<tf::Transform>>(
+        get_edge<tf::Transform>(source, target));
 
-    while (it!= nodes_.end())
+    if (edge_typed == nullptr)
     {
-      if ((*it)->get_id() == id)
+      edges_[idx].push_back(std::make_shared<Edge<tf::Transform>>(source, target));
+      ts_ = ros::Time::now();
+    }
+  }
+}
+
+size_t
+Graph::count_edges(const std::string& source, const std::string& target) const
+{
+  try
+  {
+    check_source_target(source, target);
+  } catch(bica_graph::exceptions::NodeNotFound& e)
+  {
+    return 0;
+  }
+
+  std::pair<std::string, std::string> idx(source, target);
+
+  auto edge = edges_.find(idx);
+
+  if (edge == edges_.end())
+  {
+    return 0;
+  }
+  else
+  {
+    return edge->second.size();
+  }
+
+}
+
+void
+Graph::remove_node(const std::string& node_id)
+{
+  if (!exist_node(node_id))
+  {
+    throw bica_graph::exceptions::NodeNotFound("Node not found [" + node_id + "] removing node");
+  }
+
+  nodes_.erase(nodes_.find(node_id));
+
+  auto it = edges_.begin();
+
+  while (it != edges_.end())
+  {
+    if (it->first.first == node_id || it->first.second == node_id)
+    {
+      it = edges_.erase(it);
+      ts_ = ros::Time::now();
+    }
+    else
+    {
+      it++;
+    }
+  }
+}
+
+const std::map<std::string, Node::SharedPtr>&
+Graph::get_nodes() const
+{
+  return nodes_;
+}
+
+const std::map<std::pair<std::string, std::string>, std::list<EdgeBase::SharedPtr>>&
+Graph::get_edges() const
+{
+  return edges_;
+}
+
+ros::Time
+Graph::get_time_stamp() const
+{
+  return ts_;
+}
+
+void
+Graph::print()
+{
+  std::cout<<"============================================="<<std::endl;
+  for (auto node : nodes_)
+  {
+    std::cout << "Node ["<<node.first<<"] ("<<node.second->get_type()<<")"<<std::endl;
+  }
+  for (auto edges : edges_)
+  {
+    for (auto edge : edges.second)
+    {
+      switch (edge->get_type())
       {
-        it = nodes_.erase(it);
+        case STRING:
+            std::cout << "Edge ("<<edge->get_source()<<")---["<<edge->get<std::string>()<<"]--->("<<edge->get_target()<<")"<<std::endl;
+            break;
+        case DOUBLE:
+            std::cout << "Edge ("<<edge->get_source()<<")---["<<edge->get<double>()<<"]--->("<<edge->get_target()<<")"<<std::endl;
+            break;
+        case TF:
+            {
+              tf::Transform tf_aux = edge->get<tf::Transform>();
+              std::cout << "Edge ("<<edge->get_source()<<")---[("<<
+                tf_aux.getOrigin().x()<<", "<<
+                tf_aux.getOrigin().y()<<", "<<
+                tf_aux.getOrigin().z()<<
+                ")]--->("<<edge->get_target()<<")"<<std::endl;
+            }
+            break;
+        default:
+          std::cout << "Edge ("<<edge->get_source()<<")---[UNKNOWN]--->("<<edge->get_target()<<")"<<std::endl;
       }
-      else
-        ++it;
     }
+
+  }
+  std::cout<<"============================================="<<std::endl;
+}
+
+bool
+Graph::check_source_target(const std::string& source, const std::string& target) const
+{
+  if (!exist_node(source))
+  {
+    throw bica_graph::exceptions::NodeNotFound("Node not found [" + source + "] getting relation ["
+      + source + " --> " + target + "]");
+  }
+  if (!exist_node(target))
+  {
+    throw bica_graph::exceptions::NodeNotFound("Node not found [" + target + "] getting relation ["
+      + source + " --> " + target + "]");
   }
 }
 
-BicaGraph&
-BicaGraph::operator=(const BicaGraph& other)
+bool operator==(const Graph& lhs, const Graph& rhs)
 {
-  // (fmrico): Copy a graph is copying the list of references. Both graphs
-  //           are linked. This is very dangerous and only must be done when
-  //           copying for temporary grpahs
-  nodes_ = other.get_nodes();
+  size_t lhs_count_nodes = lhs.count_nodes();
+  size_t rhs_count_nodes = rhs.count_nodes();
 
-  return *this;
-}
-
-
-std::shared_ptr<bica_graph::Node>
-BicaGraph::get_node(const std::string& id)
-{
-  std::shared_ptr<bica_graph::Node> ret = nullptr;
-
-  for (auto it = nodes_.begin(); it!= nodes_.end(); ++it)
-  {
-    if ((*it)->get_id() == id)  // Todo (fmrico): Use also the type and throw an exception if different
-    {
-      ret = *it;
-    }
-  }
-
-  return ret;
-}
-
-bool bica_graph::operator==(const BicaGraph& lhs, const BicaGraph& rhs)
-{
-  if (lhs.nodes_.size() != rhs.nodes_.size())
-  {
+  if (lhs_count_nodes != rhs_count_nodes)
     return false;
-  }
 
-  for (std::pair<std::list<std::shared_ptr<Node>>::const_iterator, std::list<std::shared_ptr<Node>>::const_iterator>
-        it(lhs.nodes_.begin(), rhs.nodes_.begin());
-       it.first != lhs.nodes_.end() && it.second != rhs.nodes_.end();
-       ++it.first, ++it.second)
+  for (auto node_lhs : lhs.nodes_)
   {
-    if (**it.first != **it.second)
+    try
+    {
+      if (!(*node_lhs.second == *rhs.get_const_node(node_lhs.second->get_id())))
+        return false;
+    }
+    catch (bica_graph::exceptions::NodeNotFound& e)
     {
       return false;
     }
   }
 
+
+  for (auto edge_lhs : lhs.edges_)
+  {
+    size_t lhs_count_edges = lhs.count_edges(edge_lhs.first.first, edge_lhs.first.second);
+    size_t rhs_count_edges = rhs.count_edges(edge_lhs.first.first, edge_lhs.first.second);
+
+    if (lhs_count_edges != rhs_count_edges)
+      return false;
+
+    // ToDo (fmrico): check every edge
+  }
+
   return true;
 }
 
-std::ostream& bica_graph::operator<<(std::ostream& lhs, const BicaGraph& rhs)
-{
-  lhs << "======================================================" << std::endl;
-  lhs << "Number of nodes: " << rhs.nodes_.size() << std::endl;
-  for (auto it = rhs.nodes_.begin(); it!= rhs.nodes_.end(); ++it)
-  {
-    lhs << **it << std::endl;
-  }
-  lhs << "======================================================" << std::endl;
-  return lhs;
-}
+}  // namespace bica_graph

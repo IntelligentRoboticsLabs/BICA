@@ -41,18 +41,11 @@
 #include <memory>
 #include <string>
 
-#include <tf/tf.h>
-#include <bica_msgs/Graph.h>
-
 #include <bica_graph/macros.h>
-#include <bica_graph/graph.h>
 
 
 namespace bica_graph
 {
-class Relation;
-class TFRelation;
-class BicaGraph;
 
 class Node : public std::enable_shared_from_this<Node>
 {
@@ -61,210 +54,23 @@ public:
 
   /// Default constructor.
   /**
-   * Tipically, a Node is not created throught Graph::create_node
+   * Tipically, a Node is not created throught Graph::add_node
    * \param[in] id The id of the new node.
    * \param[in] type The type of the node.
    */
-  Node(const std::string& id, const std::string& type, const ros::Time& time_stamp);
+  Node(const std::string& id, const std::string& type);
 
-  /// get the id of the node.
-  /**
-  * \returns the id of the node.
-  */
-  std::string get_id() const {return id_;}
+  const std::string get_id() const;
+  const std::string get_type() const;
 
-  /// get the type of the node.
-  /**
-  * \returns the type of the node.
-  */
-  std::string get_type() const {return type_;}
-
-  /// get the time stamp of the node.
-  /**
-  * \returns the time stamp of the node.
-  */
-  ros::Time get_time_stamp() const {return ts_;}
-
-  /// update de time stamp of the node.
-  /**
-  *
-  */
-  void update_time_stamp();
-
-  /// Create a relation to other node.
-  /**
-  * This method creates the relation and links it to this node
-  * \param[in] type The type of the relation.
-  * \param[in] target The target of the relation.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<Relation> add_relation(const std::string& type,
-    const std::shared_ptr<Node>& target);
-
-  /// Create a TF relation to other node.
-  /**
-  * This method creates the TF relation and links it to this node
-  * \param[in] tf The transform as a tf::Transform
-  * \param[in] target The node related to this source node.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<TFRelation> add_tf_relation(
-    const tf::Transform& tf,
-    const std::shared_ptr<Node>& target);
-
-  /// Create a TF relation to other node, when a TF exists
-  /**
-  * This method creates the TF relation and links it to this node
-  * \param[in] target The node related to this source node.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<TFRelation> add_tf_relation(
-    const std::shared_ptr<Node>& target);
-
-  /// Create a relation to other node.
-  /**
-  * This method creates the relation and links it to this node
-  * \param[in] type The type of the relation.
-  * \param[in] target The node related to this source node.
-  * \param[in] time_stamp The timestamp where the relation is created.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<Relation> add_relation(const std::string& type,
-    const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
-
-  /// Create a TF relation to other node.
-  /**
-  * This method creates the TF relation and links it to this node
-  * \param[in] tf The transform as a tf::Transform
-  * \param[in] target The node related to this source node.
-  * \param[in] time_stamp The timestamp where the relation is created.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<TFRelation> add_tf_relation(
-    const tf::Transform& tf,
-    const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
-
-  /// Create a TF relation to other node, when a tf exists
-  /**
-  * This method creates the TF relation and links it to this node
-  * \param[in] target The node related to this source node.
-  * \param[in] time_stamp The timestamp where the relation is created.
-  * \returns the pointer of the new created relation
-  */
-  std::shared_ptr<TFRelation> add_tf_relation(
-    const std::shared_ptr<Node>& target, const ros::Time& time_stamp);
-
-  /// Remove a relation to other node.
-  /**
-   * \param[in] type The type of the relation.
-   * \param[in] target The node related to this source node.
-   * \param[in] target The timestamp where the relation is created.
-  */
-  void remove_relation(const std::string& type,
-    const std::shared_ptr<Node>& target);
-
-  /// Remove a ll the relation of a  node.
-  /**
-   *
-  */
-  void remove_all_relations();
-
-  /// Remove a TF relation to other node.
-  /**
-   * \param[in] target The node related to this source node.
-   * \param[in] target The timestamp where the relation is created.
-  */
-  void remove_tf_relation(const std::shared_ptr<Node>& target);
-
-  /// annotate an incoming relation from other node.
-  /**
-    * \param[in] relation The relation to annotate
-  */
-  void add_incoming_relation(const std::shared_ptr<Relation>& relation);
-
-  /// un-annotate an incoming relation from other node.
-  /**
-    * \param[in] relation The relation to un-annotate
-  */
-  void remove_incoming_relation(const std::shared_ptr<Relation>& relation);
-
-  /// Get a TF relation pointer.
-  /**
-   * \param[in] target The target node of the relation.
-   * \returns The shared pointer to the relation. nullptr if it does not exist
-  */
-  std::shared_ptr<TFRelation> get_tf_relation(
-    const std::shared_ptr<Node>& target);
-
-  /// Get a relation pointer.
-  /**
-   * \param[in] target The target node of the relation.
-   * \param[in] type The type of the  relation.
-   * \returns The shared pointer to the relation. nullptr if it does not exist
-  */
-  std::shared_ptr<Relation> get_relation(
-    const std::shared_ptr<Node>& target, const std::string& type);
-
-  /// Count the number of relations from this node.
-  /**
-  * \returns number of relations
-  */
-  size_t count_relations() const {return relations_out_.size();}
-
-  /// Get the list of relations of which this node is source
-  /**
-  * \returns the list of smart pointers to each relations
-  */
-  const std::list<std::shared_ptr<Relation>>& get_relations() const {return relations_out_;}
-
-  /// Get the list of incoming relations to this node
-  /**
-  * \returns the list of smart pointers to each relations
-  */
-  const std::list<std::shared_ptr<Relation>>& get_incoming_relations() const {return relations_in_;}
-
-  /// Create relations comming from a message
-  /**
-  * \param[in] node The msg that contains relations
-  * \param[in] graph The graph where the nodo exists.
-  */
-  void add_relations_from_msg(const bica_msgs::Node& node, std::shared_ptr<BicaGraph> graph);
-
-  /// Compare two nodes.
-  /**
-  * \param[in] other The node to compare.
-  * \returns true if both nodes are equals
-  */
   friend bool operator==(const Node& lhs, const Node& rhs);
-
-  /// Compare tho nodes.
-  /**
-  * \param[in] other The node to compare.
-  * \returns true if both nodes are not equals
-  */
   friend bool operator!=(const Node& lhs, const Node& rhs);
 
-  /// Fill a text stream for printing modes.
-  /**
-  * \param[in] lhs The stream to print to.
-  * \param[in] other The node to stream.
-  * \returns the ostream
-  */
-  friend std::ostream& operator<<(std::ostream& lhs, const Node& rhs);
-
 protected:
-  std::list<std::shared_ptr<Relation>> relations_out_;
-  std::list<std::shared_ptr<Relation>> relations_in_;
-
-  std::string id_;
   std::string type_;
-
-  ros::Time ts_;
+  std::string id_;
 };
 
-bool operator==(const Node& lhs, const Node& rhs);
-bool operator!=(const Node& lhs, const Node& rhs);
-std::ostream& operator<<(std::ostream& lhs, const Node& rhs);
 
 }  // namespace bica_graph
 

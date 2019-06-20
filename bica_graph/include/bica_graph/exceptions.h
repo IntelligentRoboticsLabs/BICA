@@ -43,13 +43,72 @@ namespace bica_graph
 {
 namespace exceptions
 {
-
-/// Thrown when a method is trying to use a node, but it is invalid.
-class BicaGraphLocked : public std::runtime_error
+class OperationNotValid : public std::exception
 {
 public:
-  BicaGraphLocked()
-  : std::runtime_error("knowledge graph is locked, it is a subgraph") {}
+
+  OperationNotValid(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what () const throw ()
+  {
+      return message_.c_str();
+  }
+
+private:
+  std::string message_;
+};
+
+class NodeNotFound : public std::exception
+{
+public:
+
+  NodeNotFound(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what () const throw ()
+  {
+      return message_.c_str();
+  }
+
+private:
+  std::string message_;
+};
+
+class NodeTypeMismatch : public std::exception
+{
+public:
+
+  NodeTypeMismatch(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what () const throw ()
+  {
+    return message_.c_str();
+  }
+
+  private:
+    std::string message_;
+};
+
+class TransformNotPossible : public std::exception
+{
+public:
+
+  TransformNotPossible(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what () const throw ()
+  {
+      return message_.c_str();
+  }
+
+private:
+  std::string message_;
 };
 
 }  // namespace exceptions

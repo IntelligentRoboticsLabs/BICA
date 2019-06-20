@@ -37,24 +37,66 @@
 #ifndef BICA_GRAPH_CONVERSIONS_H
 #define BICA_GRAPH_CONVERSIONS_H
 
-#include <bica_graph/graph.h>
 #include <bica_msgs/Graph.h>
+#include <bica_graph/graph.h>
+#include <bica_graph/exceptions.h>
 
 namespace bica_graph
 {
-  /// Convert a a bica_graph::Graph graph to a bica_msgs::Graph message.
+  /// Convert a Node to a bica_msgs::Node message.
+  /**
+  * \param[in] node A shared pointer reference to the node to create
+  * \param[out] msg A pointer to a pre-existing bica_msgs::Node
+  */
+  void node_to_msg(const Node::SharedPtr& node, bica_msgs::Node* msg);
+
+  /// Convert a  bica_msgs::Node message to a Node.
+  /**
+  * \param[in] msg A shared pointer reference to a bica_msgs::Node
+  * \param[out] node A shared pointer reference to a node
+  */
+  void msg_to_node(const bica_msgs::Node& msg, Node::SharedPtr& node);
+
+  /// Convert a bica_graph::Graph to a bica_msgs::Graph message.
   /**
   * \param[in] graph The graph
   * \returns the pointer of a new created message
   */
-  bica_msgs::Graph::ConstPtr graph_to_msg(const bica_graph::BicaGraph& graph);
+  void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg);
 
-  /// Convert a bica_msgs::Graph message to a bica_graph::Graph graph.
+  /// Convert a bica_graph::Graph to a bica_msgs::Graph message.
   /**
-  * \param[in] msg The incoming message
-  * \returns the pointer of a new created graph
+  * \param[in] graph The graph
+  * \returns the pointer of a new created message
   */
-  bica_graph::BicaGraph::SharedPtr msg_to_graph(const bica_msgs::Graph::ConstPtr& msg);
+  void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& graph);
+
+  const char* get_msg_type_string(uint type);
+
+
+  template<class T>
+  void edge_to_msg(const typename Edge<T>::SharedPtr& edge, bica_msgs::Edge* msg);
+
+  template<class T>
+  void msg_to_edge(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<T>>& edge);
+
+  template<>
+  void msg_to_edge<std::string>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<std::string>>& edge);
+
+  template<>
+  void msg_to_edge<double>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<double>>& edge);
+
+  template<>
+  void msg_to_edge<tf::Transform>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<tf::Transform>>& edge);
+
+  template<>
+  void edge_to_msg<std::string>(const Edge<std::string>::SharedPtr& edge, bica_msgs::Edge* msg);
+
+  template<>
+  void edge_to_msg<double>(const Edge<double>::SharedPtr& edge, bica_msgs::Edge* msg);
+
+  template<>
+  void edge_to_msg<tf::Transform>(const Edge<tf::Transform>::SharedPtr& edge, bica_msgs::Edge* msg);
 
 }  // namespace bica_graph
 

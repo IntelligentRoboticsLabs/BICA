@@ -34,42 +34,18 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_GRAPH_LISTENER_H
-#define BICA_GRAPH_GRAPH_LISTENER_H
+#include "ros/ros.h"
 
-#include <ros/ros.h>
+#include <bica_graph/graph_server.h>
 
-#include <bica_graph/graph.h>
-#include <bica_msgs/Graph.h>
-
-namespace bica_graph
+int main(int argc, char* argv[])
 {
+  ros::init(argc, argv, "graph_master");
+  ros::NodeHandle n;
 
-class GraphListener
-{
-public:
-  BICA_GRAPH_SMART_PTR_DEFINITIONS(GraphListener)
+  bica_graph::GraphServer server;
 
-  /// Create a sub knowledge graph. This graph only contains a node and its relations.
-  /**
-  * \param[in] nh A nodehandle.
-  * \param[in] graph The graph to update.
-  */
-  explicit GraphListener(ros::NodeHandle& nh, const bica_graph::BicaGraph::SharedPtr& graph);
+  ros::spin();
 
-private:
-  /// The callback for incoming graph messages.
-  /**
-  * \param[in] msg The incoming graph message
-  */
-  void graph_callback(const bica_msgs::Graph::ConstPtr& msg);
-
-  ros::NodeHandle nh_;
-  BicaGraph::SharedPtr graph_;
-
-  ros::Subscriber graph_sub_;
-};
-
-}  // namespace bica_graph
-
-#endif  // BICA_GRAPH_GRAPH_LISTENER_H
+  return 0;
+}

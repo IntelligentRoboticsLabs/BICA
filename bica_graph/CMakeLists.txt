@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   bica_msgs
   tf
+  tf2_ros
 )
 
 find_package(rostest REQUIRED)
@@ -27,24 +28,22 @@ include_directories(
 
 set(BICA_GRAPH_SRCS
   src/${PROJECT_NAME}/graph.cpp
+  src/${PROJECT_NAME}/edge.cpp
   src/${PROJECT_NAME}/node.cpp
-  src/${PROJECT_NAME}/relation.cpp
-  src/${PROJECT_NAME}/tf_relation.cpp
   src/${PROJECT_NAME}/conversions.cpp
-  src/${PROJECT_NAME}/graph_publisher.cpp
-  src/${PROJECT_NAME}/graph_listener.cpp
-  src/${PROJECT_NAME}/graph_handler.cpp
+  src/${PROJECT_NAME}/graph_client.cpp
+  src/${PROJECT_NAME}/graph_server.cpp
+  src/${PROJECT_NAME}/graph.cpp
 )
 
 set(BICA_GRAPH_HDRS
   include/${PROJECT_NAME}/graph.h
   include/${PROJECT_NAME}/node.h
-  include/${PROJECT_NAME}/relation.h
-  include/${PROJECT_NAME}/exceptions.h
+  include/${PROJECT_NAME}/edge.h
   include/${PROJECT_NAME}/conversions.h
-  include/${PROJECT_NAME}/graph_publisher.h
-  include/${PROJECT_NAME}/graph_listener.h
-  include/${PROJECT_NAME}/graph_handler.h
+  include/${PROJECT_NAME}/exceptions.h
+  include/${PROJECT_NAME}/macros.h
+  include/${PROJECT_NAME}/graph_client.h
 )
 
 add_library(${PROJECT_NAME} ${BICA_GRAPH_SRCS})
@@ -57,6 +56,10 @@ install(TARGETS ${PROJECT_NAME}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+add_executable(graph_master_node src/graph_master_node.cpp)
+add_dependencies(graph_master_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(graph_master_node ${catkin_LIBRARIES} ${PROJECT_NAME} )
+
 
 install(DIRECTORY include/${PROJECT_NAME}/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
@@ -67,6 +70,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 roslint_cpp(
   ${BICA_GRAPH_SRCS} ${BICA_GRAPH_HDRS}
   test/test_bica_graph.cpp
+  test/test_bica_graph_clientserver.cpp
 )
 
 if(CATKIN_ENABLE_TESTING)
@@ -75,6 +79,10 @@ if(CATKIN_ENABLE_TESTING)
   add_executable(${PROJECT_NAME}_test test/test_bica_graph.cpp)
   if(TARGET ${PROJECT_NAME}_test)
     target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} gtest)
+  endif()
+  add_executable(${PROJECT_NAME}_test_clientserver test/test_bica_graph_clientserver.cpp)
+  if(TARGET ${PROJECT_NAME}_test_clientserver)
+    target_link_libraries(${PROJECT_NAME}_test_clientserver ${PROJECT_NAME} gtest)
   endif()
 
   add_rostest(test/test_bica_graph.test)
