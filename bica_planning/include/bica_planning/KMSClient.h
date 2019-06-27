@@ -79,7 +79,7 @@ protected:
 
   std::vector<std::string> get_instances(const std::string& instance_type);
   std::vector<std::string> tokenize(const std::string& text);
-  std::vector<std::pair<std::string,float>> getCurrentFunctions();
+  std::vector<std::pair<std::string, float>> getCurrentFunctions();
 
   ros::NodeHandle nh_;
   ros::ServiceClient ku_client_, kq_client_, cg_client_, dp_client_, ki_client_,

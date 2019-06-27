@@ -41,7 +41,8 @@ namespace bica_planning
 {
 Executor::Executor()
   : nh_()
-  , problem_generator_client_(nh_.serviceClient<std_srvs::Empty>("/rosplan_problem_interface/problem_generation_server"))
+  , problem_generator_client_(nh_.serviceClient<std_srvs::Empty>
+      ("/rosplan_problem_interface/problem_generation_server"))
   , planning_server_state_client_(nh_.serviceClient<std_srvs::Empty>("/rosplan_planner_interface/planning_server"))
   , plan_parser_client_(nh_.serviceClient<std_srvs::Empty>("/rosplan_parsing_interface/parse_plan"))
   , plan_dispatcher_client_(nh_.serviceClient<std_srvs::Empty>("/rosplan_plan_dispatcher/dispatch_plan"))

@@ -39,13 +39,15 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace bica_planning
 {
 KMSClient::KMSClient()
   : nh_()
   , ku_client_(nh_.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/rosplan_knowledge_base/update"))
-  , kq_client_(nh_.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/rosplan_knowledge_base/state/propositions"))
+  , kq_client_(nh_.serviceClient<rosplan_knowledge_msgs::GetAttributeService>(
+      "/rosplan_knowledge_base/state/propositions"))
   , cg_client_(nh_.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/rosplan_knowledge_base/state/goals"))
   , dp_client_(
       nh_.serviceClient<rosplan_knowledge_msgs::GetDomainAttributeService>("/rosplan_knowledge_base/domain/predicates"))
@@ -283,8 +285,8 @@ bool KMSClient::add_function(std::string metric_fact, float value)
   if (!update_function_kb(
       metric_fact,
       value,
-      rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE
-    ))
+      rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE)
+    )
     ROS_ERROR("Could not add function");
 }
 
@@ -293,16 +295,14 @@ bool KMSClient::rm_function(std::string metric_fact, float value)
   if (!update_function_kb(
       metric_fact,
       value,
-      rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE
-    ))
+      rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE)
+    )
     ROS_ERROR("Could not remove function");
 }
 
-
-
 bool KMSClient::rm_function_regex(std::regex re)
 {
-  std::vector<std::pair<std::string,float>> current_functions = getCurrentFunctions();
+  std::vector<std::pair<std::string, float>> current_functions = getCurrentFunctions();
   for (int i = 0; i < current_functions.size(); i++)
     if (std::regex_match(current_functions[i].first, re))
       rm_function(current_functions[i].first, current_functions[i].second);
@@ -326,7 +326,7 @@ bool KMSClient::update_function(std::string function, float value)
       int count = 0;
       for (int j = 0; j < srv.response.attributes[i].values.size(); j++)
       {
-        if(srv.response.attributes[i].values[j].value == tokens[j+1])
+        if (srv.response.attributes[i].values[j].value == tokens[j+1])
           count++;
       }
       if (count == srv.response.attributes[i].values.size())
@@ -378,10 +378,10 @@ bool KMSClient::remove_current_goal()
   }
 }
 
-std::vector<std::pair<std::string,float>> KMSClient::getCurrentFunctions()
+std::vector<std::pair<std::string, float>> KMSClient::getCurrentFunctions()
 {
-  std::vector<std::pair<std::string,float>> ret;
-  std::pair<std::string,float> funct;
+  std::vector<std::pair<std::string, float>> ret;
+  std::pair<std::string, float> funct;
   rosplan_knowledge_msgs::GetAttributeService query_fact_instance;
   query_fact_instance.request.predicate_name = "";
 
