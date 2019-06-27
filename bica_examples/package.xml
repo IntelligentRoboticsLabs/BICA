@@ -11,11 +11,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>bica</build_depend>
-  <build_depend>bica_graph</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>bica_graph</build_depend>
+  <build_depend>bica_planning</build_depend>
   <build_depend>bica_msgs</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>cv_bridge</build_depend>
@@ -25,7 +25,7 @@
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>bica_graph</build_export_depend>
+  <build_export_depend>bica_planning</build_export_depend>
   <build_export_depend>bica_msgs</build_export_depend>
   <build_export_depend>image_transport</build_export_depend>
   <build_export_depend>cv_bridge</build_export_depend>
@@ -35,7 +35,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>bica_graph</exec_depend>
+  <exec_depend>bica_planning</exec_depend>
   <exec_depend>bica_msgs</exec_depend>
   <exec_depend>image_transport</exec_depend>
   <exec_depend>cv_bridge</exec_depend>

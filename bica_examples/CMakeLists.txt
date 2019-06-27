@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   bica_graph
+  bica_planning
   bica_msgs
   image_transport
   cv_bridge
@@ -101,3 +102,20 @@ target_link_libraries(yellow_net_global_detector_node ${catkin_LIBRARIES})
 add_executable(blue_net_global_detector_node src/graph/follow_global_ballnet/blue_net_global_detector_node.cpp)
 add_dependencies(blue_net_global_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(blue_net_global_detector_node ${catkin_LIBRARIES})
+
+# Planning Example ####################
+add_executable(planning_example_node src/planning/planning_example_node.cpp)
+add_dependencies(planning_example_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(planning_example_node ${catkin_LIBRARIES})
+
+add_executable(approach_action_node src/planning/hri/Approach.cpp)
+add_dependencies(approach_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(approach_action_node ${catkin_LIBRARIES})
+
+add_executable(talk_action_node src/planning/hri/Talk.cpp)
+add_dependencies(talk_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(talk_action_node ${catkin_LIBRARIES})
+
+add_executable(move_action_node src/planning/navigate/Move.cpp)
+add_dependencies(move_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(move_action_node ${catkin_LIBRARIES})

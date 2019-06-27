@@ -1,0 +1,17 @@
+<launch>
+
+	<arg name="data_path" default="$(find bica_planning)/common/" />
+	<arg name="domain_path"/>
+
+	<param name="/rosplan/data_path" value="$(arg data_path)" />
+	<param name="/rosplan/planner_path" value="$(find rosplan_planning_system)/common/bin/" />
+	<param name="/rosplan/domain_path" value="$(arg domain_path)" />
+
+  <include file="$(find rosplan_planning_system)/launch/interfaced_planning_system.launch">
+		<arg name="domain_path"          value="$(arg domain_path)" />
+		<arg name="problem_path"         value="$(arg data_path)/problem.pddl" />
+		<arg name="data_path"            value="$(arg data_path)/" />
+	</include>
+
+
+</launch>

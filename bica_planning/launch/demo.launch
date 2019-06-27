@@ -1,0 +1,7 @@
+<launch>
+  <arg name="pddl_domain_file" default="RUTA_DEL_FICHERO_.PDDL" />
+  <include file="$(find bica_planning)/launch/planning_system.launch" >
+    <arg name="data_path" value="/tmp" />
+    <arg name="domain_path"  value="$(arg pddl_domain_file)" />
+  </include>
+</launch>
