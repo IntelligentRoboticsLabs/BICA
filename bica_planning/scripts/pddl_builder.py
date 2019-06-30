@@ -57,8 +57,25 @@ class PddlBuilder:
         pddl_dirs = []
         if rospy.has_param('~pddl_packages'):
             pddl_pkgs = rospy.get_param('~pddl_packages')
-            for pkg in pddl_pkgs:
-                pddl_dirs.append(rospack.get_path(pkg))
+
+            if isinstance(pddl_pkgs, (list,)):
+                for pkg in pddl_pkgs:
+                    try:
+                        pkg_path = rospack.get_path(pkg)
+                        pddl_dirs.append(pkg_path)
+                    except:
+                        rospy.logerror("No existe package[" + pkg + "]")
+                        pass
+            elif isinstance(pddl_pkgs, basestring):
+                try:
+                    pkg_path = rospack.get_path(pddl_pkgs)
+                    pddl_dirs.append(pkg_path)
+                except:
+                    rospy.logerror("No existe package[" + pddl_pkgs + "]")
+                    pass
+            else:
+                rospy.logerror("[pddl_builder] Unable to process: " + pddl_pkgs)
+
             rospy.loginfo("[pddl_builder] set pddl_dirs to:")
             rospy.loginfo(pddl_dirs)
         else:
