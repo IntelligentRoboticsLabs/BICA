@@ -76,6 +76,8 @@ roslint_cpp(
   ${BICA_GRAPH_SRCS} ${BICA_GRAPH_HDRS}
   test/test_bica_graph.cpp
   test/test_bica_graph_clientserver.cpp
+  src/graph_master_node.cpp
+  src/graph_kms_extractor_node.cpp
 )
 
 if(CATKIN_ENABLE_TESTING)

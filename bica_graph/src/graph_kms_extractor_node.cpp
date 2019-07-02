@@ -128,7 +128,7 @@ private:
       if (!is_node_interested(type))
         continue;
 
-      if (node_in_kms(type, id))
+      if (!node_in_kms(type, id))
         nodes_to_remove.push_back(id);
     }
 
