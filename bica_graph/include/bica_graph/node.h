@@ -59,9 +59,13 @@ public:
    * \param[in] type The type of the node.
    */
   Node(const std::string& id, const std::string& type);
+  explicit Node(const std::string& id);
+  Node(const Node& other);
 
   const std::string get_id() const;
   const std::string get_type() const;
+  void set_id(const std::string& id) {id_ = id;}
+  void set_type(const std::string& type) {type_ = type;}
 
   friend bool operator==(const Node& lhs, const Node& rhs);
   friend bool operator!=(const Node& lhs, const Node& rhs);

@@ -52,162 +52,77 @@
 namespace bica_graph
 {
 
-typedef enum
-{
-  UNKNOWN, STRING, DOUBLE, TF
-}
-EdgeType;
-
-class EdgeBase : public std::enable_shared_from_this<EdgeBase>
+class StringEdge
 {
 public:
-  BICA_GRAPH_SMART_PTR_DEFINITIONS(EdgeBase)
-
-  EdgeBase() {}
-
-  virtual ~EdgeBase() {}
-
-  template<class T> const T get() const;
-  template<class T, class U> void set(const U& rhs);
-
-  EdgeType get_type() const {return type_;}
-
-  friend bool operator==(const EdgeBase& lhs, const EdgeBase& rhs);
+  StringEdge(const std::string& source, const std::string& data, const std::string& target);
+  StringEdge(const StringEdge& other);
 
   const std::string get_source() const {return source_;}
   const std::string get_target() const {return target_;}
 
-protected:
-  EdgeType type_;
+  const std::string& get() const {return data_;}
+  void set(const std::string& data) {data_ = data;}
 
+  friend bool operator==(const StringEdge& lhs, const StringEdge& rhs);
+  friend bool operator!=(const StringEdge& lhs, const StringEdge& rhs);
+private:
   std::string source_;
   std::string target_;
+  std::string data_;
 };
 
-template <class T>
-EdgeType to_type()
-{
-  if (std::is_same<T, std::string>::value)
-    return STRING;
-  else if (std::is_same<T, double>::value)
-    return DOUBLE;
-  else if (std::is_same<T, tf::Transform>::value)
-    return TF;
-  else
-    return UNKNOWN;
-}
-
-template<class T>
-class Edge: public EdgeBase
+class DoubleEdge
 {
 public:
-  Edge(const std::string& source, const std::string& target, const T& data)
-  : EdgeBase(), data_(data)
-  {
-    type_ = to_type<T>();
+  DoubleEdge(const std::string& source, const double data, const std::string& target);
+  DoubleEdge(const std::string& source, const std::string& target);
+  DoubleEdge(const DoubleEdge& other);
 
-    source_ = source;
-    target_ = target;
-  }
+  const std::string get_source() const {return source_;}
+  const std::string get_target() const {return target_;}
 
-  Edge(const std::string& source, const std::string& target)
-  : Edge(source, target, T())
-  {}
+  const double get() const {return data_;}
+  void set(const double& data) {data_ = data;}
 
-  const T get() const {return data_;}
-  void set(const T& rhs) {data_ = rhs;}
-
+  friend bool operator==(const DoubleEdge& lhs, const DoubleEdge& rhs);
+  friend bool operator!=(const DoubleEdge& lhs, const DoubleEdge& rhs);
 private:
-  T data_;
+  std::string source_;
+  std::string target_;
+  double data_;
 };
 
 class BicaTransformListener: public Singleton<tf::TransformListener> {};
 class BicaTransformBroadcaster: public Singleton<tf::TransformBroadcaster> {};
 
-template<>
-class Edge<tf::Transform>: public EdgeBase
+class TFEdge
 {
 public:
-  Edge(const std::string& source, const std::string& target, const tf::Transform& data)
-  : EdgeBase(), nh_()
-  {
-    tf_listener_ = BicaTransformListener::getInstance();
-    tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+  TFEdge(const std::string& source, const tf::Transform& data, const std::string& target);
+  TFEdge(const std::string& source, const std::string& target);
+  TFEdge(const TFEdge& other);
 
-    type_ = to_type<tf::Transform>();
+  const std::string get_source() const {return source_;}
+  const std::string get_target() const {return target_;}
 
-    source_ = source;
-    target_ = target;
+  const tf::Transform get() const;
+  void set(const tf::Transform& data);
 
-    publish_transform(source_, target_, data);
-  }
-
-  Edge(const std::string& source, const std::string& target)
-  : EdgeBase()
-  {
-    tf_listener_ = BicaTransformListener::getInstance();
-    tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
-
-    type_ = to_type<tf::Transform>();
-
-    source_ = source;
-    target_ = target;
-  }
-
-  const tf::Transform get() const
-  {
-    tf::StampedTransform tf;
-
-    try
-    {
-      tf_listener_->waitForTransform(source_, target_, ros::Time(0), ros::Duration(1.0));
-      tf_listener_->lookupTransform(source_, target_, ros::Time(0), tf);
-    }
-    catch (tf::TransformException& ex)
-    {
-      ROS_ERROR("%s", ex.what());
-    }
-
-    return tf;
-  }
-
-  void set(const tf::Transform& data)
-  {
-    publish_transform(source_, target_, data);
-  }
-
-  void publish_transform(const std::string& source, const std::string& target, const tf::Transform& data)
-  {
-    geometry_msgs::TransformStamped tf_send;
-    tf_send.child_frame_id = target_;
-    tf_send.header.frame_id = source_;
-
-    tf_send.header.stamp = ros::Time::now();
-    tf::transformTFToMsg(data, tf_send.transform);
-
-    try
-    {
-      tf_broadcaster_->sendTransform(tf_send);
-    }
-    catch(tf::TransformException &exception)
-    {
-      ROS_ERROR("set_transform:: %s", exception.what());
-    }
-  }
-
+  friend bool operator==(const TFEdge& lhs, const TFEdge& rhs);
+  friend bool operator!=(const TFEdge& lhs, const TFEdge& rhs);
 private:
+  void publish_transform(const std::string& source, const std::string& target, const tf::Transform& data);
+
   ros::NodeHandle nh_;
 
   tf::TransformListener *tf_listener_;
   tf::TransformBroadcaster *tf_broadcaster_;
+
+  std::string source_;
+  std::string target_;
+  std::string data_;
 };
-
-template<class T> const T EdgeBase::get() const
-{ return dynamic_cast<const Edge<T>&>(*this).get(); }
-template<class T, class U> void EdgeBase::set(const U& rhs)
-{ return dynamic_cast<Edge<T>&>(*this).set(rhs); }
-
-bool operator==(const EdgeBase& lhs, const EdgeBase& rhs);
 
 }  // namespace bica_graph
 

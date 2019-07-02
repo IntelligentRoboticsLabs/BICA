@@ -100,14 +100,13 @@ int main(int argc, char* argv[])
   }
 
 
-  client.remove_edge<double>("bedroom", "leia");
-  client.remove_edge<tf::Transform>("bedroom", "leia");
-  client.remove_edge<std::string>("leia", "bedroom", "is");
+  client.remove_double_edge("bedroom", "leia");
+  client.remove_tf_edge("bedroom", "leia");
+  client.remove_edge("leia", "is", "bedroom");
 
   count = 0;
   while (ros::ok() && count < 4)
   {
-    client.print();
 
     count++;
     ros::spinOnce();

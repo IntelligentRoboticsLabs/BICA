@@ -91,16 +91,16 @@ GraphServer::handle_string_edge_update(const bica_msgs::GraphUpdate& update)
   switch (update.update_type)
   {
     case bica_msgs::GraphUpdate::ADD:
-      if (!graph_->exist_edge<std::string>(update.edge_source, update.edge_target, update.edge_type))
+      if (!graph_->exist_edge(update.edge_source, update.edge_type, update.edge_target))
       {
         graph_->add_edge(update.edge_source, update.edge_type, update.edge_target);
         publish_graph();
       }
       break;
     case bica_msgs::GraphUpdate::REMOVE:
-      if (graph_->exist_edge<std::string>(update.edge_source, update.edge_target, update.edge_type))
+      if (graph_->exist_edge(update.edge_source, update.edge_type, update.edge_target))
       {
-        graph_->remove_edge(update.edge_source, update.edge_target, update.edge_type);
+        graph_->remove_edge(update.edge_source, update.edge_type, update.edge_target);
         publish_graph();
       }
   }
@@ -116,16 +116,21 @@ GraphServer::handle_double_edge_update(const bica_msgs::GraphUpdate& update)
   switch (update.update_type)
   {
     case bica_msgs::GraphUpdate::ADD:
-      if (!graph_->exist_edge<double>(update.edge_source, update.edge_target, update.edge_double))
+      if (!graph_->exist_double_edge(update.edge_source, update.edge_target))
       {
         graph_->add_edge(update.edge_source, update.edge_double, update.edge_target);
         publish_graph();
       }
+      else
+      {
+        graph_->get_double_edge(update.edge_source, update.edge_target).set(update.edge_double);
+        publish_graph();
+      }
       break;
     case bica_msgs::GraphUpdate::REMOVE:
-      if (graph_->exist_edge<double>(update.edge_source, update.edge_target, update.edge_double))
+      if (graph_->exist_double_edge(update.edge_source, update.edge_target))
       {
-        graph_->remove_edge(update.edge_source, update.edge_target, update.edge_double);
+        graph_->remove_double_edge(update.edge_source, update.edge_target);
         publish_graph();
       }
   }
@@ -141,16 +146,16 @@ GraphServer::handle_tf_edge_update(const bica_msgs::GraphUpdate& update)
   switch (update.update_type)
   {
     case bica_msgs::GraphUpdate::ADD:
-      if (!graph_->exist_edge<tf::Transform>(update.edge_source, update.edge_target))
+      if (!graph_->exist_tf_edge(update.edge_source, update.edge_target))
       {
         graph_->add_tf_edge(update.edge_source, update.edge_target);
         publish_graph();
       }
       break;
     case bica_msgs::GraphUpdate::REMOVE:
-      if (graph_->exist_edge<tf::Transform>(update.edge_source, update.edge_target))
+      if (graph_->exist_tf_edge(update.edge_source, update.edge_target))
       {
-        graph_->remove_edge<tf::Transform>(update.edge_source, update.edge_target);
+        graph_->remove_tf_edge(update.edge_source, update.edge_target);
         publish_graph();
       }
   }

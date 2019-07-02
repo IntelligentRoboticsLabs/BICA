@@ -29,7 +29,7 @@ public:
 		graph_.add_node("world", "abstract");
 		graph_.add_node("leia", "robot");
 	  graph_.add_node("ball", "object");
-		graph_.add_edge("leia", std::string("wants_see"), "ball");
+		graph_.add_edge("leia", "wants_see", "ball");
 
 		ROS_INFO("[%s] inited", ros::this_node::getName().c_str());
 	}
@@ -121,15 +121,15 @@ public:
 
 			if (pc_filtered->size() > 0)
 			{
-				graph_.remove_edge("leia", "ball", std::string("wants_see"));
-				graph_.add_edge("leia", std::string("sees"), "ball");
+				graph_.remove_edge("leia", "wants_see", "ball");
+				graph_.add_edge("leia", "sees", "ball");
 				graph_.add_edge("leia", getTransform(pc_filtered), "ball");
 			}
 			else
 			{
-				graph_.remove_edge("leia", "ball", std::string("sees"));
-				graph_.remove_edge<tf::Transform>("leia", "ball");
-				graph_.add_edge("leia", std::string("wants_see"), "ball");
+				graph_.remove_edge("leia", "sees", "ball");
+				graph_.remove_tf_edge("leia", "ball");
+				graph_.add_edge("leia", "wants_see", "ball");
 			}
 		}
 	}

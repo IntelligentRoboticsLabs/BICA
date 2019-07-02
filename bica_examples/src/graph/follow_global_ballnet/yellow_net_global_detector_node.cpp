@@ -37,15 +37,15 @@ public:
 
 	void activateCode()
 	{
-		graph_.add_edge("leia", std::string("wants_see"), "blue_net");
+		graph_.add_edge("leia", "wants_see", "blue_net");
 	}
 
 	void deActivateCode()
 	{
-		graph_.remove_edge("leia", "yellow_net", std::string("wants_see"));
-		graph_.remove_edge("leia", "yellow_net", std::string("sees"));
+		graph_.remove_edge("leia", "wants_see", "yellow_net");
+		graph_.remove_edge("leia", "sees", "yellow_net");
 	}
-	
+
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
 	{
 		sensor_msgs::PointCloud2 cloud_in_bf;
@@ -133,15 +133,15 @@ public:
 			if (pc_filtered->size() > 0)
 			{
 				ROS_INFO("Yellow Net detected");
-				graph_.remove_edge("leia", "yellow_net", std::string("wants_see"));
-				graph_.add_edge("leia", std::string("sees"), "yellow_net");
+				graph_.remove_edge("leia", "wants_see", "yellow_net");
+				graph_.add_edge("leia", "sees", "yellow_net");
 				graph_.add_edge("world", getTransform(pc_filtered), "yellow_net");
 			}
 			else
 			{
 				ROS_INFO("Yellow Net NOT detected");
-				graph_.remove_edge("leia", "yellow_net", std::string("sees"));
-				graph_.add_edge("leia", std::string("wants_see"), "yellow_net");
+				graph_.remove_edge("leia", "sees", "yellow_net");
+				graph_.add_edge("leia", "wants_see", "yellow_net");
 			}
 		}
 	}

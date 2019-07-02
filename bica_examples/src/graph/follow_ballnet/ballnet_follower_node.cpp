@@ -24,9 +24,9 @@ public:
 	{
 		geometry_msgs::Twist cmd;
 
-		if (graph_.exist_edge("leia", "yellow_net", std::string("sees")))
+		if (graph_.exist_edge("leia", "sees", "yellow_net"))
 		{
-			tf::Transform tf_yellow_net = graph_.get_edge<tf::Transform>("leia", "yellow_net")->get();
+			tf::Transform tf_yellow_net = graph_.get_tf_edge("leia", "yellow_net").get();
 
 			cmd.angular.z = std::max(std::min(atan2(tf_yellow_net.getOrigin().y(), tf_yellow_net.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(tf_yellow_net.getOrigin().length() - 1.5, 0.2);
@@ -46,9 +46,9 @@ public:
 	{
 		geometry_msgs::Twist cmd;
 
-		if (graph_.exist_edge("leia", "blue_net", std::string("sees")))
+		if (graph_.exist_edge("leia", "sees", "blue_net"))
 		{
-			tf::Transform tf_blue_net = graph_.get_edge<tf::Transform>("leia", "blue_net")->get();
+			tf::Transform tf_blue_net = graph_.get_tf_edge("leia", "blue_net").get();
 
 			cmd.angular.z = std::max(std::min(atan2(tf_blue_net.getOrigin().y(), tf_blue_net.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(tf_blue_net.getOrigin().length() - 1.5, 0.2);
@@ -70,9 +70,9 @@ public:
 
 		geometry_msgs::Twist cmd;
 
-		if (graph_.exist_edge("leia", "ball", std::string("sees")))
+		if (graph_.exist_edge("leia", "sees", "ball"))
 		{
-			tf::Transform tf_ball_net = graph_.get_edge<tf::Transform>("leia", "ball")->get();
+			tf::Transform tf_ball_net = graph_.get_tf_edge("leia", "ball").get();
 
 			cmd.angular.z = std::max(std::min(atan2(tf_ball_net.getOrigin().y(), tf_ball_net.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(tf_ball_net.getOrigin().length() - 1.5, 0.2);

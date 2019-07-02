@@ -119,3 +119,7 @@ target_link_libraries(talk_action_node ${catkin_LIBRARIES})
 add_executable(move_action_node src/planning/navigate/Move.cpp)
 add_dependencies(move_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(move_action_node ${catkin_LIBRARIES})
+
+add_executable(planning_example_elements_node src/planning/planning_example_elements_node.cpp)
+add_dependencies(planning_example_elements_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(planning_example_elements_node ${catkin_LIBRARIES})

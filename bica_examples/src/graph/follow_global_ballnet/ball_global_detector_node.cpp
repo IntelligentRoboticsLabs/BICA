@@ -39,13 +39,13 @@ public:
 
 	void activateCode()
 	{
-		graph_.add_edge("leia", std::string("wants_see"), "ball");
+		graph_.add_edge("leia", "wants_see", "ball");
 	}
 
 	void deActivateCode()
 	{
-		graph_.remove_edge("leia", "ball", std::string("wants_see"));
-		graph_.remove_edge("leia", "ball", std::string("sees"));
+		graph_.remove_edge("leia", "wants_see", "ball");
+		graph_.remove_edge("leia", "sees", "ball");
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
@@ -137,15 +137,15 @@ public:
 			{
 				ROS_INFO("Ball seen (%zu)", pc_filtered->size());
 
-				graph_.remove_edge("leia", "ball", std::string("wants_see"));
-				graph_.add_edge("leia", std::string("sees"), "ball");
+				graph_.remove_edge("leia", "wants_see", "ball");
+				graph_.add_edge("leia", "sees", "ball");
 				graph_.add_edge("world", getTransform(pc_filtered), "ball");
 			}
 			else
 			{
 				ROS_INFO("Ball Not seen");
-				graph_.remove_edge("leia", "ball", std::string("sees"));
-				graph_.add_edge("leia", std::string("wants_see"), "ball");
+				graph_.remove_edge("leia", "sees", "ball");
+				graph_.add_edge("leia", "wants_see", "ball");
 			}
 		}
 	}

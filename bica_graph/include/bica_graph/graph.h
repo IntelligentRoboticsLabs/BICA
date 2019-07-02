@@ -60,218 +60,62 @@ public:
 
   explicit Graph(const ros::Time& ts = ros::Time::now());
 
+  bool exist_node(const std::string& id) const;
+  void add_node(const Node& other);
   void add_node(const std::string& id, const std::string& type);
-  void add_node(const bica_graph::Node& node);
-
-  Node::SharedPtr get_node(const std::string& id);
-  Node::ConstSharedPtr get_const_node(const std::string& id) const;
+  const Node& get_node(const std::string& id);
+  void remove_node(const std::string& node_id);
 
   size_t count_nodes() const;
 
-  bool exist_node(const std::string& id) const;
-
+  void add_edge(const std::string& source, const std::string& data, const std::string& target);
+  void add_edge(const std::string& source, const double data, const std::string& target);
+  void add_edge(const std::string& source, const tf::Transform& data, const std::string& target);
+  void add_edge(const StringEdge& other);
+  void add_edge(const DoubleEdge& other);
+  void add_edge(const TFEdge& other);
   void add_tf_edge(const std::string& source, const std::string& target);
-  size_t count_edges(const std::string& source, const std::string& target) const;
-  void remove_node(const std::string& node_id);
 
-  const std::map<std::string, Node::SharedPtr>& get_nodes() const;
+  bool exist_edge(const std::string& source, const std::string& data, const std::string& target);
+  bool exist_edge(const StringEdge& other);
+  bool exist_edge(const DoubleEdge& other);
+  bool exist_edge(const TFEdge& other);
+  bool exist_tf_edge(const std::string& source, const std::string& target);
+  bool exist_double_edge(const std::string& source, const std::string& target);
 
-  const std::map<std::pair<std::string, std::string>, std::list<EdgeBase::SharedPtr>>&
-  get_edges() const;
+  void remove_edge(const std::string& source, const std::string& data, const std::string& target);
+  void remove_edge(const StringEdge& other);
+  void remove_edge(const DoubleEdge& other);
+  void remove_edge(const TFEdge& other);
+  void remove_tf_edge(const std::string& source, const std::string& target);
+  void remove_double_edge(const std::string& source, const std::string& target);
 
-  ros::Time get_time_stamp() const;
+  DoubleEdge& get_double_edge(const std::string& source, const std::string& target);
+  TFEdge& get_tf_edge(const std::string& source, const std::string& target);
+
+  const std::list<Node>& get_nodes() const {return nodes_;}
+  const std::list<StringEdge>& get_string_edges() const {return string_edges_;}
+  const std::list<DoubleEdge>& get_double_edges() const {return double_edges_;}
+  const std::list<TFEdge>& get_tf_edges() const {return tf_edges_;}
+
+  ros::Time get_time_stamp() const {return ts_;}
 
   void print();
 
-  template<class T>
-  void
-  add_edge(const Edge<T>& edge)
-  {
-    add_edge<T>(edge.get_source(), edge.get(), edge.get_target());
-  }
-
-  template<class T>
-  bool
-  exist_edge(const std::string& source, const std::string& target, const T& data = T()) const
-  {
-    return get_const_edge<T>(source, target, data) != nullptr;
-  }
-
-
-  template<class T>
-  std::shared_ptr<Edge<T>>
-  get_edge(const std::string& source, const std::string& target, const T& data = T())
-  {
-    typename Edge<T>::SharedPtr ret = nullptr;
-
-    try
-    {
-      check_source_target(source, target);
-    }
-    catch(bica_graph::exceptions::NodeNotFound& e)
-    {
-      return nullptr;
-    }
-
-    std::pair<std::string, std::string> idx(source, target);
-
-    auto edge = edges_.find(idx);
-
-    EdgeType type_search = to_type<T>();
-    if (edge != edges_.end())
-    {
-      for (std::list<EdgeBase::SharedPtr>::iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
-      {
-        if ((*it)->get_type() != type_search)
-          continue;
-
-        if ((*it)->get_type() != TF)
-        {
-          auto comp_edge = std::make_shared<Edge<T>>(source, target, data);
-          if (**it == *comp_edge)
-            ret = *it;
-        }
-        else
-        {
-          if ((*it)->get_source() == source && (*it)->get_target() == target)
-            ret = *it;
-        }
-      }
-    }
-
-    return std::dynamic_pointer_cast<bica_graph::Edge<T>>(ret);
-  }
-
-  template<class T>
-  const std::shared_ptr<Edge<T>>
-  get_const_edge(const std::string& source, const std::string& target, const T& data = T()) const
-  {
-    typename Edge<T>::SharedPtr ret = nullptr;
-
-    try
-    {
-      check_source_target(source, target);
-    }
-    catch(bica_graph::exceptions::NodeNotFound& e)
-    {
-      return nullptr;
-    }
-
-    std::pair<std::string, std::string> idx(source, target);
-
-    auto edge = edges_.find(idx);
-
-    EdgeType type_search = to_type<T>();
-    if (edge != edges_.end())
-    {
-      for (std::list<EdgeBase::SharedPtr>::const_iterator it = edge->second.begin(); it!= edge->second.end(); ++it)
-      {
-        if ((*it)->get_type() != type_search)
-          continue;
-
-        if ((*it)->get_type() != TF)
-        {
-          auto comp_edge = std::make_shared<Edge<T>>(source, target, data);
-          if (**it == *comp_edge)
-            ret = *it;
-        }
-        else
-        {
-          if ((*it)->get_source() == source && (*it)->get_target() == target)
-            ret = *it;
-        }
-      }
-    }
-
-    return std::dynamic_pointer_cast<bica_graph::Edge<T>>(ret);
-  }
-
-  template<class T>
-  void
-  remove_edge(const std::string& source, const std::string& target, const T& data = T())
-  {
-    check_source_target(source, target);
-
-    std::pair<std::string, std::string> idx(source, target);
-
-    auto edge = edges_.find(idx);
-
-    if (edge != edges_.end())
-    {
-      auto it = edge->second.begin();
-      while (it!= edge->second.end())
-      {
-        auto edge_typed = std::dynamic_pointer_cast<Edge<T>>(*it);
-        if (edge_typed != nullptr)
-        {
-          if (std::is_same<T, std::string>::value)
-          {
-            if (edge_typed->get() == data)
-            {
-              it = edge->second.erase(it);
-              ts_ = ros::Time::now();
-            }
-            else
-              ++it;
-          }
-          else
-          {
-            it = edge->second.erase(it);
-            ts_ = ros::Time::now();
-          }
-        }
-        else
-          ++it;
-      }
-    }
-  }
-
-  template<class T>
-  void
-  add_edge(const std::string& source, const T& data, const std::string& target)
-  {
-    std::pair<std::string, std::string> idx(source, target);
-
-    auto edge = edges_.find(idx);
-    if (edge == edges_.end())
-    {
-      edges_[idx] = std::list<EdgeBase::SharedPtr>();
-      edges_[idx].push_back(std::make_shared<Edge<T>>(source, target, data));
-
-      ts_ = ros::Time::now();
-    }
-    else
-    {
-      auto edge_typed = std::dynamic_pointer_cast<bica_graph::Edge<T>>(
-          get_edge<T>(source, target, data));
-
-      if (edge_typed == nullptr)
-      {
-        edges_[idx].push_back(std::make_shared<Edge<T>>(source, target, data));
-        ts_ = ros::Time::now();
-      }
-      else
-      {
-        edge_typed->set(data);
-        ts_ = ros::Time::now();
-      }
-    }
-  }
-
   friend bool operator==(const Graph& lhs, const Graph& rhs);
-
 private:
   bool check_source_target(const std::string& source, const std::string& target) const;
 
-  std::map<std::string, Node::SharedPtr> nodes_;
-  std::map<std::pair<std::string, std::string>, std::list<EdgeBase::SharedPtr>> edges_;
+  std::list<Node> nodes_;
+
+  std::list<StringEdge> string_edges_;
+  std::list<DoubleEdge> double_edges_;
+  std::list<TFEdge> tf_edges_;
 
   ros::Time ts_;
 };
 
 
 }  // namespace bica_graph
-
-#include <bica_graph/conversions.h>
 
 #endif  // BICA_GRAPH_GRAPH_H

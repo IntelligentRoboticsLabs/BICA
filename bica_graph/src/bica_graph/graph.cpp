@@ -52,123 +52,48 @@ Graph::Graph(const ros::Time& ts)
   ts_ = ts;
 }
 
-void
-Graph::add_node(const std::string& id, const std::string& type)
-{
-  auto node = nodes_.find(id);
-
-  if (node == nodes_.end())
-  {
-    nodes_[id] = std::make_shared<Node>(id, type);
-    ts_ = ros::Time::now();
-  }
-  else
-  {
-    if ((node->second)->get_type() != type)
-    {
-      throw bica_graph::exceptions::NodeTypeMismatch(
-        "Trying to update a node with same id ["+id+"] and different type ["+
-        type +" != "+ (node->second)->get_type()+"]");
-    }
-
-    ts_ = ros::Time::now();
-  }
-}
-
-void
-Graph::add_node(const bica_graph::Node& node)
-{
-  add_node(node.get_id(), node.get_type());
-}
-
-Node::SharedPtr
-Graph::get_node(const std::string& id)
-{
-  auto node = nodes_.find(id);
-
-  if (node == nodes_.end())
-  {
-    throw bica_graph::exceptions::NodeNotFound("Node not found [" + id + "]");
-  }
-
-  return node->second;
-}
-
-Node::ConstSharedPtr
-Graph::get_const_node(const std::string& id) const
-{
-  auto node = nodes_.find(id);
-
-  if (node == nodes_.end())
-  {
-    throw bica_graph::exceptions::NodeNotFound("Node not found [" + id + "]");
-  }
-
-  return node->second;
-}
-
-size_t
-Graph::count_nodes() const
-{
-  return nodes_.size();
-}
-
 bool
 Graph::exist_node(const std::string& id) const
 {
-  return (nodes_.find(id) != nodes_.end());
+  return std::find(nodes_.begin(), nodes_.end(), id) != nodes_.end();
 }
 
 void
-Graph::add_tf_edge(const std::string& source, const std::string& target)
+Graph::add_node(const Node& other)
 {
-  std::pair<std::string, std::string> idx(source, target);
+  add_node(other.get_id(), other.get_type());
+}
 
-  auto edge = edges_.find(idx);
-  if (edge == edges_.end())
+void
+Graph::add_node(const std::string& id, const std::string& type)
+{
+  if (!exist_node(id))
   {
-    edges_[idx] = std::list<EdgeBase::SharedPtr>();
-    edges_[idx].push_back(std::make_shared<Edge<tf::Transform>>(source, target));
-
+    nodes_.push_back(Node(id, type));
     ts_ = ros::Time::now();
   }
   else
   {
-    auto edge_typed = std::dynamic_pointer_cast<bica_graph::Edge<tf::Transform>>(
-        get_edge<tf::Transform>(source, target));
-
-    if (edge_typed == nullptr)
+    const Node& node = get_node(id);
+    if (node.get_type() != type)
     {
-      edges_[idx].push_back(std::make_shared<Edge<tf::Transform>>(source, target));
-      ts_ = ros::Time::now();
+      throw bica_graph::exceptions::NodeTypeMismatch(
+        "Trying to update a node with same id ["+id+"] and different type ["+
+        type +" != "+ node.get_type()+"]");
     }
+    ts_ = ros::Time::now();
   }
 }
 
-size_t
-Graph::count_edges(const std::string& source, const std::string& target) const
+const Node&
+Graph::get_node(const std::string& id)
 {
-  try
+  for (const Node& node : nodes_)
   {
-    check_source_target(source, target);
-  }
-  catch(bica_graph::exceptions::NodeNotFound& e)
-  {
-    return 0;
+    if (node.get_id() == id) return node;
   }
 
-  std::pair<std::string, std::string> idx(source, target);
-
-  auto edge = edges_.find(idx);
-
-  if (edge == edges_.end())
-  {
-    return 0;
-  }
-  else
-  {
-    return edge->second.size();
-  }
+  throw bica_graph::exceptions::NodeNotFound("Node not found [" + id + "]");
 }
 
 void
@@ -179,40 +104,239 @@ Graph::remove_node(const std::string& node_id)
     throw bica_graph::exceptions::NodeNotFound("Node not found [" + node_id + "] removing node");
   }
 
-  nodes_.erase(nodes_.find(node_id));
+  auto it = std::find(nodes_.begin(), nodes_.end(), node_id);
+  nodes_.erase(it);
 
-  auto it = edges_.begin();
-
-  while (it != edges_.end())
+  // Check String edges
+  auto str_it = string_edges_.begin();
+  while (str_it != string_edges_.end())
   {
-    if (it->first.first == node_id || it->first.second == node_id)
+    if ((str_it->get_source() == node_id) || (str_it->get_target() == node_id))
     {
-      it = edges_.erase(it);
+      str_it = string_edges_.erase(str_it);
       ts_ = ros::Time::now();
     }
     else
     {
-      it++;
+      str_it++;
+    }
+  }
+  // Check Double edges
+  auto bdl_it = double_edges_.begin();
+  while (bdl_it != double_edges_.end())
+  {
+    if ((bdl_it->get_source() == node_id) || (bdl_it->get_target() == node_id))
+    {
+      bdl_it = double_edges_.erase(bdl_it);
+      ts_ = ros::Time::now();
+    }
+    else
+    {
+      bdl_it++;
+    }
+  }
+  // Check TF edges
+  auto tf_it = tf_edges_.begin();
+  while (tf_it != tf_edges_.end())
+  {
+    if ((tf_it->get_source() == node_id) || (tf_it->get_target() == node_id))
+    {
+      tf_it = tf_edges_.erase(tf_it);
+      ts_ = ros::Time::now();
+    }
+    else
+    {
+      bdl_it++;
     }
   }
 }
 
-const std::map<std::string, Node::SharedPtr>&
-Graph::get_nodes() const
+size_t
+Graph::count_nodes() const
 {
-  return nodes_;
+  return nodes_.size();
 }
 
-const std::map<std::pair<std::string, std::string>, std::list<EdgeBase::SharedPtr>>&
-Graph::get_edges() const
+void
+Graph::add_edge(const std::string& source, const std::string& data, const std::string& target)
 {
-  return edges_;
+  add_edge(StringEdge(source, data, target));
 }
 
-ros::Time
-Graph::get_time_stamp() const
+void
+Graph::add_edge(const std::string& source, const double data, const std::string& target)
 {
-  return ts_;
+  add_edge(DoubleEdge(source, data, target));
+}
+
+void
+Graph::add_edge(const std::string& source, const tf::Transform& data, const std::string& target)
+{
+  add_edge(TFEdge(source, data, target));
+}
+
+void
+Graph::add_edge(const StringEdge& other)
+{
+  if (!exist_node(other.get_source()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: source [" + other.get_source() + "] not found");
+
+  if (!exist_node(other.get_target()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: target [" + other.get_target() + "] not found");
+
+  if (!exist_edge(other))
+    string_edges_.push_back(other);
+}
+
+void
+Graph::add_edge(const DoubleEdge& other)
+{
+  if (!exist_node(other.get_source()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: source [" + other.get_source() + "] not found");
+
+  if (!exist_node(other.get_target()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: target [" + other.get_target() + "] not found");
+
+  if (!exist_edge(other))
+    double_edges_.push_back(other);
+}
+
+void
+Graph::add_edge(const TFEdge& other)
+{
+  if (!exist_node(other.get_source()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: source [" + other.get_source() + "] not found");
+
+  if (!exist_node(other.get_target()))
+    throw bica_graph::exceptions::NodeNotFound(
+      "Adding edge not possible: target [" + other.get_target() + "] not found");
+
+  if (!exist_edge(other))
+    tf_edges_.push_back(other);
+}
+
+void
+Graph::add_tf_edge(const std::string& source, const std::string& target)
+{
+  add_edge(TFEdge(source, target));
+}
+
+bool
+Graph::exist_edge(const std::string& source, const std::string& data, const std::string& target)
+{
+  return exist_edge(StringEdge(source, data, target));
+}
+
+bool
+Graph::exist_edge(const StringEdge& other)
+{
+  return std::find(string_edges_.begin(), string_edges_.end(), other) != string_edges_.end();
+}
+
+bool
+Graph::exist_edge(const DoubleEdge& other)
+{
+  return std::find(double_edges_.begin(), double_edges_.end(), other) != double_edges_.end();
+}
+
+bool
+Graph::exist_edge(const TFEdge& other)
+{
+  return std::find(tf_edges_.begin(), tf_edges_.end(), other) != tf_edges_.end();
+}
+
+bool
+Graph::exist_tf_edge(const std::string& source, const std::string& target)
+{
+  return exist_edge(TFEdge(source, target));
+}
+
+bool
+Graph::exist_double_edge(const std::string& source, const std::string& target)
+{
+  return exist_edge(DoubleEdge(source, target));
+}
+
+void
+Graph::remove_edge(const std::string& source, const std::string& data, const std::string& target)
+{
+  remove_edge(StringEdge(source, data, target));
+}
+
+void
+Graph::remove_tf_edge(const std::string& source, const std::string& target)
+{
+  remove_edge(TFEdge(source, target));
+}
+
+void
+Graph::remove_double_edge(const std::string& source, const std::string& target)
+{
+  remove_edge(DoubleEdge(source, target));
+}
+
+void
+Graph::remove_edge(const StringEdge& other)
+{
+  if (exist_edge(other))
+  {
+    auto it = std::find(string_edges_.begin(), string_edges_.end(), other);
+    string_edges_.erase(it);
+  }
+}
+
+void
+Graph::remove_edge(const DoubleEdge& other)
+{
+  if (exist_edge(other))
+  {
+    auto it = std::find(double_edges_.begin(), double_edges_.end(), other);
+    double_edges_.erase(it);
+  }
+}
+
+void
+Graph::remove_edge(const TFEdge& other)
+{
+  if (exist_edge(other))
+  {
+    auto it = std::find(tf_edges_.begin(), tf_edges_.end(), other);
+    tf_edges_.erase(it);
+  }
+}
+
+
+DoubleEdge&
+Graph::get_double_edge(const std::string& source, const std::string& target)
+{
+  DoubleEdge edge_to_search(source, target);
+  if (exist_edge(edge_to_search))
+  {
+    auto it = std::find(double_edges_.begin(), double_edges_.end(), edge_to_search);
+    return *it;
+  }
+  else
+    throw bica_graph::exceptions::EdgeNotFound(
+      "Double Edge not found:  [" + source + "] ->  [" + target + "]");
+}
+
+TFEdge&
+Graph::get_tf_edge(const std::string& source, const std::string& target)
+{
+  TFEdge edge_to_search(source, target);
+  if (exist_edge(edge_to_search))
+  {
+    auto it = std::find(tf_edges_.begin(), tf_edges_.end(), edge_to_search);
+    return *it;
+  }
+  else
+    throw bica_graph::exceptions::EdgeNotFound(
+      "TF Edge not found:  [" + source + "] ->  [" + target + "]");
 }
 
 void
@@ -221,90 +345,38 @@ Graph::print()
   std::cout << "=============================================" << std::endl;
   for (auto node : nodes_)
   {
-    std::cout << "Node [" << node.first << "] (" << node.second->get_type() << ")" << std::endl;
+    std::cout << "Node [" << node.get_id() << "] (" << node.get_type() << ")" << std::endl;
   }
-  for (auto edges : edges_)
-  {
-    for (auto edge : edges.second)
-    {
-      switch (edge->get_type())
-      {
-        case STRING:
-            std::cout << "Edge (" << edge->get_source() << ")---[" << edge->get<std::string>()
-              << "]--->(" << edge->get_target() << ")" << std::endl;
-            break;
-        case DOUBLE:
-            std::cout << "Edge (" << edge->get_source() << ")---[" << edge->get<double>()
-              << "]--->(" << edge->get_target() << ")" << std::endl;
-            break;
-        case TF:
-            {
-              tf::Transform tf_aux = edge->get<tf::Transform>();
-              std::cout << "Edge (" << edge->get_source() << ")---[(" <<
-                tf_aux.getOrigin().x() << ", " <<
-                tf_aux.getOrigin().y() << ", " <<
-                tf_aux.getOrigin().z() <<
-                ")]--->(" << edge->get_target() << ")" << std::endl;
-            }
-            break;
-        default:
-          std::cout << "Edge (" << edge->get_source() << ")---[UNKNOWN]--->("
-            << edge->get_target() << ")" << std::endl;
-      }
-    }
-  }
-  std::cout << "=============================================" << std::endl;
-}
 
-bool
-Graph::check_source_target(const std::string& source, const std::string& target) const
-{
-  if (!exist_node(source))
+  for (auto edge : string_edges_)
   {
-    throw bica_graph::exceptions::NodeNotFound("Node not found [" + source + "] getting relation ["
-      + source + " --> " + target + "]");
+    std::cout << "Edge (" << edge.get_source() << ")---[" << edge.get()
+      << "]--->(" << edge.get_target() << ")" << std::endl;
   }
-  if (!exist_node(target))
+
+  for (auto edge : double_edges_)
   {
-    throw bica_graph::exceptions::NodeNotFound("Node not found [" + target + "] getting relation ["
-      + source + " --> " + target + "]");
+    std::cout << "Edge (" << edge.get_source() << ")---[" << edge.get()
+      << "]--->(" << edge.get_target() << ")" << std::endl;
   }
+
+  for (auto edge : tf_edges_)
+  {
+    std::cout << "Edge (" << edge.get_source() << ")---[(" <<
+      edge.get().getOrigin().x() << ", " <<
+      edge.get().getOrigin().y() << ", " <<
+      edge.get().getOrigin().z() <<
+      ")]--->(" << edge.get_target() << ")" << std::endl;
+  }
+
+  std::cout << "=============================================" << std::endl;
 }
 
 bool operator==(const Graph& lhs, const Graph& rhs)
 {
-  size_t lhs_count_nodes = lhs.count_nodes();
-  size_t rhs_count_nodes = rhs.count_nodes();
-
-  if (lhs_count_nodes != rhs_count_nodes)
-    return false;
-
-  for (auto node_lhs : lhs.nodes_)
-  {
-    try
-    {
-      if (!(*node_lhs.second == *rhs.get_const_node(node_lhs.second->get_id())))
-        return false;
-    }
-    catch (bica_graph::exceptions::NodeNotFound& e)
-    {
-      return false;
-    }
-  }
-
-
-  for (auto edge_lhs : lhs.edges_)
-  {
-    size_t lhs_count_edges = lhs.count_edges(edge_lhs.first.first, edge_lhs.first.second);
-    size_t rhs_count_edges = rhs.count_edges(edge_lhs.first.first, edge_lhs.first.second);
-
-    if (lhs_count_edges != rhs_count_edges)
-      return false;
-
-    // ToDo (fmrico): check every edge
-  }
-
-  return true;
+  return lhs.nodes_ == rhs.nodes_ && lhs.string_edges_ == rhs.string_edges_ &&
+    lhs.double_edges_ == rhs.double_edges_ && lhs.tf_edges_ == rhs.tf_edges_;
 }
+
 
 }  // namespace bica_graph

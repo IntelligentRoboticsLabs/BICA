@@ -1,8 +1,11 @@
 <launch>
 
-  <node pkg="bica_planning" type="pddl_builder.py" name="pddl_builder"/>
+  <node pkg="bica_planning" type="pddl_builder.py" name="pddl_builder" output="screen">
+    <param name="pddl_packages" value="bica_examples" />
+  </node>
+
   <include file="$(find bica_planning)/launch/planning_system.launch" >
-    <arg name="data_path" value="$(find bica_planning)/common/" />
+    <arg name="data_path" value="/tmp" />
     <arg name="domain_path" value="/tmp/domain.pddl" />
   </include>
 
