@@ -65,7 +65,7 @@ public:
 protected:
   bool add_instance(const std::string instance_type, const std::string attribute_name);
   bool remove_instance(const std::string instance_type, const std::string attribute_name);
-  
+
   bool add_goal(std::string goal);
   bool remove_current_goal();
   bool add_metric(std::string optimization, std::string metric);

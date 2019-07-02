@@ -222,7 +222,8 @@ bool KMSClient::remove_instance(const std::string instance_type, const std::stri
   remove_instance.instance_type = instance_type;
   remove_instance.instance_name = attribute_name;
   rosplan_knowledge_msgs::KnowledgeUpdateService remove_instance_instance;
-  remove_instance_instance.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
+  remove_instance_instance.request.update_type =
+    rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
   remove_instance_instance.request.knowledge = remove_instance;
 
   if (!ku_client_.call(remove_instance_instance))
