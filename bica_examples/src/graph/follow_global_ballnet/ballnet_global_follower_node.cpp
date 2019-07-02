@@ -84,7 +84,7 @@ public:
 			tf::Transform r2b_aux = r2w*w2b;
 			r2b = r2b_aux;
 
-			if (graph_.exist_edge("leia", "ball", std::string("sees")))
+			if (graph_.exist_edge("leia", "sees", "ball"))
 			{
 				ball_seen = true;
 			}

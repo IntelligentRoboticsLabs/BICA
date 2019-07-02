@@ -23,9 +23,9 @@ public:
 
 		geometry_msgs::Twist cmd;
 
-		if (graph_.exist_edge("leia", "ball", std::string("sees")))
+		if (graph_.exist_edge("leia", "sees", "ball"))
 		{
-			tf::Transform tf_ball = graph_.get_edge<tf::Transform>("leia", "ball")->get();
+			tf::Transform tf_ball = graph_.get_tf_edge("leia", "ball").get();
 
 			cmd.angular.z = std::max(std::min(atan2(tf_ball.getOrigin().y(), tf_ball.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(tf_ball.getOrigin().length() - 0.6, 0.2);

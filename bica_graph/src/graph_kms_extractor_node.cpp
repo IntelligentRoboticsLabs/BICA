@@ -120,10 +120,10 @@ private:
     std::list<std::string> nodes_to_remove;
 
     std::map<std::string, Node::SharedPtr>::const_iterator it;
-    for (it = graph_.get_nodes().begin(); it != graph_.get_nodes().end(); ++it)
+    for (auto node : graph_.get_nodes())
     {
-      std::string type = it->second->get_type();
-      std::string id = it->second->get_id();
+      std::string type = node.get_type();
+      std::string id = node.get_id();
 
       if (!is_node_interested(type))
         continue;
@@ -164,48 +164,27 @@ private:
     return find_it != interested_predicates_.end();
   }
 
-  bool exists_as_predicate(bica_graph::Edge<std::string>::SharedPtr edge)
+  bool exists_as_predicate(const bica_graph::StringEdge& edge)
   {
-    auto edge_t = std::dynamic_pointer_cast<bica_graph::Edge<std::string>>(edge);
-
-    std::string predicate_first = edge_t->get();
-    std::string predicate = predicate_first + " " + edge_t->get_source() + " " + edge_t->get_target();
+    std::string predicate_first = edge.get();
+    std::string predicate = predicate_first + " " + edge.get_source() + " " + edge.get_target();
 
     return !search_predicates_regex(std::regex(predicate)).empty();
   }
 
   void update_old_edges()
   {
-    std::list<bica_graph::Edge<std::string>::SharedPtr> edges_to_remove;
+    std::list<bica_graph::StringEdge> edges_to_remove;
 
-    auto pair_nodes_edges = graph_.get_edges();
-    auto pair_nodes_edges_it = pair_nodes_edges.begin();
-    while (pair_nodes_edges_it != pair_nodes_edges.end())
+    for (auto edge : graph_.get_string_edges())
     {
-      auto edges = pair_nodes_edges_it->second;
-
-      auto edges_it = edges.begin();
-      while (edges_it != edges.end())
-      {
-        if ((*edges_it)->get_type() == bica_graph::STRING)
-        {
-          bica_graph::EdgeBase::SharedPtr edge_base = (*edges_it);
-          auto edge = std::dynamic_pointer_cast<bica_graph::Edge<std::string>>(edge_base);
-
-          if (is_predicate_interested(edge->get()) && !exists_as_predicate(edge))
-            edges_to_remove.push_back(edge);
-        }
-
-        ++edges_it;
-      }
-
-      ++pair_nodes_edges_it;
+      if (is_predicate_interested(edge.get()) && !exists_as_predicate(edge))
+        edges_to_remove.push_back(edge);
     }
 
     for (auto edge : edges_to_remove)
     {
-      auto edge_t = std::dynamic_pointer_cast<bica_graph::Edge<std::string>>(edge);
-      graph_.remove_edge(edge_t->get_source(), edge_t->get_target(), edge_t->get());
+      graph_.remove_edge(edge);
     }
   }
 

@@ -76,6 +76,23 @@ private:
   std::string message_;
 };
 
+class EdgeNotFound : public std::exception
+{
+public:
+  explicit EdgeNotFound(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what() const throw()
+  {
+      return message_.c_str();
+  }
+
+private:
+  std::string message_;
+};
+
+
 class NodeTypeMismatch : public std::exception
 {
 public:

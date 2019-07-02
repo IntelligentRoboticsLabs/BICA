@@ -59,55 +59,48 @@ class GraphClient
 public:
   GraphClient();
 
-  void add_node(const std::string& id, const std::string& type);
-  void remove_node(const std::string& id);
-
-  void add_edge(const std::string& source, const std::string& data, const std::string& target);
-  void add_edge(const std::string& source, const double& data, const std::string& target);
-  void add_edge(const std::string& source, const tf::Transform& data, const std::string& target);
-
-  void add_tf_edge(const std::string& source, const std::string& target);
-
-  Node::SharedPtr get_node(const std::string& id);
-  Node::ConstSharedPtr get_const_node(const std::string& id) const;
-
-  size_t count_nodes() const;
-  bool exist_node(const std::string& id) const;
-
-  size_t count_edges(const std::string& source, const std::string& target) const;
-
-  const std::map<std::string, Node::SharedPtr>& get_nodes() const;
-  const std::map<std::pair<std::string, std::string>, std::list<EdgeBase::SharedPtr>>&
-  get_edges() const;
-
-  void print();
-
   tf::StampedTransform get_tf(const std::string& node_src, const std::string& node_target);
   void set_tf_identity(const std::string& frame_id_1, const std::string& frame_id_2);
 
-  template<class T>
-  bool exist_edge(const std::string& source, const std::string& target, const T& data = T()) const
-  {
-    return graph_->exist_edge<T>(source, target, data);
-  }
+  bool exist_node(const std::string& id) const;
+  void add_node(const Node& other);
+  void add_node(const std::string& id, const std::string& type);
+  const Node& get_node(const std::string& id);
+  void remove_node(const std::string& node_id);
 
-  template<class T>
-  void remove_edge(const std::string& source, const std::string& target, const T& data = T()) {}
+  size_t count_nodes() const;
 
-  template<class T>
-  std::shared_ptr<Edge<T>>
-  get_edge(const std::string& source, const std::string& target, const T& data = T())
-  {
-    return graph_->get_edge<T>(source, target, data);
-  }
+  void add_edge(const std::string& source, const std::string& data, const std::string& target);
+  void add_edge(const std::string& source, const double data, const std::string& target);
+  void add_edge(const std::string& source, const tf::Transform& data, const std::string& target);
+  void add_edge(const StringEdge& other);
+  void add_edge(const DoubleEdge& other);
+  void add_edge(const TFEdge& other);
+  void add_tf_edge(const std::string& source, const std::string& target);
 
-  template<class T>
-  const std::shared_ptr<Edge<T>>
-  get_const_edge(const std::string& source, const std::string& target, const T& data = T()) const
-  {
-    return graph_->get_const_edge<T>(source, target, data);
-  }
+  bool exist_edge(const std::string& source, const std::string& data, const std::string& target);
+  bool exist_edge(const StringEdge& other);
+  bool exist_edge(const DoubleEdge& other);
+  bool exist_edge(const TFEdge& other);
+  bool exist_tf_edge(const std::string& source, const std::string& target);
+  bool exist_double_edge(const std::string& source, const std::string& target);
 
+  void remove_edge(const std::string& source, const std::string& data, const std::string& target);
+  void remove_edge(const StringEdge& other);
+  void remove_edge(const DoubleEdge& other);
+  void remove_edge(const TFEdge& other);
+  void remove_tf_edge(const std::string& source, const std::string& target);
+  void remove_double_edge(const std::string& source, const std::string& target);
+
+  DoubleEdge& get_double_edge(const std::string& source, const std::string& target);
+  TFEdge& get_tf_edge(const std::string& source, const std::string& target);
+
+  const std::list<Node>& get_nodes() const;
+  const std::list<StringEdge>& get_string_edges() const;
+  const std::list<DoubleEdge>& get_double_edges() const;
+  const std::list<TFEdge>& get_tf_edges() const;
+
+  void print();
 private:
   void graph_callback(const bica_msgs::Graph::ConstPtr& msg);
 
@@ -121,82 +114,6 @@ protected:
   tf::TransformListener tf_listener_;
 };
 
-
-template<>
-void
-GraphClient::remove_edge<double>(const std::string& source, const std::string& target, const double& data)
-{
-  bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = source;
-  srv.request.update.edge_target = target;
-
-  srv.request.update.element_type = bica_msgs::GraphUpdate::DOUBLE_EDGE;
-
-  if (update_srv_client_.call(srv))
-  {
-    if (srv.response.success)
-      graph_->remove_edge<double>(source, target);
-    else
-      ROS_ERROR("Failed to remove edge");
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service to remove node");
-  }
-}
-
-template<>
-void
-GraphClient::remove_edge<std::string>(const std::string& source, const std::string& target, const std::string& data)
-{
-  bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = source;
-  srv.request.update.edge_target = target;
-
-  srv.request.update.element_type = bica_msgs::GraphUpdate::STRING_EDGE;
-  srv.request.update.edge_type = data;
-
-  if (update_srv_client_.call(srv))
-  {
-    if (srv.response.success)
-      graph_->remove_edge<std::string>(source, target, data);
-    else
-      ROS_ERROR("Failed to remove edge");
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service to remove edge");
-  }
-}
-
-template<>
-void
-GraphClient::remove_edge<tf::Transform>(const std::string& source, const std::string& target, const tf::Transform& data)
-{
-  bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = source;
-  srv.request.update.edge_target = target;
-
-  srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
-
-  if (update_srv_client_.call(srv))
-  {
-    if (srv.response.success)
-      graph_->remove_edge<tf::Transform>(source, target);
-    else
-      ROS_ERROR("Failed to remove edge");
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service to remove edge");
-  }
-}
 }  // namespace bica_graph
 
 #endif  // BICA_GRAPH_GRAPH_CLIENT_H

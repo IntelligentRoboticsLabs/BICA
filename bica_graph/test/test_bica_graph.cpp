@@ -40,13 +40,81 @@
 
 #include <string>
 
-#include <bica_graph/graph.h>
+#include "bica_graph/graph.h"
+#include "bica_graph/conversions.h"
+
+TEST(BicaGraph, test_basic_elements)
+{
+  bica_graph::Node node_1("node_1", "type_1");
+  ASSERT_EQ(node_1.get_id(), "node_1");
+  ASSERT_EQ(node_1.get_type(), "type_1");
+
+  bica_graph::Node node_2("node_2");
+  ASSERT_EQ(node_2.get_id(), "node_2");
+  ASSERT_EQ(node_2.get_type(), "no_type");
+
+  bica_graph::Node node_3(node_1);
+  ASSERT_EQ(node_3.get_id(), "node_1");
+  ASSERT_EQ(node_3.get_type(), "type_1");
+
+  ASSERT_EQ(node_1, node_3);
+  ASSERT_NE(node_1, node_2);
+
+  bica_graph::StringEdge str_edge_1("node_1", "is", "node_2");
+  ASSERT_EQ(str_edge_1.get_source(), "node_1");
+  ASSERT_EQ(str_edge_1.get_target(), "node_2");
+  ASSERT_EQ(str_edge_1.get(), "is");
+
+  bica_graph::StringEdge str_edge_2("node_1", "is", "node_2");
+  ASSERT_EQ(str_edge_2.get_source(), "node_1");
+  ASSERT_EQ(str_edge_2.get_target(), "node_2");
+  ASSERT_EQ(str_edge_2.get(), "is");
+
+  bica_graph::StringEdge str_edge_3("node_1", "not is", "node_2");
+
+  ASSERT_EQ(str_edge_1, str_edge_2);
+  ASSERT_NE(str_edge_1, str_edge_3);
+
+  bica_graph::DoubleEdge dbl_edge_1("node_1", 0.5, "node_2");
+  ASSERT_EQ(dbl_edge_1.get_source(), "node_1");
+  ASSERT_EQ(dbl_edge_1.get_target(), "node_2");
+  ASSERT_EQ(dbl_edge_1.get(), 0.5);
+
+  bica_graph::DoubleEdge dbl_edge_2("node_1", 0.5, "node_2");
+  ASSERT_EQ(dbl_edge_2.get_source(), "node_1");
+  ASSERT_EQ(dbl_edge_2.get_target(), "node_2");
+  ASSERT_EQ(dbl_edge_2.get(), 0.5);
+
+  bica_graph::DoubleEdge dbl_edge_3("node_1", 0.8, "node_2");
+
+  ASSERT_EQ(dbl_edge_1, dbl_edge_2);
+  ASSERT_EQ(dbl_edge_1, dbl_edge_3);
+  ASSERT_NE(dbl_edge_1.get(), dbl_edge_3.get());
+
+  tf::Transform tf1(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  bica_graph::TFEdge tf_edge_1("node_1", tf1, "node_2");
+  ASSERT_EQ(tf_edge_1.get_source(), "node_1");
+  ASSERT_EQ(tf_edge_1.get_target(), "node_2");
+  ASSERT_EQ(tf_edge_1.get(), tf1);
+
+  bica_graph::TFEdge tf_edge_2(tf_edge_1);
+  ASSERT_EQ(tf_edge_2.get_source(), "node_1");
+  ASSERT_EQ(tf_edge_2.get_target(), "node_2");
+  ASSERT_EQ(tf_edge_2.get(), tf1);
+
+  bica_graph::TFEdge tf_edge_3("node_1", "node_2");
+  ASSERT_EQ(tf_edge_3.get_source(), "node_1");
+  ASSERT_EQ(tf_edge_3.get_target(), "node_2");
+  ASSERT_EQ(tf_edge_3.get(), tf1);
+}
 
 TEST(BicaGraph, test_graph_construction)
 {
   auto graph = std::make_shared<bica_graph::Graph>();
 
   graph->add_node("leia", "robot");
+  ASSERT_TRUE(graph->exist_node("leia"));
+  ASSERT_FALSE(graph->exist_node("paco"));
 
   try
   {
@@ -55,34 +123,66 @@ TEST(BicaGraph, test_graph_construction)
   }
   catch(bica_graph::exceptions::NodeTypeMismatch& e)
   {
-    // printf("Exception: %s\n", e.what());
     ASSERT_TRUE(true);
   }
 
   try
   {
-    graph->get_node("apple");
+    const bica_graph::Node& node_1 = graph->get_node("paco");
     ASSERT_TRUE(false);
   }
   catch(bica_graph::exceptions::NodeNotFound& e)
   {
-    // printf("Exception: %s\n", e.what());
     ASSERT_TRUE(true);
   }
 
-  graph->add_node("apple", "object");
+  bica_graph::Node node_2 = graph->get_node("leia");
+  ASSERT_EQ(node_2.get_id(), "leia");
+  ASSERT_EQ(node_2.get_type(), "robot");
 
-  auto node = graph->get_node("leia");
-  ASSERT_EQ("robot", node->get_type());
+  ASSERT_EQ(graph->count_nodes(), 1);
+  graph->remove_node("leia");
+  ASSERT_EQ(graph->count_nodes(), 0);
 
-  graph->add_node("bedroom", "room");
 
-  graph->add_edge("leia", std::string("is"), "bedroom");
-  graph->add_edge("leia", std::string("is"), "bedroom");
-  graph->add_edge<std::string>("leia", "isbis", "bedroom");
+  graph->add_node("leia", "robot");
+  graph->add_node("bedroom", "robot");
+  graph->add_edge("leia", "is", "bedroom");
 
-  tf::Transform tf_b2l(tf::Quaternion(0, 0, 0, 1), tf::Vector3(2, 0, 0));
-  graph->add_edge("bedroom", tf_b2l, "leia");
+  ASSERT_TRUE(graph->exist_node("bedroom"));
+  ASSERT_TRUE(graph->exist_node("leia"));
+  ASSERT_TRUE(graph->exist_edge("leia", "is", "bedroom"));
+  ASSERT_EQ(graph->get_string_edges().size(), 1);
+
+  graph->remove_node("leia");
+  ASSERT_FALSE(graph->exist_edge("leia", "is", "bedroom"));
+  ASSERT_EQ(graph->get_string_edges().size(), 0);
+
+  tf::Transform tf1(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  graph->add_node("leia", "robot");
+  graph->add_edge("leia", "is", "bedroom");
+  graph->add_edge("leia", "plays", "bedroom");
+  graph->add_edge("leia", 0.5, "bedroom");
+  graph->add_edge("leia", tf1, "bedroom");
+  graph->add_tf_edge("leia", "bedroom");
+
+  ASSERT_TRUE(graph->exist_edge("leia", "is", "bedroom"));
+  ASSERT_TRUE(graph->exist_edge("leia", "plays", "bedroom"));
+  ASSERT_FALSE(graph->exist_edge("leia", "dreams", "bedroom"));
+  ASSERT_TRUE(graph->exist_tf_edge("leia", "bedroom"));
+  ASSERT_TRUE(graph->exist_double_edge("leia", "bedroom"));
+
+  ASSERT_EQ(graph->get_string_edges().size(), 2);
+  ASSERT_EQ(graph->get_double_edges().size(), 1);
+  ASSERT_EQ(graph->get_tf_edges().size(), 1);
+
+  ASSERT_EQ(graph->get_tf_edge("leia", "bedroom").get(), tf1);
+
+  graph->get_double_edge("leia", "bedroom").set(0.9);
+  ASSERT_EQ(graph->get_double_edge("leia", "bedroom").get(), 0.9);
+
+  tf::Transform tf2(tf::Quaternion(0, 0, 0, 1), tf::Vector3(2, 0, 0));
+  graph->get_tf_edge("leia", "bedroom").set(tf2);
 
   ros::Rate rate(20);
   int c = 0;
@@ -93,126 +193,47 @@ TEST(BicaGraph, test_graph_construction)
     rate.sleep();
   }
 
-  tf::Transform tf_b2l_bis(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
-  graph->add_edge("bedroom", tf_b2l_bis, "leia");
+  graph->print();
+  ASSERT_EQ(graph->get_tf_edge("leia", "bedroom").get(), tf2);
 
-  c = 0;
-  while (ros::ok() && c < 20)
-  {
-    c++;
-    ros::spinOnce();
-    rate.sleep();
-  }
+  graph->remove_edge("leia", "is", "bedroom");
+  graph->remove_edge("leia", "plays", "bedroom");
+  graph->remove_tf_edge("leia", "bedroom");
+  graph->remove_double_edge("leia", "bedroom");
 
-  graph->add_edge("bedroom", 0.5, "leia");
-
-  ASSERT_TRUE(graph->exist_edge<std::string>("leia", "bedroom", "is"));
-  ASSERT_TRUE(graph->exist_edge<std::string>("leia", "bedroom", "isbis"));
-  ASSERT_FALSE(graph->exist_edge<std::string>("leia", "bedroom", "destroy"));
-
-  auto edge_1 = graph->get_edge<double>("bedroom", "leia");
-
-  ASSERT_EQ(0.5, edge_1->get());
-
-  ASSERT_EQ(3, graph->count_nodes());
-  ASSERT_EQ(2, graph->count_edges("leia", "bedroom"));
-  ASSERT_EQ(2, graph->count_edges("bedroom", "leia"));
-  ASSERT_EQ(0, graph->count_edges("apple", "leia"));
-
-  auto edge_2 =  std::dynamic_pointer_cast<bica_graph::Edge<tf::Transform>>(
-      graph->get_edge<tf::Transform>("bedroom", "leia"));
-
-  tf::Transform tf_ = edge_2->get();
-  ASSERT_EQ(tf_b2l_bis, edge_2->get());
-  ASSERT_FALSE(tf_b2l == edge_2->get());
-
-  graph->remove_edge<std::string>("leia", "bedroom", "is");
-  graph->remove_edge<tf::Transform>("bedroom", "leia");
-
-  ASSERT_FALSE(graph->exist_edge<std::string>("leia", "bedroom", "is"));
-  ASSERT_FALSE(graph->exist_edge<tf::Transform>("bedroom", "leia"));
-  ASSERT_EQ(1, graph->count_edges("leia", "bedroom"));
-  ASSERT_EQ(1, graph->count_edges("bedroom", "leia"));
-
-  graph->remove_node("bedroom");
-  ASSERT_EQ(2, graph->count_nodes());
-  ASSERT_EQ(0, graph->count_edges("leia", "bedroom"));
-  ASSERT_EQ(0, graph->count_edges("bedroom", "leia"));
-  ASSERT_EQ(0, graph->count_edges("apple", "leia"));
-
-  ros::Time::init();
-
-  auto node_1 = std::make_shared<bica_graph::Node>("car", "vehicle");
-  graph->add_node(*node_1);
-  auto node_1_g = graph->get_node("car");
-  ASSERT_EQ(*node_1, *node_1_g);
-
-  graph->add_node("cycle", "vehicle");
-  auto edge_x = std::make_shared<bica_graph::Edge<std::string>>("car", "cycle", "near");
-  graph->add_edge(*edge_x);
-  auto edge_x_g = graph->get_edge<std::string>("car", "cycle", "near");
-  ASSERT_EQ(*edge_x, *edge_x_g);
+  ASSERT_EQ(graph->get_string_edges().size(), 0);
+  ASSERT_EQ(graph->get_double_edges().size(), 0);
+  ASSERT_EQ(graph->get_tf_edges().size(), 0);
 }
 
-TEST(BicaGraph, test_timestamps)
-{
-}
 
 TEST(BicaGraph, basic_types_conversions)
 {
   ros::Time::init();
   ros::NodeHandle nh;
 
-  auto node_source = std::make_shared<bica_graph::Node>("leia", "robot");
-  bica_msgs::Node node_source_msg;
-  bica_graph::node_to_msg(node_source, &node_source_msg);
-
-  ASSERT_EQ(node_source_msg.type, "robot");
-
-  auto edge_1 = std::make_shared<bica_graph::Edge<std::string>>("node_source", "node_target", "edge_1");
+  bica_graph::StringEdge edge_1("node_source", "edge_1", "node_target");
   bica_msgs::Edge edge_1_msg;
 
-  bica_graph::edge_to_msg<std::string>(edge_1, &edge_1_msg);
+  bica_graph::edge_to_msg(edge_1, &edge_1_msg);
   ASSERT_EQ(edge_1_msg.type, bica_msgs::Edge::EDGE_TYPE_STRING);
   ASSERT_EQ(edge_1_msg.string_data, "edge_1");
   ASSERT_EQ(edge_1_msg.source, "node_source");
   ASSERT_EQ(edge_1_msg.target, "node_target");
 
-  auto edge_2 = std::make_shared<bica_graph::Edge<double>>("node_source", "node_target", 0.5);
+  bica_graph::DoubleEdge edge_2("node_source", 0.5, "node_target");
   bica_msgs::Edge edge_2_msg;
 
-  bica_graph::edge_to_msg<double>(edge_2, &edge_2_msg);
+  bica_graph::edge_to_msg(edge_2, &edge_2_msg);
   ASSERT_EQ(edge_2_msg.type, bica_msgs::Edge::EDGE_TYPE_DOUBLE);
   ASSERT_EQ(edge_2_msg.double_data, 0.5);
 
-
   tf::Transform tf(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
-  auto edge_3 = std::make_shared<bica_graph::Edge<tf::Transform>>("node_source", "node_target", tf);
+  bica_graph::TFEdge edge_3("node_source", tf, "node_target");
   bica_msgs::Edge edge_3_msg;
 
-  bica_graph::edge_to_msg<tf::Transform>(edge_3, &edge_3_msg);
+  bica_graph::edge_to_msg(edge_3, &edge_3_msg);
   ASSERT_EQ(edge_3_msg.type, bica_msgs::Edge::EDGE_TYPE_TF);
-
-
-  bica_graph::Node::SharedPtr node_source_2;
-  bica_graph::msg_to_node(node_source_msg, node_source_2);
-  ASSERT_EQ(*node_source_2, *node_source);
-
-
-  std::shared_ptr<bica_graph::Edge<std::string>> edge_1_2;
-  bica_graph::msg_to_edge(edge_1_msg, edge_1_2);
-
-  ASSERT_EQ(edge_1_2->get_source(), "node_source");
-  ASSERT_EQ(edge_1_2->get_target(), "node_target");
-  ASSERT_EQ(*edge_1, *edge_1_2);
-
-  std::shared_ptr<bica_graph::Edge<double>> edge_2_2;
-  bica_graph::msg_to_edge(edge_2_msg, edge_2_2);
-  ASSERT_EQ(*edge_2, *edge_2_2);
-
-  std::shared_ptr<bica_graph::Edge<tf::Transform>> edge_3_2;
-  bica_graph::msg_to_edge(edge_3_msg, edge_3_2);
-  ASSERT_EQ(*edge_3, *edge_3_2);
 }
 
 TEST(BicaGraph, graph_conversions)
@@ -224,7 +245,7 @@ TEST(BicaGraph, graph_conversions)
 
   graph->add_edge("leia", std::string("is"), "bedroom");
   graph->add_edge("leia", std::string("is"), "bedroom");
-  graph->add_edge<std::string>("leia", "isbis", "bedroom");
+  graph->add_edge("leia", "isbis", "bedroom");
   graph->add_edge("bedroom", tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(2, 0, 0)), "leia");
   graph->add_edge("bedroom", 0.5, "leia");
 
@@ -234,9 +255,17 @@ TEST(BicaGraph, graph_conversions)
   bica_graph::Graph::SharedPtr graph_2;
   bica_graph::msg_to_graph(msg, graph_2);
 
+  ros::Rate rate(20);
+  int c = 0;
+  while (ros::ok() && c < 20)
+  {
+    c++;
+    ros::spinOnce();
+    rate.sleep();
+  }
+
   ASSERT_EQ(*graph, *graph_2);
 }
-
 
 
 int main(int argc, char* argv[])

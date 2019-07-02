@@ -45,11 +45,11 @@ public:
   DemoExecutor()
   {
     init_knowledge();
+    add_goal("robot_talk leia m1 Jack");
   }
 
   void update()
   {
-    add_goal("robot_talk leia m1 Jack");
     call_planner();
   }
 

@@ -48,6 +48,17 @@ Node::Node(const std::string& id, const std::string& type)
 {
 }
 
+Node::Node(const std::string& id)
+: id_(id), type_("no_type")
+{
+}
+
+Node::Node(const Node& other)
+{
+  id_ = other.id_;
+  type_ = other.type_;
+}
+
 const std::string
 Node::get_id() const
 {
@@ -62,13 +73,13 @@ Node::get_type() const
 
 bool operator==(const Node& lhs, const Node& rhs)
 {
-  return (lhs.get_id() == rhs.get_id() &&
-          lhs.get_type() == rhs.get_type());
+  return (lhs.get_id() == rhs.get_id());
 }
 
 bool operator!=(const Node& lhs, const Node& rhs)
 {
   return !(lhs == rhs);
 }
+
 
 }  // namespace bica_graph

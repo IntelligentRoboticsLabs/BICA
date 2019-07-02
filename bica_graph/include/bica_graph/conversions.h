@@ -49,14 +49,7 @@ namespace bica_graph
   * \param[in] node A shared pointer reference to the node to create
   * \param[out] msg A pointer to a pre-existing bica_msgs::Node
   */
-  void node_to_msg(const Node::SharedPtr& node, bica_msgs::Node* msg);
-
-  /// Convert a  bica_msgs::Node message to a Node.
-  /**
-  * \param[in] msg A shared pointer reference to a bica_msgs::Node
-  * \param[out] node A shared pointer reference to a node
-  */
-  void msg_to_node(const bica_msgs::Node& msg, Node::SharedPtr& node);
+  void node_to_msg(const Node& node, bica_msgs::Node* msg);
 
   /// Convert a bica_graph::Graph to a bica_msgs::Graph message.
   /**
@@ -72,31 +65,9 @@ namespace bica_graph
   */
   void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& graph);
 
-  const char* get_msg_type_string(uint type);
-
-  template<class T>
-  void edge_to_msg(const typename Edge<T>::SharedPtr& edge, bica_msgs::Edge* msg);
-
-  template<class T>
-  void msg_to_edge(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<T>>& edge);
-
-  template<>
-  void msg_to_edge<std::string>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<std::string>>& edge);
-
-  template<>
-  void msg_to_edge<double>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<double>>& edge);
-
-  template<>
-  void msg_to_edge<tf::Transform>(const bica_msgs::Edge& msg, std::shared_ptr<bica_graph::Edge<tf::Transform>>& edge);
-
-  template<>
-  void edge_to_msg<std::string>(const Edge<std::string>::SharedPtr& edge, bica_msgs::Edge* msg);
-
-  template<>
-  void edge_to_msg<double>(const Edge<double>::SharedPtr& edge, bica_msgs::Edge* msg);
-
-  template<>
-  void edge_to_msg<tf::Transform>(const Edge<tf::Transform>::SharedPtr& edge, bica_msgs::Edge* msg);
+  void edge_to_msg(const bica_graph::StringEdge& edge, bica_msgs::Edge* msg);
+  void edge_to_msg(const bica_graph::DoubleEdge& edge, bica_msgs::Edge* msg);
+  void edge_to_msg(const bica_graph::TFEdge& edge, bica_msgs::Edge* msg);
 
 }  // namespace bica_graph
 

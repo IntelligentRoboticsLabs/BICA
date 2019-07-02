@@ -29,7 +29,7 @@ public:
 
 		graph_.add_node("leia", "robot");
 	  graph_.add_node("yellow_net", "object");
-		graph_.add_edge("leia", std::string("wants_see"), "yellow_net");
+		graph_.add_edge("leia", "wants_see", "yellow_net");
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
@@ -118,15 +118,15 @@ public:
 
 			if (pc_filtered->size() > 0)
 			{
-				graph_.remove_edge("leia", "yellow_net", std::string("wants_see"));
-				graph_.add_edge("leia", std::string("sees"), "yellow_net");
+				graph_.remove_edge("leia", "wants_see", "yellow_net");
+				graph_.add_edge("leia", "sees", "yellow_net");
 				graph_.add_edge("leia", getTransform(pc_filtered), "yellow_net");
 			}
 			else
 			{
-				graph_.remove_edge("leia", "yellow_net", std::string("sees"));
-				graph_.remove_edge<tf::Transform>("leia", "yellow_net");
-				graph_.add_edge("leia", std::string("wants_see"), "yellow_net");
+				graph_.remove_edge("leia", "sees", "yellow_net");
+				graph_.remove_tf_edge("leia", "yellow_net");
+				graph_.add_edge("leia", "wants_see", "yellow_net");
 			}
 		}
 	}

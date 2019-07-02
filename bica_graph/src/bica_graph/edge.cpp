@@ -41,16 +41,157 @@
 namespace bica_graph
 {
 
-bool operator==(const EdgeBase& lhs, const EdgeBase& rhs)
+StringEdge::StringEdge(const std::string& source, const std::string& data, const std::string& target)
 {
-  if (lhs.get_type() != rhs.get_type())
-    return false;
+  source_ = source;
+  target_ = target;
+  data_ = data;
+}
 
-  if (lhs.get_type() == STRING)
-    return lhs.get_source() == rhs.get_source() && lhs.get_target() == rhs.get_target() &&
-      lhs.get<std::string>() == rhs.get<std::string>();
-  else
-    return lhs.get_source() == rhs.get_source() && lhs.get_target() == rhs.get_target();
+StringEdge::StringEdge(const StringEdge& other)
+{
+  source_ = other.source_;
+  target_ = other.target_;
+  data_ = other.data_;
+}
+
+DoubleEdge::DoubleEdge(const std::string& source, const double data, const std::string& target)
+{
+  source_ = source;
+  target_ = target;
+  data_ = data;
+}
+
+DoubleEdge::DoubleEdge(const std::string& source, const std::string& target)
+{
+  source_ = source;
+  target_ = target;
+  data_ = 0.0;
+}
+
+DoubleEdge::DoubleEdge(const DoubleEdge& other)
+{
+  source_ = other.source_;
+  target_ = other.target_;
+  data_ = other.data_;
+}
+
+TFEdge::TFEdge(const std::string& source, const tf::Transform& data, const std::string& target)
+{
+  source_ = source;
+  target_ = target;
+
+  tf_listener_ = BicaTransformListener::getInstance();
+  tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+
+  publish_transform(source_, target_, data);
+}
+
+TFEdge::TFEdge(const std::string& source, const std::string& target)
+{
+  source_ = source;
+  target_ = target;
+
+  tf_listener_ = BicaTransformListener::getInstance();
+  tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+}
+
+TFEdge::TFEdge(const TFEdge& other)
+{
+  source_ = other.source_;
+  target_ = other.target_;
+
+  tf_listener_ = BicaTransformListener::getInstance();
+  tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+}
+
+const tf::Transform
+TFEdge::get() const
+{
+  tf::StampedTransform tf;
+
+  try
+  {
+    tf_listener_->waitForTransform(source_, target_, ros::Time(0), ros::Duration(1.0));
+    tf_listener_->lookupTransform(source_, target_, ros::Time(0), tf);
+  }
+  catch (tf::TransformException& ex)
+  {
+    ROS_ERROR("%s", ex.what());
+  }
+
+  return tf;
+}
+
+void
+TFEdge::set(const tf::Transform& data)
+{
+  std::cerr << "Set Edge (" << get_source() << ")---[(" <<
+    data.getOrigin().x() << ", " <<
+    data.getOrigin().y() << ", " <<
+    data.getOrigin().z() <<
+    ")]--->(" << get_target() << ")" << std::endl;
+  publish_transform(source_, target_, data);
+}
+
+void
+TFEdge::publish_transform(const std::string& source, const std::string& target, const tf::Transform& data)
+{
+  geometry_msgs::TransformStamped tf_send;
+  tf_send.child_frame_id = target_;
+  tf_send.header.frame_id = source_;
+
+  tf_send.header.stamp = ros::Time::now();
+  tf::transformTFToMsg(data, tf_send.transform);
+
+  try
+  {
+    tf_broadcaster_->sendTransform(tf_send);
+  }
+  catch(tf::TransformException &exception)
+  {
+    ROS_ERROR("set_transform:: %s", exception.what());
+  }
+}
+
+bool operator==(const StringEdge& lhs, const StringEdge& rhs)
+{
+  if (lhs.source_ != rhs.source_) return false;
+  if (lhs.target_ != rhs.target_) return false;
+  if (lhs.data_ != rhs.data_) return false;
+
+  return true;
+}
+
+bool operator!=(const StringEdge& lhs, const StringEdge& rhs)
+{
+  return !(lhs == rhs);
+}
+
+bool operator==(const DoubleEdge& lhs, const DoubleEdge& rhs)
+{
+  if (lhs.source_ != rhs.source_) return false;
+  if (lhs.target_ != rhs.target_) return false;
+
+  return true;
+}
+
+bool operator!=(const DoubleEdge& lhs, const DoubleEdge& rhs)
+{
+  return !(lhs == rhs);
+}
+
+bool operator==(const TFEdge& lhs, const TFEdge& rhs)
+{
+  if (lhs.source_ != rhs.source_) return false;
+  if (lhs.target_ != rhs.target_) return false;
+
+  return true;
+}
+
+bool operator!=(const TFEdge& lhs, const TFEdge& rhs)
+{
+  return !(lhs == rhs);
 }
 
 }  // namespace bica_graph
