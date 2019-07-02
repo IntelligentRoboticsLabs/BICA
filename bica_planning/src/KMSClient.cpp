@@ -215,6 +215,29 @@ bool KMSClient::add_instance(const std::string instance_type, const std::string 
   }
 }
 
+bool KMSClient::remove_instance(const std::string instance_type, const std::string attribute_name)
+{
+  rosplan_knowledge_msgs::KnowledgeItem remove_instance;
+  remove_instance.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+  remove_instance.instance_type = instance_type;
+  remove_instance.instance_name = attribute_name;
+  rosplan_knowledge_msgs::KnowledgeUpdateService remove_instance_instance;
+  remove_instance_instance.request.update_type =
+    rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
+  remove_instance_instance.request.knowledge = remove_instance;
+
+  if (!ku_client_.call(remove_instance_instance))
+  {
+    ROS_ERROR("Could not remove the instance [%s %s]", instance_type.c_str(), attribute_name.c_str());
+    return false;
+  }
+  else
+  {
+    ROS_INFO("Instance [%s %s] removed", instance_type.c_str(), attribute_name.c_str());
+    return true;
+  }
+}
+
 bool KMSClient::add_goal(std::string goal)
 {
   rosplan_knowledge_msgs::KnowledgeItem add_fact_v = StringToPredicate(goal);
