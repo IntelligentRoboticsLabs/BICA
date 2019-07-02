@@ -37,6 +37,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "ros/ros.h"
 
@@ -52,11 +53,13 @@ std::vector<std::string> tokenize(const std::string& str, const std::string& del
   size_t start = str.find_first_not_of(delimiter);
   size_t end = start;
 
-  while (start != std::string::npos){
+  while (start != std::string::npos)
+  {
     end = str.find(delimiter, start);
     ret.push_back(str.substr(start, end-start));
     start = str.find_first_not_of(delimiter, end);
   }
+
   return ret;
 }
 
@@ -68,21 +71,20 @@ public:
   {
     nh_.getParam("interested_types", interested_types_);
     nh_.getParam("interested_predicates", interested_predicates_);
-
   }
 
-// private:
   void update()
   {
     update_nodes();
     update_edges();
   }
 
+private:
   void update_new_nodes()
   {
-    for (std::string type: interested_types_)
+    for (std::string type : interested_types_)
     {
-      for (std::string kms_instance: get_instances(type))
+      for (std::string kms_instance : get_instances(type))
       {
         if (!graph_.exist_node(kms_instance))
         {
@@ -103,8 +105,8 @@ public:
     bool found = false;
     std::vector<std::string> kms_instances = get_instances(type);
 
-    int i=0;
-    while (i<kms_instances.size() && !found)
+    int i = 0;
+    while (i < kms_instances.size() && !found)
     {
       if (kms_instances[i++] == id)
         found = true;
@@ -137,16 +139,17 @@ public:
   void update_nodes()
   {
     update_new_nodes();
-    //update_old_nodes();
+    update_old_nodes();
   }
 
   void update_new_edges()
   {
-    for (std::string interested_predicates: interested_predicates_)
+    for (std::string interested_predicates : interested_predicates_)
     {
-      std::vector<std::string> predicates = search_predicates_regex(std::regex(interested_predicates + "[[:print:]_]*"));
+      std::vector<std::string> predicates =
+        search_predicates_regex(std::regex(interested_predicates + "[[:print:]_]*"));
 
-      for (std::string predicate: predicates)
+      for (std::string predicate : predicates)
       {
         std::vector<std::string> tokens = tokenize(predicate);
         if ( (tokens.size() == 3) && exist_node(tokens[1]) && exist_node(tokens[2]) )
@@ -169,11 +172,6 @@ public:
     std::string predicate = predicate_first + " " + edge_t->get_source() + " " + edge_t->get_target();
 
     return !search_predicates_regex(std::regex(predicate)).empty();
-  }
-
-  void remove_as_predicate(bica_graph::Edge<std::string>::SharedPtr edge)
-  {
-
   }
 
   void update_old_edges()
@@ -204,7 +202,7 @@ public:
       ++pair_nodes_edges_it;
     }
 
-    for (auto edge: edges_to_remove)
+    for (auto edge : edges_to_remove)
     {
       auto edge_t = std::dynamic_pointer_cast<bica_graph::Edge<std::string>>(edge);
       graph_.remove_edge(edge_t->get_source(), edge_t->get_target(), edge_t->get());
