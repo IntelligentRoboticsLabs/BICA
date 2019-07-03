@@ -59,7 +59,7 @@ public:
    * \param[in] type The type of the node.
    */
   Node(const std::string& id, const std::string& type);
-  explicit Node(const std::string& id);
+  Node(const std::string& id);
   Node(const Node& other);
 
   const std::string get_id() const;
