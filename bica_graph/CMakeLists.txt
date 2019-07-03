@@ -72,6 +72,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
    PATTERN ".svn" EXCLUDE
 )
 
+set(ROSLINT_CPP_OPTS "--filter=-runtime/explicit,-runtime/references")
+
 roslint_cpp(
   ${BICA_GRAPH_SRCS} ${BICA_GRAPH_HDRS}
   test/test_bica_graph.cpp
