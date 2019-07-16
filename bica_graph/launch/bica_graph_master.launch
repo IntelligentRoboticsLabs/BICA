@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="bica_graph" type="graph_master_node" name="graph_master"/>
+  <node pkg="rqt_gui" type="rqt_gui" name="rqt_gui" args="-s bica_rqt_graph"/>
+</launch>
