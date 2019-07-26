@@ -70,6 +70,8 @@ void Executor::call_planner()
     ROS_ERROR("[Executor] dispatch_plan service responded with an error");
   else
     ROS_INFO("Plan dispatched success");
+
+  ros::spinOnce();  // This call is to avoid sync problems. These calls take a long time
 }
 
 void Executor::system_stateCB(const std_msgs::String::ConstPtr& msg)
