@@ -147,13 +147,17 @@ private:
     for (std::string interested_predicates : interested_predicates_)
     {
       std::vector<std::string> predicates =
-        search_predicates_regex(std::regex(interested_predicates + " [[:print:]_]*"));
+        search_predicates_regex(interested_predicates + " [[:print:]_]*");
 
       for (std::string predicate : predicates)
       {
         std::vector<std::string> tokens = tokenize(predicate);
         if ( (tokens.size() == 3) && exist_node(tokens[1]) && exist_node(tokens[2]) )
           add_edge(tokens[1], tokens[0], tokens[2]);
+        if ( (tokens.size() == 2) && exist_node(tokens[1]) )
+        {
+          add_edge(tokens[1], tokens[0], tokens[1]);
+        }
       }
     }
   }
@@ -167,9 +171,14 @@ private:
   bool exists_as_predicate(const bica_graph::StringEdge& edge)
   {
     std::string predicate_first = edge.get();
-    std::string predicate = predicate_first + " " + edge.get_source() + " " + edge.get_target();
+    std::string predicate;
 
-    return !search_predicates_regex(std::regex(predicate)).empty();
+    if (edge.get_source() !=  edge.get_target())
+      predicate = predicate_first + " " + edge.get_source() + " " + edge.get_target();
+    else
+      predicate = predicate_first + " " + edge.get_source();
+
+    return !search_predicates_regex(predicate).empty();
   }
 
   void update_old_edges()

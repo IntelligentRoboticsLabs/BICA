@@ -102,12 +102,11 @@ public:
   const std::list<DoubleEdge>& get_double_edges() const;
   const std::list<TFEdge>& get_tf_edges() const;
 
-  std::vector<std::string> get_node_names_by_id(const std::regex& expr);
+  std::vector<std::string> get_node_names_by_id(const std::string& expr);
   std::vector<std::string> get_node_names_by_type(const std::string& type);
-  std::vector<StringEdge> get_string_edges_from_node(const std::string& id);
-  std::vector<StringEdge> get_string_edges_from_node_by_data(const std::string& node, const std::regex& expr);
-  std::vector<StringEdge> get_string_edges_by_data(const std::regex& expr);
-
+  std::vector<StringEdge> get_string_edges_from_node(const std::string& node_src_id);
+  std::vector<StringEdge> get_string_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr);
+  std::vector<StringEdge> get_string_edges_by_data(const std::string& expr);
 
   void print();
 private:

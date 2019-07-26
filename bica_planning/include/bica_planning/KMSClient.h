@@ -71,12 +71,12 @@ protected:
   bool add_metric(std::string optimization, std::string metric);
   bool add_function(std::string metric_fact, float value);
   bool rm_function(std::string metric_fact, float value);
-  bool rm_function_regex(std::regex re);
+  bool rm_function_regex(std::string re);
   bool update_function(std::string metric_fact, float value);
   bool update_function_kb(std::string function_str, float value, int update_type);
 
-  bool remove_predicates_regex(std::regex re);
-  std::vector<std::string> search_predicates_regex(std::regex re);
+  bool remove_predicates_regex(std::string re);
+  std::vector<std::string> search_predicates_regex(std::string re);
   bool add_predicate(std::string predicate);
   bool remove_predicate(const std::string& predicate);
 

@@ -459,13 +459,13 @@ GraphClient::print()
 }
 
 std::vector<std::string>
-GraphClient::get_node_names_by_id(const std::regex& expr)
+GraphClient::get_node_names_by_id(const std::string& expr)
 {
   std::vector<std::string> ret;
 
   for (auto node : get_nodes())
   {
-    if (std::regex_match (node.get_id(), expr))
+    if (std::regex_match (node.get_id(), std::regex(expr)))
     {
       ret.push_back(node.get_id());
     }
@@ -491,13 +491,13 @@ GraphClient::get_node_names_by_type(const std::string& type)
 }
 
 std::vector<StringEdge>
-GraphClient::get_string_edges_from_node(const std::string& id)
+GraphClient::get_string_edges_from_node(const std::string& node_src_id)
 {
   std::vector<StringEdge> ret;
 
   for (auto edge : get_string_edges())
   {
-    if (edge.get_source() == id)
+    if (edge.get_source() == node_src_id)
     {
       ret.push_back(edge);
     }
@@ -507,13 +507,13 @@ GraphClient::get_string_edges_from_node(const std::string& id)
 }
 
 std::vector<StringEdge>
-GraphClient::get_string_edges_from_node_by_data(const std::string& node, const std::regex& expr)
+GraphClient::get_string_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr)
 {
   std::vector<StringEdge> ret;
 
   for (auto edge : get_string_edges())
   {
-    if (edge.get_source() == node && std::regex_match (edge.get(), expr))
+    if (edge.get_source() == node_src_id && std::regex_match (edge.get(), std::regex(expr)))
     {
       ret.push_back(edge);
     }
@@ -523,13 +523,13 @@ GraphClient::get_string_edges_from_node_by_data(const std::string& node, const s
 }
 
 std::vector<StringEdge>
-GraphClient::get_string_edges_by_data(const std::regex& expr)
+GraphClient::get_string_edges_by_data(const std::string& expr)
 {
   std::vector<StringEdge> ret;
 
   for (auto edge : get_string_edges())
   {
-    if (std::regex_match (edge.get(), expr))
+    if (std::regex_match (edge.get(), std::regex(expr)))
     {
       ret.push_back(edge);
     }

@@ -323,11 +323,11 @@ bool KMSClient::rm_function(std::string metric_fact, float value)
     ROS_ERROR("Could not remove function");
 }
 
-bool KMSClient::rm_function_regex(std::regex re)
+bool KMSClient::rm_function_regex(std::string re)
 {
   std::vector<std::pair<std::string, float>> current_functions = getCurrentFunctions();
   for (int i = 0; i < current_functions.size(); i++)
-    if (std::regex_match(current_functions[i].first, re))
+    if (std::regex_match(current_functions[i].first, std::regex(re)))
       rm_function(current_functions[i].first, current_functions[i].second);
 }
 
@@ -462,22 +462,22 @@ bool KMSClient::remove_predicate(const std::string& predicate)
   }
 }
 
-bool KMSClient::remove_predicates_regex(std::regex re)
+bool KMSClient::remove_predicates_regex(std::string re)
 {
   std::vector<std::string> current_predicates = getCurrentPredicates();
 
   for (int i = 0; i < current_predicates.size(); i++)
-    if (std::regex_match(current_predicates[i], re))
+    if (std::regex_match(current_predicates[i], std::regex(re)))
       remove_predicate(current_predicates[i]);
 }
 
-std::vector<std::string> KMSClient::search_predicates_regex(std::regex re)
+std::vector<std::string> KMSClient::search_predicates_regex(std::string re)
 {
   std::vector<std::string> ret;
   std::vector<std::string> current_predicates = getCurrentPredicates();
 
   for (int i = 0; i < current_predicates.size(); i++)
-    if (std::regex_match(current_predicates[i], re))
+    if (std::regex_match(current_predicates[i], std::regex(re)))
       ret.push_back(current_predicates[i]);
 
   return ret;

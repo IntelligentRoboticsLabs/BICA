@@ -204,16 +204,16 @@ TEST(BicaGraph, test_advanced_funcs)
   client->add_node("table_3", "table");
   client->add_node("table_4", "table");
 
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("[[:alnum:]_]*")).size(), 7);
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*")).size(), 4);
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_1")).size(), 1);
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("kajshd")).size(), 0);
+  ASSERT_EQ(client->get_node_names_by_id("[[:alnum:]_]*").size(), 7);
+  ASSERT_EQ(client->get_node_names_by_id("table_[[:alnum:]_]*").size(), 4);
+  ASSERT_EQ(client->get_node_names_by_id("table_1").size(), 1);
+  ASSERT_EQ(client->get_node_names_by_id("kajshd").size(), 0);
 
 
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[0], "table_1");
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[1], "table_2");
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[2], "table_3");
-  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[3], "table_4");
+  ASSERT_EQ(client->get_node_names_by_id("table_[[:alnum:]_]*")[0], "table_1");
+  ASSERT_EQ(client->get_node_names_by_id("table_[[:alnum:]_]*")[1], "table_2");
+  ASSERT_EQ(client->get_node_names_by_id("table_[[:alnum:]_]*")[2], "table_3");
+  ASSERT_EQ(client->get_node_names_by_id("table_[[:alnum:]_]*")[3], "table_4");
 
 
   ASSERT_EQ(client->get_node_names_by_type("table").size(), 4);
@@ -244,23 +244,23 @@ TEST(BicaGraph, test_advanced_funcs)
   ASSERT_EQ(client->get_string_edges_from_node("leia")[1].get(), "is_near");
   ASSERT_EQ(client->get_string_edges_from_node("leia")[2].get(), "is_far");
 
-  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_[[:alnum:]_]*")).size(), 3);
-  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_near")).size(), 2);
-  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_far")).size(), 1);
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", "is_[[:alnum:]_]*").size(), 3);
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", "is_near").size(), 2);
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", "is_far").size(), 1);
 
   ASSERT_EQ(client->get_string_edges_from_node_by_data("leia",
-    std::regex("is_[[:alnum:]_]*"))[0].get_target(), "table_1");
+    "is_[[:alnum:]_]*")[0].get_target(), "table_1");
   ASSERT_EQ(client->get_string_edges_from_node_by_data("leia",
-    std::regex("is_[[:alnum:]_]*"))[1].get_target(), "table_2");
+    "is_[[:alnum:]_]*")[1].get_target(), "table_2");
 
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_[[:alnum:]_]*")).size(), 4);
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near")).size(), 3);
+  ASSERT_EQ(client->get_string_edges_by_data("is_[[:alnum:]_]*").size(), 4);
+  ASSERT_EQ(client->get_string_edges_by_data("is_near").size(), 3);
 
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[0].get_source(), "leia");
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[0].get_target(), "table_1");
+  ASSERT_EQ(client->get_string_edges_by_data("is_near")[0].get_source(), "leia");
+  ASSERT_EQ(client->get_string_edges_by_data("is_near")[0].get_target(), "table_1");
 
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[2].get_source(), "ball");
-  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[2].get_target(), "leia");
+  ASSERT_EQ(client->get_string_edges_by_data("is_near")[2].get_source(), "ball");
+  ASSERT_EQ(client->get_string_edges_by_data("is_near")[2].get_target(), "leia");
 }
 
 
