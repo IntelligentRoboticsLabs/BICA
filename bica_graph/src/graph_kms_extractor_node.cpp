@@ -147,7 +147,7 @@ private:
     for (std::string interested_predicates : interested_predicates_)
     {
       std::vector<std::string> predicates =
-        search_predicates_regex(std::regex(interested_predicates + "[[:print:]_]*"));
+        search_predicates_regex(std::regex(interested_predicates + " [[:print:]_]*"));
 
       for (std::string predicate : predicates)
       {

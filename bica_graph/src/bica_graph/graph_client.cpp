@@ -38,6 +38,8 @@
 #include <map>
 #include <string>
 #include <list>
+#include <regex>
+#include <vector>
 
 #include "bica_graph/graph_client.h"
 
@@ -454,6 +456,86 @@ void
 GraphClient::print()
 {
   graph_->print();
+}
+
+std::vector<std::string>
+GraphClient::get_node_names_by_id(const std::regex& expr)
+{
+  std::vector<std::string> ret;
+
+  for (auto node : get_nodes())
+  {
+    if (std::regex_match (node.get_id(), expr))
+    {
+      ret.push_back(node.get_id());
+    }
+  }
+
+  return ret;
+}
+
+std::vector<std::string>
+GraphClient::get_node_names_by_type(const std::string& type)
+{
+  std::vector<std::string> ret;
+
+  for (auto node : get_nodes())
+  {
+    if (node.get_type() == type)
+    {
+      ret.push_back(node.get_id());
+    }
+  }
+
+  return ret;
+}
+
+std::vector<StringEdge>
+GraphClient::get_string_edges_from_node(const std::string& id)
+{
+  std::vector<StringEdge> ret;
+
+  for (auto edge : get_string_edges())
+  {
+    if (edge.get_source() == id)
+    {
+      ret.push_back(edge);
+    }
+  }
+
+  return ret;
+}
+
+std::vector<StringEdge>
+GraphClient::get_string_edges_from_node_by_data(const std::string& node, const std::regex& expr)
+{
+  std::vector<StringEdge> ret;
+
+  for (auto edge : get_string_edges())
+  {
+    if (edge.get_source() == node && std::regex_match (edge.get(), expr))
+    {
+      ret.push_back(edge);
+    }
+  }
+
+  return ret;
+}
+
+std::vector<StringEdge>
+GraphClient::get_string_edges_by_data(const std::regex& expr)
+{
+  std::vector<StringEdge> ret;
+
+  for (auto edge : get_string_edges())
+  {
+    if (std::regex_match (edge.get(), expr))
+    {
+      ret.push_back(edge);
+    }
+  }
+
+  return ret;
 }
 
 }  // namespace bica_graph

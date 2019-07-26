@@ -55,7 +55,7 @@ public:
   bica_graph::Graph::ConstSharedPtr get_graph() {return graph_;}
 };
 
-/*
+
 TEST(BicaGraph, test_graph_construction)
 {
   ros::Time::init();
@@ -125,7 +125,7 @@ TEST(BicaGraph, test_graph_construction)
 
   spinner.stop();
 }
-*/
+/*
 TEST(BicaGraph, test_graph_tf)
 {
   ros::Time::init();
@@ -184,7 +184,85 @@ TEST(BicaGraph, test_graph_tf)
   }
 
   spinner.stop();
+}*/
+
+TEST(BicaGraph, test_advanced_funcs)
+{
+  ros::Time::init();
+  ros::AsyncSpinner spinner(2);
+  spinner.start();
+  tf::TransformListener tf_listener;
+
+  auto server = std::make_shared<GraphServerTest>();
+  auto client = std::make_shared<GraphClientTest>();
+
+  client->add_node("leia", "robot");
+  client->add_node("world", "abstract");
+  client->add_node("ball", "object");
+  client->add_node("table_1", "table");
+  client->add_node("table_2", "table");
+  client->add_node("table_3", "table");
+  client->add_node("table_4", "table");
+
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("[[:alnum:]_]*")).size(), 7);
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*")).size(), 4);
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_1")).size(), 1);
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("kajshd")).size(), 0);
+
+
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[0], "table_1");
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[1], "table_2");
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[2], "table_3");
+  ASSERT_EQ(client->get_node_names_by_id(std::regex("table_[[:alnum:]_]*"))[3], "table_4");
+
+
+  ASSERT_EQ(client->get_node_names_by_type("table").size(), 4);
+  ASSERT_EQ(client->get_node_names_by_type("ball").size(), 0);
+  ASSERT_EQ(client->get_node_names_by_type("robot").size(), 1);
+
+  ASSERT_EQ(client->get_node_names_by_type("table")[0], "table_1");
+  ASSERT_EQ(client->get_node_names_by_type("table")[1], "table_2");
+  ASSERT_EQ(client->get_node_names_by_type("table")[2], "table_3");
+  ASSERT_EQ(client->get_node_names_by_type("table")[3], "table_4");
+
+  client->add_edge("leia", "is_near", "table_1");
+  client->add_edge("leia", "is_near", "table_2");
+  client->add_edge("leia", "is_far", "table_3");
+  client->add_edge("leia", "not_sees", "table_4");
+  client->add_edge("world", "contains_robot", "leia");
+  client->add_edge("ball", "is_near", "leia");
+
+  ASSERT_EQ(client->get_string_edges_from_node("leia").size(), 4);
+  ASSERT_EQ(client->get_string_edges_from_node("world").size(), 1);
+  ASSERT_EQ(client->get_string_edges_from_node("table_1").size(), 0);
+  ASSERT_EQ(client->get_string_edges_from_node("kjashdfkjhsd").size(), 0);
+
+
+  ASSERT_EQ(client->get_string_edges_from_node("leia")[0].get(), "is_near");
+  ASSERT_EQ(client->get_string_edges_from_node("leia")[0].get_source(), "leia");
+  ASSERT_EQ(client->get_string_edges_from_node("leia")[0].get_target(), "table_1");
+  ASSERT_EQ(client->get_string_edges_from_node("leia")[1].get(), "is_near");
+  ASSERT_EQ(client->get_string_edges_from_node("leia")[2].get(), "is_far");
+
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_[[:alnum:]_]*")).size(), 3);
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_near")).size(), 2);
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia", std::regex("is_far")).size(), 1);
+
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia",
+    std::regex("is_[[:alnum:]_]*"))[0].get_target(), "table_1");
+  ASSERT_EQ(client->get_string_edges_from_node_by_data("leia",
+    std::regex("is_[[:alnum:]_]*"))[1].get_target(), "table_2");
+
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_[[:alnum:]_]*")).size(), 4);
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near")).size(), 3);
+
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[0].get_source(), "leia");
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[0].get_target(), "table_1");
+
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[2].get_source(), "ball");
+  ASSERT_EQ(client->get_string_edges_by_data(std::regex("is_near"))[2].get_target(), "leia");
 }
+
 
 int main(int argc, char* argv[])
 {

@@ -41,6 +41,8 @@
 #include <map>
 #include <string>
 #include <list>
+#include <regex>
+#include <vector>
 
 #include <tf/tf.h>
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -99,6 +101,13 @@ public:
   const std::list<StringEdge>& get_string_edges() const;
   const std::list<DoubleEdge>& get_double_edges() const;
   const std::list<TFEdge>& get_tf_edges() const;
+
+  std::vector<std::string> get_node_names_by_id(const std::regex& expr);
+  std::vector<std::string> get_node_names_by_type(const std::string& type);
+  std::vector<StringEdge> get_string_edges_from_node(const std::string& id);
+  std::vector<StringEdge> get_string_edges_from_node_by_data(const std::string& node, const std::regex& expr);
+  std::vector<StringEdge> get_string_edges_by_data(const std::regex& expr);
+
 
   void print();
 private:
