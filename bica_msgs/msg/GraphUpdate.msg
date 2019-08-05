@@ -18,3 +18,4 @@ string edge_source
 string edge_target
 string edge_type
 float64 edge_double
+bool static_tf

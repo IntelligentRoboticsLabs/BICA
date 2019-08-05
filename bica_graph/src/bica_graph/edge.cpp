@@ -37,6 +37,7 @@
 #include <string>
 
 #include "bica_graph/edge.h"
+#include "bica_graph/exceptions.h"
 
 namespace bica_graph
 {
@@ -76,33 +77,39 @@ DoubleEdge::DoubleEdge(const DoubleEdge& other)
   data_ = other.data_;
 }
 
-TFEdge::TFEdge(const std::string& source, const tf::Transform& data, const std::string& target)
+TFEdge::TFEdge(const std::string& source, const tf::Transform& data, const std::string& target, bool static_tf)
 {
   source_ = source;
   target_ = target;
+  static_tf_ = static_tf;
 
   tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+  static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
 
   publish_transform(source_, target_, data);
 }
 
-TFEdge::TFEdge(const std::string& source, const std::string& target)
+TFEdge::TFEdge(const std::string& source, const std::string& target, bool static_tf)
 {
   source_ = source;
   target_ = target;
+  static_tf_ = static_tf;
 
   tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+  static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
 }
 
 TFEdge::TFEdge(const TFEdge& other)
 {
   source_ = other.source_;
   target_ = other.target_;
+  static_tf_ = other.static_tf_;
 
   tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
+  static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
 }
 
 const tf::Transform
@@ -126,31 +133,43 @@ TFEdge::get() const
 void
 TFEdge::set(const tf::Transform& data)
 {
-  std::cerr << "Set Edge (" << get_source() << ")---[(" <<
-    data.getOrigin().x() << ", " <<
-    data.getOrigin().y() << ", " <<
-    data.getOrigin().z() <<
-    ")]--->(" << get_target() << ")" << std::endl;
+  if (static_tf_)
+    throw exceptions::TransformError("static transform cannot be updated");
+
   publish_transform(source_, target_, data);
 }
 
 void
 TFEdge::publish_transform(const std::string& source, const std::string& target, const tf::Transform& data)
 {
-  geometry_msgs::TransformStamped tf_send;
-  tf_send.child_frame_id = target_;
-  tf_send.header.frame_id = source_;
-
-  tf_send.header.stamp = ros::Time::now();
-  tf::transformTFToMsg(data, tf_send.transform);
-
-  try
+  if (!static_tf_)
   {
-    tf_broadcaster_->sendTransform(tf_send);
+    geometry_msgs::TransformStamped tf_send;
+    tf_send.child_frame_id = target_;
+    tf_send.header.frame_id = source_;
+
+    tf_send.header.stamp = ros::Time::now();
+    tf::transformTFToMsg(data, tf_send.transform);
+
+    try
+    {
+      tf_broadcaster_->sendTransform(tf_send);
+    }
+    catch(tf::TransformException &exception)
+    {
+      ROS_ERROR("set_transform:: %s", exception.what());
+    }
   }
-  catch(tf::TransformException &exception)
+  else
   {
-    ROS_ERROR("set_transform:: %s", exception.what());
+    geometry_msgs::TransformStamped tf_send;
+    tf_send.child_frame_id = target_;
+    tf_send.header.frame_id = source_;
+
+    tf_send.header.stamp = ros::Time::now();
+    tf::transformTFToMsg(data, tf_send.transform);
+
+    static_tf_broadcaster_->sendTransform(tf_send);
   }
 }
 
@@ -185,6 +204,7 @@ bool operator==(const TFEdge& lhs, const TFEdge& rhs)
 {
   if (lhs.source_ != rhs.source_) return false;
   if (lhs.target_ != rhs.target_) return false;
+  // if (lhs.static_tf_ != rhs.static_tf_) return false;
 
   return true;
 }

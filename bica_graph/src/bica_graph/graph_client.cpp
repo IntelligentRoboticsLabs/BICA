@@ -146,9 +146,9 @@ GraphClient::add_edge(const std::string& source, const double data, const std::s
 }
 
 void
-GraphClient::add_edge(const std::string& source, const tf::Transform& data, const std::string& target)
+GraphClient::add_edge(const std::string& source, const tf::Transform& data, const std::string& target, bool static_tf)
 {
-  add_edge(TFEdge(source, data, target));
+  add_edge(TFEdge(source, data, target, static_tf));
 }
 
 void
@@ -208,6 +208,7 @@ GraphClient::add_edge(const TFEdge& other)
   srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
   srv.request.update.edge_source = other.get_source();
   srv.request.update.edge_target = other.get_target();
+  srv.request.update.static_tf = other.is_static();
   srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
 
   if (update_srv_client_.call(srv))
@@ -224,19 +225,20 @@ GraphClient::add_edge(const TFEdge& other)
 }
 
 void
-GraphClient::add_tf_edge(const std::string& source, const std::string& target)
+GraphClient::add_tf_edge(const std::string& source, const std::string& target, bool static_tf)
 {
   bica_msgs::UpdateGraph srv;
   srv.request.update.stamp = ros::Time::now();
   srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
   srv.request.update.edge_source = source;
   srv.request.update.edge_target = target;
+  srv.request.update.static_tf = static_tf;
   srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
 
   if (update_srv_client_.call(srv))
   {
     if (srv.response.success)
-      graph_->add_tf_edge(source, target);
+      graph_->add_tf_edge(source, target, static_tf);
     else
       ROS_ERROR("Failed to add edge");
   }
