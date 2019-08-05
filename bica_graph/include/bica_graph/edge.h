@@ -95,16 +95,18 @@ private:
 
 class BicaTransformListener: public Singleton<tf::TransformListener> {};
 class BicaTransformBroadcaster: public Singleton<tf::TransformBroadcaster> {};
+class BicaStaticTransformBroadcaster: public Singleton<tf2_ros::StaticTransformBroadcaster> {};
 
 class TFEdge
 {
 public:
-  TFEdge(const std::string& source, const tf::Transform& data, const std::string& target);
-  TFEdge(const std::string& source, const std::string& target);
+  TFEdge(const std::string& source, const tf::Transform& data, const std::string& target, bool static_tf = false);
+  TFEdge(const std::string& source, const std::string& target, bool static_tf = false);
   TFEdge(const TFEdge& other);
 
   const std::string get_source() const {return source_;}
   const std::string get_target() const {return target_;}
+  bool is_static() const {return static_tf_;}
 
   const tf::Transform get() const;
   void set(const tf::Transform& data);
@@ -118,10 +120,13 @@ private:
 
   tf::TransformListener *tf_listener_;
   tf::TransformBroadcaster *tf_broadcaster_;
+  tf2_ros::StaticTransformBroadcaster *static_tf_broadcaster_;
 
   std::string source_;
   std::string target_;
   std::string data_;
+
+  bool static_tf_;
 };
 
 }  // namespace bica_graph

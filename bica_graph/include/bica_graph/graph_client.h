@@ -74,11 +74,12 @@ public:
 
   void add_edge(const std::string& source, const std::string& data, const std::string& target);
   void add_edge(const std::string& source, const double data, const std::string& target);
-  void add_edge(const std::string& source, const tf::Transform& data, const std::string& target);
+  void add_edge(const std::string& source, const tf::Transform& data,
+    const std::string& target, bool static_tf = false);
   void add_edge(const StringEdge& other);
   void add_edge(const DoubleEdge& other);
   void add_edge(const TFEdge& other);
-  void add_tf_edge(const std::string& source, const std::string& target);
+  void add_tf_edge(const std::string& source, const std::string& target, bool static_tf = false);
 
   bool exist_edge(const std::string& source, const std::string& data, const std::string& target);
   bool exist_edge(const StringEdge& other);

@@ -125,6 +125,22 @@ private:
   std::string message_;
 };
 
+class TransformError : public std::exception
+{
+public:
+  explicit TransformError(const std::string& message)
+  : std::exception(), message_(message)
+  {}
+
+  virtual const char * what() const throw()
+  {
+      return message_.c_str();
+  }
+
+private:
+  std::string message_;
+};
+
 }  // namespace exceptions
 }  // namespace bica_graph
 

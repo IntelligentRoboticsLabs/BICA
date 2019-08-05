@@ -6,6 +6,7 @@ uint8 EDGE_TYPE_DOUBLE=3
 uint8 type
 string source
 string target
+bool static_tf
 
 string string_data
 float64 double_data
