@@ -34,44 +34,47 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_NODE_H
-#define BICA_GRAPH_NODE_H
+#include <ros/ros.h>
 
-#include <list>
-#include <memory>
-#include <string>
+#include <bica_graph/graph.h>
+#include <bica_graph/graph_client.h>
 
-
-namespace bica_graph
+int main(int argc, char* argv[])
 {
+  ros::init(argc, argv, "graph_publisher_node");
+  ros::NodeHandle n;
 
-class Node
-{
-public:
-  /// Default constructor.
-  /**
-   * Tipically, a Node is not created throught Graph::add_node
-   * \param[in] id The id of the new node.
-   * \param[in] type The type of the node.
-   */
-  Node(const std::string& id, const std::string& type);
-  Node(const std::string& id);
-  Node(const Node& other);
+  ROS_INFO("Creating graph client...");
+  bica_graph::GraphClient client;
+  ROS_INFO("done");
+  ros::Rate rate(5);
+  ros::Time start = ros::Time::now();
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 2.0 )
+  {
+    ROS_INFO("spinnging 1");
+    ros::spinOnce();
+    rate.sleep();
+  }
 
-  const std::string get_id() const;
-  const std::string get_type() const;
-  void set_id(const std::string& id) {id_ = id;}
-  void set_type(const std::string& type) {type_ = type;}
+  ROS_INFO("adding node 1");
+  client.add_node("leia", "robot");
+  ROS_INFO("adding node 2");
+  client.add_node("bedroom", "room");
+  ROS_INFO("adding edge is");
+  client.add_edge("leia", "is", "bedroom");
 
-  friend bool operator==(const Node& lhs, const Node& rhs);
-  friend bool operator!=(const Node& lhs, const Node& rhs);
+  start = ros::Time::now();
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 200.0 )
+  {
+    ROS_INFO("adding transform spinnging");
 
-protected:
-  std::string type_;
-  std::string id_;
-};
+    tf2::Transform tf_r2l(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3((ros::Time::now() - start).toSec(), 0, 0));
 
+    client.add_edge("bedroom", tf_r2l, "leia");
 
-}  // namespace bica_graph
+    ros::spinOnce();
+    rate.sleep();
+  }
 
-#endif  // BICA_GRAPH_NODE_H
+  return 0;
+}

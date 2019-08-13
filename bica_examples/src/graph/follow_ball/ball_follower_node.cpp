@@ -23,12 +23,12 @@ public:
 
 		geometry_msgs::Twist cmd;
 
-		if (graph_.exist_edge("leia", "sees", "ball"))
+		if (graph_.exist_edge("leia", "sees", "ball") && graph_.exist_tf_edge("leia", "ball"))
 		{
-			tf::Transform tf_ball = graph_.get_tf_edge("leia", "ball").get();
+			tf2::Transform tf_ball = graph_.get_tf_edge("leia", "ball").get();
 
 			cmd.angular.z = std::max(std::min(atan2(tf_ball.getOrigin().y(), tf_ball.getOrigin().x()), 0.2), -0.2);
-			cmd.linear.x = std::min(tf_ball.getOrigin().length() - 0.6, 0.2);
+			cmd.linear.x = std::min(tf_ball.getOrigin().length() - 1.5, 0.2);
 
 			ROS_INFO("I see the ball in %lf %lf", tf_ball.getOrigin().x(), tf_ball.getOrigin().y());
 		}
