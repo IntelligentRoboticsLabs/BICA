@@ -1,4 +1,3 @@
-
 #include <ros/ros.h>
 #include <ros/console.h>
 
@@ -7,10 +6,14 @@
 #include <pcl/point_types_conversion.h>
 #include <pcl_ros/transforms.h>
 
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_listener.h>
-
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/PointCloud2.h>
+
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+
 
 #include "bica_graph/graph_client.h"
 
@@ -22,7 +25,8 @@ public:
 	BallDetector()
 	: nh_(),
 		new_image_(false),
-		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>)
+		pcrgb_(new pcl::PointCloud<pcl::PointXYZRGB>),
+		tfListener_(tfBuffer_)
 	{
 		cloud_sub_ = nh_.subscribe("/camera/depth/points", 1, &BallDetector::cloudCB, this);
 
@@ -34,7 +38,6 @@ public:
 
 		graph_.set_tf_identity("base_footprint", "leia");
 		graph_.set_tf_identity("odom", "world");
-
 	}
 
 	void activateCode()
@@ -44,18 +47,26 @@ public:
 
 	void deActivateCode()
 	{
-		graph_.remove_edge("leia", "wants_see", "ball");
 		graph_.remove_edge("leia", "sees", "ball");
+		graph_.remove_edge("leia", "wants_see", "ball");
 	}
 
 	void cloudCB(const sensor_msgs::PointCloud2::ConstPtr& cloud_in)
 	{
+		geometry_msgs::TransformStamped transformStamped;
 		sensor_msgs::PointCloud2 cloud_in_bf;
-		pcl_ros::transformPointCloud(std::string("world"),
-			*cloud_in, cloud_in_bf, tfListener_);
 
-		pcl::fromROSMsg(cloud_in_bf, *pcrgb_);
-		new_image_ = true;
+		try{
+			transformStamped = tfBuffer_.lookupTransform("world", cloud_in->header.frame_id, ros::Time(0));
+			tf2::doTransform(*cloud_in, cloud_in_bf, transformStamped);
+
+			pcl::fromROSMsg(cloud_in_bf, *pcrgb_);
+			new_image_ = true;
+		}
+		catch (tf2::TransformException& ex)
+		{
+			ROS_WARN("%s", ex.what());
+		}
 	}
 
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr filterBall()
@@ -87,7 +98,7 @@ public:
 		return pcrgb_out;
 	}
 
-	tf::Transform getTransform(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered)
+	tf2::Transform getTransform(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered)
 	{
 
 			float x, y, z;
@@ -113,9 +124,9 @@ public:
 				z = z/c;
 			}
 
-			tf::Transform transform;
-			transform.setOrigin(tf::Vector3(x, y, z));
-			transform.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
+			tf2::Transform transform;
+			transform.setOrigin(tf2::Vector3(x, y, z));
+			transform.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
 
 			return transform;
 	}
@@ -155,8 +166,9 @@ private:
 	ros::Subscriber cloud_sub_;
 
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcrgb_;
-	tf::TransformListener tfListener_;
-	tf::TransformBroadcaster tfBroadcaster_;
+	tf2_ros::Buffer tfBuffer_;
+	tf2_ros::TransformListener tfListener_;
+	tf2_ros::TransformBroadcaster tfBroadcaster_;
 
 	bica_graph::GraphClient graph_;
 

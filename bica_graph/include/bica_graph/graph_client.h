@@ -44,8 +44,10 @@
 #include <regex>
 #include <vector>
 
-#include <tf/tf.h>
+#include <tf2/LinearMath/Transform.h>
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "bica_graph/conversions.h"
 #include "bica_graph/exceptions.h"
@@ -61,7 +63,7 @@ class GraphClient
 public:
   GraphClient();
 
-  tf::StampedTransform get_tf(const std::string& node_src, const std::string& node_target);
+  tf2::Stamped<tf2::Transform> get_tf(const std::string& node_src, const std::string& node_target);
   void set_tf_identity(const std::string& frame_id_1, const std::string& frame_id_2);
 
   bool exist_node(const std::string& id) const;
@@ -74,7 +76,7 @@ public:
 
   void add_edge(const std::string& source, const std::string& data, const std::string& target);
   void add_edge(const std::string& source, const double data, const std::string& target);
-  void add_edge(const std::string& source, const tf::Transform& data,
+  void add_edge(const std::string& source, const tf2::Transform& data,
     const std::string& target, bool static_tf = false);
   void add_edge(const StringEdge& other);
   void add_edge(const DoubleEdge& other);
@@ -109,6 +111,8 @@ public:
   std::vector<StringEdge> get_string_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr);
   std::vector<StringEdge> get_string_edges_by_data(const std::string& expr);
 
+
+
   void print();
 private:
   void graph_callback(const bica_msgs::Graph::ConstPtr& msg);
@@ -119,8 +123,10 @@ protected:
   ros::NodeHandle nh_;
   ros::Subscriber graph_sub_;
   ros::ServiceClient update_srv_client_;
+
+  tf2_ros::Buffer tfBuffer;
   tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
-  tf::TransformListener tf_listener_;
+  tf2_ros::TransformListener tf_listener_;
 };
 
 }  // namespace bica_graph

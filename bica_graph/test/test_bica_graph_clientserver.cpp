@@ -38,6 +38,8 @@
 #include <ros/ros.h>
 #include <gtest/gtest.h>
 
+#include <tf2_ros/transform_listener.h>
+
 #include <string>
 
 #include <bica_graph/graph_client.h>
@@ -66,10 +68,10 @@ TEST(BicaGraph, test_graph_construction)
   auto client_1 = std::make_shared<GraphClientTest>();
   auto client_2 = std::make_shared<GraphClientTest>();
 
-  client_1->add_node("leia", "robot");
+  try { client_1->add_node("leia", "robot"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
   ros::Time start = ros::Time::now();
-  while ((ros::Time::now() - start).toSec() < 3.0 ) {}
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_EQ(1, client_1->count_nodes());
   ASSERT_EQ(1, client_2->count_nodes());
@@ -77,7 +79,7 @@ TEST(BicaGraph, test_graph_construction)
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
-  client_2->remove_node("leia");
+  try { client_2->remove_node("leia"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 2.0 ) {}
@@ -85,81 +87,105 @@ TEST(BicaGraph, test_graph_construction)
   ASSERT_EQ(0, client_1->count_nodes());
   ASSERT_EQ(0, client_2->count_nodes());
 
-  client_1->add_node("leia", "robot");
-  client_1->add_node("bedroom", "room");
-  client_1->add_edge("leia", "is", "bedroom");
+  try { client_1->add_node("leia", "robot"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->add_node("bedroom", "room"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->add_edge("leia", "is", "bedroom"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
   start = ros::Time::now();
-  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
+  while ((ros::Time::now() - start).toSec() < 1.5 ) {}
 
   ASSERT_TRUE(client_2->exist_edge("leia", "is", "bedroom"));
 
-  tf::Transform tf_r2l(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  tf2::Transform tf_r2l(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 0, 0));
   client_1->add_edge("bedroom", tf_r2l, "leia");
 
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_TRUE(client_2->exist_tf_edge("bedroom", "leia"));
-  auto edge_2 = client_2->get_tf_edge("bedroom", "leia");
+  try
+  {
+    auto edge_2 = client_2->get_tf_edge("bedroom", "leia");
+    ASSERT_EQ(tf_r2l, edge_2.get());
+    ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
-  ASSERT_EQ(tf_r2l, edge_2.get());
+  try
+  {
+    client_1->add_edge("bedroom", 0.95, "leia");
+    ASSERT_TRUE(true);
+  }
+  catch(std::exception* e)
+  {
+    ROS_ERROR("%s", e->what());
+    ASSERT_TRUE(false);
+  }
 
-  client_1->add_edge("bedroom", 0.95, "leia");
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   ASSERT_TRUE(client_2->exist_double_edge("bedroom", "leia"));
 
-  auto edge_3 = client_2->get_double_edge("bedroom", "leia");
+  try
+  {
+    auto edge_3 = client_2->get_double_edge("bedroom", "leia");
+    ASSERT_EQ(0.95, edge_3.get());
+    ASSERT_TRUE(true);
+  }
+  catch(...)
+  {
+    ASSERT_TRUE(false);
+  }
 
-  ASSERT_EQ(0.95, edge_3.get());
-
-
-  client_1->remove_double_edge("bedroom", "leia");
-  client_1->remove_tf_edge("bedroom", "leia");
-  client_1->remove_edge("leia", "is", "bedroom");
+  try { client_1->remove_double_edge("bedroom", "leia"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->remove_tf_edge("bedroom", "leia"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->remove_edge("leia", "is", "bedroom"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
   spinner.stop();
 }
-/*
+
 TEST(BicaGraph, test_graph_tf)
 {
   ros::Time::init();
   ros::AsyncSpinner spinner(2);
   spinner.start();
-  tf::TransformListener tf_listener;
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tf_listener(tfBuffer);
 
   auto server = std::make_shared<GraphServerTest>();
   auto client_1 = std::make_shared<GraphClientTest>();
   auto client_2 = std::make_shared<GraphClientTest>();
 
-  client_1->add_node("leia", "robot");
-  client_1->add_node("world", "abstract");
-  client_1->add_node("ball", "object");
+  try { client_1->add_node("leia", "robot"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->add_node("world", "abstract"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->add_node("ball", "object"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
   ros::Time start = ros::Time::now();
-  while ((ros::Time::now() - start).toSec() < 1.0 ) {}
+  while ((ros::Time::now() - start).toSec() < 2.0 ) {}
 
-  client_1->set_tf_identity("base_footprint", "leia");
-  client_1->set_tf_identity("odom", "world");
+  try { client_1->set_tf_identity("base_footprint", "leia"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->set_tf_identity("odom", "world"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
 
-  tf::Transform tf_r2b(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
-  tf::Transform tf_w2r(tf::Quaternion(0, 0, 0, 1), tf::Vector3(1, 0, 0));
+  tf2::Transform tf_r2b(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 0, 0));
+  tf2::Transform tf_w2r(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1, 0, 0));
 
-  client_1->add_edge("world", tf_w2r, "leia");
-  client_1->add_edge("leia", tf_r2b, "ball");
+  try { client_1->add_edge("world", tf_w2r, "leia"); ASSERT_TRUE(true); } catch(...) { ASSERT_TRUE(false); }
+  try { client_1->add_edge("leia", tf_r2b, "ball"); ASSERT_TRUE(true);}
+  catch(std::exception* e)
+  {
+    ROS_ERROR("%s", e->what());
+    ASSERT_TRUE(false);
+  }
 
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 3.0 ) {}
 
   try
   {
-    tf::Vector3 v1 = client_1->get_tf("world", "ball").getOrigin();
-    ASSERT_EQ(tf::Vector3(4, 0, 0), v1);
+    tf2::Vector3 v1 = client_1->get_tf("world", "ball").getOrigin();
+    ASSERT_EQ(tf2::Vector3(4, 0, 0), v1);
   }
   catch(bica_graph::exceptions::TransformNotPossible& e)
   {
@@ -167,31 +193,30 @@ TEST(BicaGraph, test_graph_tf)
     ASSERT_TRUE(false);
   }
 
-
-  tf::StampedTransform tf;
-
-  try
+  geometry_msgs::TransformStamped tf;
+  std::string error;
+  if (tfBuffer.canTransform("odom", "ball", ros::Time(0), ros::Duration(0.1), &error))
   {
-    tf_listener.waitForTransform("odom", "ball", ros::Time(0), ros::Duration(1.0));
-    tf_listener.lookupTransform("odom", "ball", ros::Time(0), tf);
-
-    ASSERT_EQ(tf::Vector3(4, 0, 0), tf.getOrigin());
+    tf2::Stamped<tf2::Transform> tf2;
+    tf = tfBuffer.lookupTransform("odom", "ball", ros::Time(0));
+    tf2::fromMsg(tf, tf2);
+    ASSERT_EQ(tf2::Vector3(4, 0, 0), tf2.getOrigin());
   }
-  catch (tf::TransformException& ex)
+  else
   {
-    ROS_ERROR("%s", ex.what());
+    ROS_ERROR("Can't transform %s", error.c_str());
     ASSERT_TRUE(false);
   }
 
   spinner.stop();
-}*/
+}
 
 TEST(BicaGraph, test_advanced_funcs)
 {
+  /*
   ros::Time::init();
   ros::AsyncSpinner spinner(2);
   spinner.start();
-  tf::TransformListener tf_listener;
 
   auto server = std::make_shared<GraphServerTest>();
   auto client = std::make_shared<GraphClientTest>();
@@ -260,7 +285,7 @@ TEST(BicaGraph, test_advanced_funcs)
   ASSERT_EQ(client->get_string_edges_by_data("is_near")[0].get_target(), "table_1");
 
   ASSERT_EQ(client->get_string_edges_by_data("is_near")[2].get_source(), "ball");
-  ASSERT_EQ(client->get_string_edges_by_data("is_near")[2].get_target(), "leia");
+  ASSERT_EQ(client->get_string_edges_by_data("is_near")[2].get_target(), "leia");*/
 }
 
 

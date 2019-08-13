@@ -34,44 +34,63 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_NODE_H
-#define BICA_GRAPH_NODE_H
+#include <ros/ros.h>
 
-#include <list>
-#include <memory>
-#include <string>
+#include <bica_graph/graph.h>
+#include <bica_graph/graph_client.h>
 
-
-namespace bica_graph
+int main(int argc, char* argv[])
 {
+  ros::init(argc, argv, "graph_subscriber_node");
+  ros::NodeHandle n;
 
-class Node
-{
-public:
-  /// Default constructor.
-  /**
-   * Tipically, a Node is not created throught Graph::add_node
-   * \param[in] id The id of the new node.
-   * \param[in] type The type of the node.
-   */
-  Node(const std::string& id, const std::string& type);
-  Node(const std::string& id);
-  Node(const Node& other);
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tf_listener(tfBuffer);
 
-  const std::string get_id() const;
-  const std::string get_type() const;
-  void set_id(const std::string& id) {id_ = id;}
-  void set_type(const std::string& type) {type_ = type;}
+  ROS_INFO("Creating graph client...");
+  bica_graph::GraphClient client;
+  ROS_INFO("done");
+  ros::Rate rate(5);
+  ros::Time start;
 
-  friend bool operator==(const Node& lhs, const Node& rhs);
-  friend bool operator!=(const Node& lhs, const Node& rhs);
+  start = ros::Time::now();
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 5.0 )
+  {
+    ros::spinOnce();
+    rate.sleep();
+  }
 
-protected:
-  std::string type_;
-  std::string id_;
-};
+  start = ros::Time::now();
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 200.0 )
+  {
+    if (client.exist_tf_edge("bedroom", "leia"))
+    {
+      tf2::Transform tf = client.get_tf_edge("bedroom", "leia").get();
+      ROS_INFO("Reading (%lf, %lf, %lf)", tf.getOrigin().x(), tf.getOrigin().y(), tf.getOrigin().z());
+    }
 
+    std::string error;
+    if (tfBuffer.canTransform("leia", "bedroom", ros::Time(0), ros::Duration(0.1), &error))
+    {
+      geometry_msgs::TransformStamped tf_msg;
+      tf2::Stamped<tf2::Transform> tf2;
+      tf_msg = tfBuffer.lookupTransform("bedroom", "leia", ros::Time(0));
+      tf2::fromMsg(tf_msg, tf2);
 
-}  // namespace bica_graph
+      ROS_INFO("Reading msg (%lf, %lf, %lf)",
+        tf_msg.transform.translation.x, tf_msg.transform.translation.y,tf_msg.transform.translation.z);
+    }
+    else
+    {
+      ROS_ERROR("Can't transform: %s", error.c_str());
+    }
 
-#endif  // BICA_GRAPH_NODE_H
+    tf2::Stamped<tf2::Transform> tf2 = client.get_tf("bedroom", "leia");
+    ROS_INFO("Reading 2 (%lf, %lf, %lf)", tf2.getOrigin().x(), tf2.getOrigin().y(), tf2.getOrigin().z());
+
+    ros::spinOnce();
+    rate.sleep();
+  }
+
+  return 0;
+}

@@ -77,15 +77,17 @@ DoubleEdge::DoubleEdge(const DoubleEdge& other)
   data_ = other.data_;
 }
 
-TFEdge::TFEdge(const std::string& source, const tf::Transform& data, const std::string& target, bool static_tf)
+
+TFEdge::TFEdge(const std::string& source, const tf2::Transform& data, const std::string& target, bool static_tf)
 {
   source_ = source;
   target_ = target;
   static_tf_ = static_tf;
 
-  tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
+  tfBuffer = BicaTransformBuffer::getInstance();
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 
   publish_transform(source_, target_, data);
 }
@@ -96,9 +98,10 @@ TFEdge::TFEdge(const std::string& source, const std::string& target, bool static
   target_ = target;
   static_tf_ = static_tf;
 
-  tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
+  tfBuffer = BicaTransformBuffer::getInstance();
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 }
 
 TFEdge::TFEdge(const TFEdge& other)
@@ -107,31 +110,34 @@ TFEdge::TFEdge(const TFEdge& other)
   target_ = other.target_;
   static_tf_ = other.static_tf_;
 
-  tf_listener_ = BicaTransformListener::getInstance();
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
+  tfBuffer = BicaTransformBuffer::getInstance();
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 }
 
-const tf::Transform
+const tf2::Transform
 TFEdge::get() const
 {
-  tf::StampedTransform tf;
+  tf2::Stamped<tf2::Transform> ret;
+  geometry_msgs::TransformStamped tf;
 
-  try
-  {
-    tf_listener_->waitForTransform(source_, target_, ros::Time(0), ros::Duration(1.0));
-    tf_listener_->lookupTransform(source_, target_, ros::Time(0), tf);
-  }
-  catch (tf::TransformException& ex)
-  {
-    ROS_ERROR("%s", ex.what());
-  }
+  std::string error;
+  if (tfBuffer->canTransform(source_, target_, ros::Time(0), ros::Duration(0.1), &error))
+      tf = tfBuffer->lookupTransform(source_, target_, ros::Time(0));
+  else
+    ROS_ERROR("Can't transform %s", error.c_str());
+    ROS_INFO("(%lf, %lf, %lf)",
+      tf.transform.translation.x,
+      tf.transform.translation.y,
+      tf.transform.translation.z);
+  tf2::fromMsg(tf, ret);
 
-  return tf;
+  return ret;
 }
 
 void
-TFEdge::set(const tf::Transform& data)
+TFEdge::set(const tf2::Transform& data)
 {
   if (static_tf_)
     throw exceptions::TransformError("static transform cannot be updated");
@@ -140,34 +146,43 @@ TFEdge::set(const tf::Transform& data)
 }
 
 void
-TFEdge::publish_transform(const std::string& source, const std::string& target, const tf::Transform& data)
+TFEdge::publish_transform(const std::string& source, const std::string& target, const tf2::Transform& data)
 {
   if (!static_tf_)
   {
-    geometry_msgs::TransformStamped tf_send;
-    tf_send.child_frame_id = target_;
-    tf_send.header.frame_id = source_;
+    tf2::Stamped<tf2::Transform> data_stamped;
+    data_stamped.frame_id_ = source;
+    data_stamped.stamp_ = ros::Time::now();;
 
-    tf_send.header.stamp = ros::Time::now();
-    tf::transformTFToMsg(data, tf_send.transform);
+    data_stamped.setData(data);
+
+    geometry_msgs::TransformStamped tf_send = tf2::toMsg(data_stamped);
+    tf_send.child_frame_id = target;
+
+    ROS_INFO("(%lf, %lf, %lf)",
+      tf_send.transform.translation.x,
+      tf_send.transform.translation.y,
+      tf_send.transform.translation.z);
 
     try
     {
       tf_broadcaster_->sendTransform(tf_send);
     }
-    catch(tf::TransformException &exception)
+    catch(tf2::TransformException &exception)
     {
       ROS_ERROR("set_transform:: %s", exception.what());
     }
   }
   else
   {
-    geometry_msgs::TransformStamped tf_send;
-    tf_send.child_frame_id = target_;
-    tf_send.header.frame_id = source_;
+    tf2::Stamped<tf2::Transform> data_stamped;
+    data_stamped.frame_id_ = source;
+    data_stamped.stamp_ = ros::Time::now();
 
-    tf_send.header.stamp = ros::Time::now();
-    tf::transformTFToMsg(data, tf_send.transform);
+    data_stamped.setData(data);
+
+    geometry_msgs::TransformStamped tf_send = tf2::toMsg(data_stamped);
+    tf_send.child_frame_id = target_;
 
     static_tf_broadcaster_->sendTransform(tf_send);
   }

@@ -40,10 +40,10 @@
 
 namespace bica_graph
 {
-void node_to_msg(const Node::SharedPtr& node, bica_msgs::Node* msg)
+void node_to_msg(const Node& node, bica_msgs::Node* msg)
 {
-  msg->id = node->get_id();
-  msg->type = node->get_type();
+  msg->id = node.get_id();
+  msg->type = node.get_type();
 }
 
 void msg_to_node(const bica_msgs::Node& msg, Node* node)

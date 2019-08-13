@@ -47,7 +47,7 @@ namespace bica_graph
 {
 
 GraphClient::GraphClient()
-: tf_listener_(ros::Duration(TF_EXPIRATION_DURATION))
+: tf_listener_(tfBuffer)
 {
   graph_ = std::make_shared<Graph>();
 
@@ -146,7 +146,7 @@ GraphClient::add_edge(const std::string& source, const double data, const std::s
 }
 
 void
-GraphClient::add_edge(const std::string& source, const tf::Transform& data, const std::string& target, bool static_tf)
+GraphClient::add_edge(const std::string& source, const tf2::Transform& data, const std::string& target, bool static_tf)
 {
   add_edge(TFEdge(source, data, target, static_tf));
 }
@@ -412,7 +412,7 @@ GraphClient::get_tf_edges() const
 }
 
 
-tf::StampedTransform
+tf2::Stamped<tf2::Transform>
 GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
 {
   if (!exist_node(node_src))
@@ -420,19 +420,17 @@ GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
   if (!exist_node(node_target))
     throw exceptions::TransformNotPossible("Target node do not exists");
 
-  tf::StampedTransform tf;
+  tf2::Stamped<tf2::Transform> ret;
+  geometry_msgs::TransformStamped tf;
+  std::string error;
 
-  try
-  {
-    tf_listener_.waitForTransform(node_src, node_target, ros::Time(0), ros::Duration(0.1));
-    tf_listener_.lookupTransform(node_src, node_target, ros::Time(0), tf);
-  }
-  catch (tf::TransformException& ex)
-  {
-    throw exceptions::TransformNotPossible("Nodes not connected");
-  }
+  if (tfBuffer.canTransform(node_src, node_target, ros::Time(0), ros::Duration(0.1), &error))
+      tf = tfBuffer.lookupTransform(node_src, node_target, ros::Time(0));
+  else
+    ROS_ERROR("Can't transform %s", error.c_str());
 
-  return tf;
+  tf2::convert(tf, ret);
+  return ret;
 }
 
 void

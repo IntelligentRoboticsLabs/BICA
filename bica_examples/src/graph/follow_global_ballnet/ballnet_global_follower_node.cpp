@@ -1,5 +1,9 @@
-
 #include <ros/ros.h>
+
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <bica/Component.h>
 
@@ -31,16 +35,25 @@ public:
 	{
 		geometry_msgs::Twist cmd;
 
-		try{
-			tf::StampedTransform w2r = graph_.get_tf("world", "leia");
-			tf::Transform r2w = w2r.inverse();
-			tf::StampedTransform w2y = graph_.get_tf("world", "yellow_net");
-			tf::Transform r2y = r2w*w2y;
+		if (graph_.exist_tf_edge("world", "yellow_net"))
+		{
+			try{
+				tf2::Stamped<tf2::Transform> w2r = graph_.get_tf("world", "leia");
+				tf2::Transform r2w = w2r.inverse();
+				tf2::Stamped<tf2::Transform> w2y = graph_.get_tf("world", "yellow_net");
+				tf2::Transform r2y = r2w*w2y;
 
-			ROS_INFO("I see the yellow_net in %lf %lf", r2y.getOrigin().x(), r2y.getOrigin().y());
-			cmd.angular.z = std::max(std::min(atan2(r2y.getOrigin().y(), r2y.getOrigin().x()), 0.2), -0.2);
-			cmd.linear.x = std::min(r2y.getOrigin().length() - 1.5, 0.2);
-		}catch(bica_graph::exceptions::TransformNotPossible& e){
+				ROS_INFO("I see the yellow_net in %lf %lf", r2y.getOrigin().x(), r2y.getOrigin().y());
+				cmd.angular.z = std::max(std::min(atan2(r2y.getOrigin().y(), r2y.getOrigin().x()), 0.2), -0.2);
+				cmd.linear.x = std::min(r2y.getOrigin().length() - 1.5, 0.2);
+			}catch(bica_graph::exceptions::TransformNotPossible& e){
+				cmd.angular.z = 0.3;
+				ROS_INFO("I don't know where is the yellow_net :'(");
+			}
+		}
+		else
+		{
+			cmd.linear.x = 0.0;
 			cmd.angular.z = 0.3;
 			ROS_INFO("I don't know where is the yellow_net :'(");
 		}
@@ -52,16 +65,25 @@ public:
 	{
 		geometry_msgs::Twist cmd;
 
-		try{
-			tf::StampedTransform w2r = graph_.get_tf("world", "leia");
-			tf::Transform r2w = w2r.inverse();
-			tf::StampedTransform w2b = graph_.get_tf("world", "blue_net");
-			tf::Transform r2b = r2w*w2b;
+		if (graph_.exist_tf_edge("world", "blue_net"))
+		{
+			try{
+				tf2::Stamped<tf2::Transform> w2r = graph_.get_tf("world", "leia");
+				tf2::Transform r2w = w2r.inverse();
+				tf2::Stamped<tf2::Transform> w2b = graph_.get_tf("world", "blue_net");
+				tf2::Transform r2b = r2w*w2b;
 
-			cmd.angular.z = std::max(std::min(atan2(r2b.getOrigin().y(), r2b.getOrigin().x()), 0.2), -0.2);
-			cmd.linear.x = std::min(r2b.getOrigin().length() - 1.5, 0.2);
-		}catch(bica_graph::exceptions::TransformNotPossible& e){
+				cmd.angular.z = std::max(std::min(atan2(r2b.getOrigin().y(), r2b.getOrigin().x()), 0.2), -0.2);
+				cmd.linear.x = std::min(r2b.getOrigin().length() - 1.5, 0.2);
+			}catch(bica_graph::exceptions::TransformNotPossible& e){
+				cmd.linear.x = 0.0;
+				cmd.angular.z = 0.3;
+			}
+		}else
+		{
+			cmd.linear.x = 0.0;
 			cmd.angular.z = 0.3;
+			ROS_INFO("I don't know where is the blue_net :'(");
 		}
 
 		cmd_pub_.publish(cmd);
@@ -74,15 +96,14 @@ public:
 		geometry_msgs::Twist cmd;
 		bool ball_seen;
 
-		tf::Transform r2b;
+		tf2::Transform r2b;
 
 		try{
 
-			tf::StampedTransform w2r = graph_.get_tf("world", "leia");
-			tf::Transform r2w = w2r.inverse();
-			tf::StampedTransform w2b = graph_.get_tf("world", "ball");
-			tf::Transform r2b_aux = r2w*w2b;
-			r2b = r2b_aux;
+			tf2::Stamped<tf2::Transform> w2r = graph_.get_tf("world", "leia");
+			tf2::Transform r2w = w2r.inverse();
+			tf2::Stamped<tf2::Transform> w2b = graph_.get_tf("world", "ball");
+			r2b = r2w*w2b;
 
 			if (graph_.exist_edge("leia", "sees", "ball"))
 			{
@@ -111,6 +132,7 @@ public:
 			cmd.angular.z = std::max(std::min(atan2(r2b.getOrigin().y(), r2b.getOrigin().x()), 0.2), -0.2);
 			cmd.linear.x = std::min(r2b.getOrigin().length() - 1.5, 0.2);
 		}else{
+			cmd.linear.x = 0.0;
 			cmd.angular.z = 0.3;
 			ROS_INFO("I don't know where is the ball :'(");
 	  }

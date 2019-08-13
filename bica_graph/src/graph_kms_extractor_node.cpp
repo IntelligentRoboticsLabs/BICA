@@ -119,7 +119,6 @@ private:
   {
     std::list<std::string> nodes_to_remove;
 
-    std::map<std::string, Node::SharedPtr>::const_iterator it;
     for (auto node : graph_.get_nodes())
     {
       std::string type = node.get_type();
