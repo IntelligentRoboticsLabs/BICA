@@ -40,10 +40,10 @@
 
 namespace bica_graph
 {
-void node_to_msg(const Node::SharedPtr& node, bica_msgs::Node* msg)
+void node_to_msg(const Node& node, bica_msgs::Node* msg)
 {
-  msg->id = node->get_id();
-  msg->type = node->get_type();
+  msg->id = node.get_id();
+  msg->type = node.get_type();
 }
 
 void msg_to_node(const bica_msgs::Node& msg, Node* node)
@@ -118,7 +118,7 @@ void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& gra
         break;
       case bica_msgs::Edge::EDGE_TYPE_TF:
         {
-          graph->add_edge(bica_graph::TFEdge(edges_it.source, edges_it.target));
+          graph->add_edge(bica_graph::TFEdge(edges_it.source, edges_it.target, edges_it.static_tf));
         }
         break;
       case bica_msgs::Edge::EDGE_TYPE_UNKNOWN:
@@ -154,6 +154,7 @@ void edge_to_msg(const bica_graph::TFEdge& edge, bica_msgs::Edge* msg)
   msg->type = bica_msgs::Edge::EDGE_TYPE_TF;
   msg->source = edge.get_source();
   msg->target = edge.get_target();
+  msg->static_tf = edge.is_static();
 }
 
 }  // namespace bica_graph

@@ -169,9 +169,9 @@ Graph::add_edge(const std::string& source, const double data, const std::string&
 }
 
 void
-Graph::add_edge(const std::string& source, const tf::Transform& data, const std::string& target)
+Graph::add_edge(const std::string& source, const tf2::Transform& data, const std::string& target, bool static_tf)
 {
-  add_edge(TFEdge(source, data, target));
+  add_edge(TFEdge(source, data, target, static_tf));
 }
 
 void
@@ -220,9 +220,9 @@ Graph::add_edge(const TFEdge& other)
 }
 
 void
-Graph::add_tf_edge(const std::string& source, const std::string& target)
+Graph::add_tf_edge(const std::string& source, const std::string& target, bool static_tf)
 {
-  add_edge(TFEdge(source, target));
+  add_edge(TFEdge(source, target, static_tf));
 }
 
 bool

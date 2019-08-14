@@ -20,3 +20,4 @@ string edge_type
 float64 edge_double
 
 string responsable_id
+bool static_tf

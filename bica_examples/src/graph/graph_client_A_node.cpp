@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     loop_rate.sleep();
   }
 
-  tf::Transform tf_r2l(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  tf2::Transform tf_r2l(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 0, 0));
   client.add_edge("bedroom", tf_r2l, "leia");
   client.add_edge("bedroom", 0.95, "leia");
 

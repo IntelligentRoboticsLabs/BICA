@@ -43,9 +43,14 @@
 
 #include "bica_graph/macros.h"
 #include "bica_graph/Singleton.h"
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
+
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2/convert.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 #include <geometry_msgs/TransformStamped.h>
 
 
@@ -93,35 +98,44 @@ private:
   double data_;
 };
 
-class BicaTransformListener: public Singleton<tf::TransformListener> {};
-class BicaTransformBroadcaster: public Singleton<tf::TransformBroadcaster> {};
+
+class BicaTransformBuffer: public Singleton<tf2_ros::Buffer> {};
+class BicaTransformBroadcaster: public Singleton<tf2_ros::TransformBroadcaster> {};
+class BicaStaticTransformBroadcaster: public Singleton<tf2_ros::StaticTransformBroadcaster> {};
 
 class TFEdge
 {
 public:
-  TFEdge(const std::string& source, const tf::Transform& data, const std::string& target);
-  TFEdge(const std::string& source, const std::string& target);
+  TFEdge(const std::string& source, const tf2::Transform& data, const std::string& target, bool static_tf = false);
+  TFEdge(const std::string& source, const std::string& target, bool static_tf = false);
   TFEdge(const TFEdge& other);
 
   const std::string get_source() const {return source_;}
   const std::string get_target() const {return target_;}
+  bool is_static() const {return static_tf_;}
 
-  const tf::Transform get() const;
-  void set(const tf::Transform& data);
+  const tf2::Transform get() const;
+  void set(const tf2::Transform& data);
 
   friend bool operator==(const TFEdge& lhs, const TFEdge& rhs);
   friend bool operator!=(const TFEdge& lhs, const TFEdge& rhs);
+
 private:
-  void publish_transform(const std::string& source, const std::string& target, const tf::Transform& data);
+  void publish_transform(const std::string& source, const std::string& target, const tf2::Transform& data);
 
   ros::NodeHandle nh_;
 
-  tf::TransformListener *tf_listener_;
-  tf::TransformBroadcaster *tf_broadcaster_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+
+  tf2_ros::Buffer *tfBuffer;
+  tf2_ros::TransformBroadcaster *tf_broadcaster_;
+  tf2_ros::StaticTransformBroadcaster *static_tf_broadcaster_;
 
   std::string source_;
   std::string target_;
   std::string data_;
+
+  bool static_tf_;
 };
 
 }  // namespace bica_graph
