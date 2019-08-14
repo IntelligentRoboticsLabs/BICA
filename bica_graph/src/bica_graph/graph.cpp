@@ -49,7 +49,6 @@ namespace bica_graph
 Graph::Graph(const ros::Time& ts)
 : ts_(ts)
 {
-  ts_ = ts;
 }
 
 bool

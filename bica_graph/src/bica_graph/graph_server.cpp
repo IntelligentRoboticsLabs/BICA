@@ -69,6 +69,8 @@ GraphServer::handle_node_update(const bica_msgs::GraphUpdate& update)
       if (!graph_->exist_node(update.node_id))
       {
         graph_->add_node(update.node_id, update.node_type);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
       break;
@@ -76,6 +78,8 @@ GraphServer::handle_node_update(const bica_msgs::GraphUpdate& update)
       if (graph_->exist_node(update.node_id))
       {
         graph_->remove_node(update.node_id);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
   }
@@ -94,6 +98,8 @@ GraphServer::handle_string_edge_update(const bica_msgs::GraphUpdate& update)
       if (!graph_->exist_edge(update.edge_source, update.edge_type, update.edge_target))
       {
         graph_->add_edge(update.edge_source, update.edge_type, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
       break;
@@ -101,6 +107,8 @@ GraphServer::handle_string_edge_update(const bica_msgs::GraphUpdate& update)
       if (graph_->exist_edge(update.edge_source, update.edge_type, update.edge_target))
       {
         graph_->remove_edge(update.edge_source, update.edge_type, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
   }
@@ -119,11 +127,15 @@ GraphServer::handle_double_edge_update(const bica_msgs::GraphUpdate& update)
       if (!graph_->exist_double_edge(update.edge_source, update.edge_target))
       {
         graph_->add_edge(update.edge_source, update.edge_double, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
       else
       {
         graph_->get_double_edge(update.edge_source, update.edge_target).set(update.edge_double);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
       break;
@@ -131,6 +143,8 @@ GraphServer::handle_double_edge_update(const bica_msgs::GraphUpdate& update)
       if (graph_->exist_double_edge(update.edge_source, update.edge_target))
       {
         graph_->remove_double_edge(update.edge_source, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
   }
@@ -149,6 +163,8 @@ GraphServer::handle_tf_edge_update(const bica_msgs::GraphUpdate& update)
       if (!graph_->exist_tf_edge(update.edge_source, update.edge_target))
       {
         graph_->add_tf_edge(update.edge_source, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
       break;
@@ -156,6 +172,8 @@ GraphServer::handle_tf_edge_update(const bica_msgs::GraphUpdate& update)
       if (graph_->exist_tf_edge(update.edge_source, update.edge_target))
       {
         graph_->remove_tf_edge(update.edge_source, update.edge_target);
+        graph_->update_time_stamp();
+        graph_->set_responsable_id(update.responsable_id);
         publish_graph();
       }
   }
@@ -164,9 +182,13 @@ GraphServer::handle_tf_edge_update(const bica_msgs::GraphUpdate& update)
 }
 
 bool
-GraphServer::update_service_handler(bica_msgs::UpdateGraph::Request  &req,
-                            bica_msgs::UpdateGraph::Response &rep)
+GraphServer::update_service_handler(ros::ServiceEvent<bica_msgs::UpdateGraph::Request,
+  bica_msgs::UpdateGraph::Response>& evt)
 {
+  bica_msgs::UpdateGraph::Request req = evt.getRequest();
+
+  req.update.responsable_id = evt.getCallerName();
+
   bool success = true;
 
   switch (req.update.element_type)
@@ -185,7 +207,7 @@ GraphServer::update_service_handler(bica_msgs::UpdateGraph::Request  &req,
       break;
   }
 
-  rep.success = success;
+  evt.getResponse().success = success;
 
   return true;
 }

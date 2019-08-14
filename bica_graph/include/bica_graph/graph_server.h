@@ -57,11 +57,12 @@ private:
   bool handle_double_edge_update(const bica_msgs::GraphUpdate& update);
   bool handle_tf_edge_update(const bica_msgs::GraphUpdate& update);
 
-  bool update_service_handler(bica_msgs::UpdateGraph::Request  &req,
-                              bica_msgs::UpdateGraph::Response &rep);
+  bool update_service_handler(ros::ServiceEvent<bica_msgs::UpdateGraph::Request,
+    bica_msgs::UpdateGraph::Response>& evt);
+
 
   void graph_callback(const bica_msgs::Graph::ConstPtr& msg);
-  
+
 protected:
   Graph::SharedPtr graph_;
 

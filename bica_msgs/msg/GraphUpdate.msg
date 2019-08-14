@@ -18,3 +18,5 @@ string edge_source
 string edge_target
 string edge_type
 float64 edge_double
+
+string responsable_id

@@ -99,7 +99,9 @@ public:
   const std::list<TFEdge>& get_tf_edges() const {return tf_edges_;}
 
   ros::Time get_time_stamp() const {return ts_;}
-
+  void update_time_stamp() {ts_ = ros::Time::now();}
+  void set_responsable_id(const std::string& responsable_id) {responsable_id_ = responsable_id;}
+  std::string get_responsable_id() const {return responsable_id_;}
   void print();
 
   friend bool operator==(const Graph& lhs, const Graph& rhs);
@@ -113,6 +115,7 @@ private:
   std::list<TFEdge> tf_edges_;
 
   ros::Time ts_;
+  std::string responsable_id_;
 };
 
 

@@ -56,6 +56,7 @@ void msg_to_node(const bica_msgs::Node& msg, Node* node)
 void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg)
 {
   msg->stamp = graph.get_time_stamp();
+  msg->responsable_id = graph.get_responsable_id();
 
   for (auto node : graph.get_nodes())
   {
@@ -94,6 +95,7 @@ void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg)
 void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& graph)
 {
   graph = std::make_shared<bica_graph::Graph>(msg.stamp);
+  graph->set_responsable_id(msg.responsable_id);
 
   for (auto node_it : msg.nodes)
   {
