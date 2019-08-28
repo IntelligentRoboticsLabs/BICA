@@ -438,7 +438,6 @@ GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
 void
 GraphClient::set_tf_identity(const std::string& frame_id_1, const std::string& frame_id_2)
 {
-
   geometry_msgs::TransformStamped static_transformStamped;
 
   static_transformStamped.header.stamp = ros::Time::now();
