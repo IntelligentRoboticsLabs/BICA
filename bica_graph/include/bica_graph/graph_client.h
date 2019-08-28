@@ -125,7 +125,8 @@ protected:
   ros::ServiceClient update_srv_client_;
 
   tf2_ros::Buffer tfBuffer;
-  tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
+  // tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
+  tf2_ros::StaticTransformBroadcaster *static_tf_broadcaster_;
   tf2_ros::TransformListener tf_listener_;
 };
 

@@ -54,6 +54,8 @@ GraphClient::GraphClient()
   graph_sub_ = nh_.subscribe("/graph", 1, &GraphClient::graph_callback, this);
   update_srv_client_ = nh_.serviceClient<bica_msgs::UpdateGraph>("/update_graph");
 
+  static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
+
   while (!ros::service::waitForService("/update_graph", 1000))
     ROS_WARN("Waiting for graph master service");
 }
@@ -436,6 +438,7 @@ GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
 void
 GraphClient::set_tf_identity(const std::string& frame_id_1, const std::string& frame_id_2)
 {
+
   geometry_msgs::TransformStamped static_transformStamped;
 
   static_transformStamped.header.stamp = ros::Time::now();
@@ -449,7 +452,7 @@ GraphClient::set_tf_identity(const std::string& frame_id_1, const std::string& f
   static_transformStamped.transform.rotation.z = 0;
   static_transformStamped.transform.rotation.w = 1;
 
-  static_tf_broadcaster_.sendTransform(static_transformStamped);
+  static_tf_broadcaster_->sendTransform(static_transformStamped);
 }
 
 void
