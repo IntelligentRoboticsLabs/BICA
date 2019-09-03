@@ -429,7 +429,10 @@ GraphClient::get_tf(const std::string& node_src, const std::string& node_target)
   if (tfBuffer.canTransform(node_src, node_target, ros::Time(0), ros::Duration(0.1), &error))
       tf = tfBuffer.lookupTransform(node_src, node_target, ros::Time(0));
   else
+  {
+    throw exceptions::TransformNotPossible("Nodes not connected by TFs");
     ROS_ERROR("Can't transform %s", error.c_str());
+  }
 
   tf2::convert(tf, ret);
   return ret;
