@@ -146,7 +146,7 @@ Graph::remove_node(const std::string& node_id)
     }
     else
     {
-      bdl_it++;
+      tf_it++;
     }
   }
 }
