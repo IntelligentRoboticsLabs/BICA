@@ -75,6 +75,10 @@ add_executable(test_subscriber_node test/test_subscriber_node.cpp)
 add_dependencies(test_subscriber_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_subscriber_node ${catkin_LIBRARIES} ${PROJECT_NAME} )
 
+add_executable(graph_terminal src/graph_terminal.cpp)
+add_dependencies(graph_terminal ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(graph_terminal ${catkin_LIBRARIES} ${PROJECT_NAME} )
+
 
 install(DIRECTORY include/${PROJECT_NAME}/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
