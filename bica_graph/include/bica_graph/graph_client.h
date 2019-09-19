@@ -111,7 +111,8 @@ public:
   std::vector<StringEdge> get_string_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr);
   std::vector<StringEdge> get_string_edges_by_data(const std::string& expr);
 
-
+  void begin_batch() {batch_ = true;}
+  void flush();
 
   void print();
 private:
@@ -128,6 +129,9 @@ protected:
   // tf2_ros::StaticTransformBroadcaster static_tf_broadcaster_;
   tf2_ros::StaticTransformBroadcaster *static_tf_broadcaster_;
   tf2_ros::TransformListener tf_listener_;
+
+  std::vector<bica_msgs::GraphUpdate> request_;
+  bool batch_;
 };
 
 }  // namespace bica_graph

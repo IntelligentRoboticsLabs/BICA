@@ -47,7 +47,8 @@ namespace bica_graph
 {
 
 GraphClient::GraphClient()
-: tf_listener_(tfBuffer)
+: tf_listener_(tfBuffer),
+  batch_(false)
 {
   graph_ = std::make_shared<Graph>();
 
@@ -73,25 +74,59 @@ GraphClient::exist_node(const std::string& id) const
 }
 
 void
-GraphClient::add_node(const Node& other)
+GraphClient::flush()
 {
-  bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.element_type = bica_msgs::GraphUpdate::NODE;
-  srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
-  srv.request.update.node_id = other.get_id();
-  srv.request.update.node_type = other.get_type();
+  if (!batch_)
+  {
+    ROS_ERROR("Flush in non-batch mode");
+    return;
+  }
 
+  bica_msgs::UpdateGraph srv;
+  srv.request.update = request_;
   if (update_srv_client_.call(srv))
   {
-    if (srv.response.success)
-      graph_->add_node(other);
-    else
-      ROS_ERROR("Failed to add node");
+    if (!srv.response.success)
+      ROS_ERROR("Failed in batch call");
   }
   else
   {
-    ROS_ERROR("Failed to call service to add node");
+    ROS_ERROR("Failed to call service in batch call");
+  }
+
+  request_.clear();
+  batch_ = false;
+}
+
+void
+GraphClient::add_node(const Node& other)
+{
+  bica_msgs::UpdateGraph srv;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::NODE;
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::ADD;
+  srv.request.update[0].node_id = other.get_id();
+  srv.request.update[0].node_type = other.get_type();
+
+  if (batch_)
+  {
+    request_.push_back(srv.request.update[0]);
+    graph_->add_node(other);
+  }
+  else
+  {
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->add_node(other);
+      else
+        ROS_ERROR("Failed to add node");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to add node");
+    }
   }
 }
 
@@ -111,21 +146,30 @@ void
 GraphClient::remove_node(const std::string& node_id)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.element_type = bica_msgs::GraphUpdate::NODE;
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.node_id = node_id;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::NODE;
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::REMOVE;
+  srv.request.update[0].node_id = node_id;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
+    request_.push_back(srv.request.update[0]);
+    graph_->remove_node(node_id);
+  }
+  else
+  {
+    if (update_srv_client_.call(srv))
+    {
     if (srv.response.success)
       graph_->remove_node(node_id);
     else
       ROS_ERROR("Failed to remove node");
-  }
-  else
-  {
+    }
+    else
+    {
     ROS_ERROR("Failed to call service to remove node");
+    }
   }
 }
 
@@ -157,48 +201,66 @@ void
 GraphClient::add_edge(const StringEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
-  srv.request.update.edge_type = other.get();
-  srv.request.update.element_type = bica_msgs::GraphUpdate::STRING_EDGE;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::ADD;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
+  srv.request.update[0].edge_type = other.get();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::STRING_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-    {
-      graph_->add_edge(other);
-    }
-    else
-      ROS_ERROR("Failed to add edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->add_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to add node");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+      {
+        graph_->add_edge(other);
+      }
+      else
+        ROS_ERROR("Failed to add edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to add node");
+    }
   }
 }
 void
 GraphClient::add_edge(const DoubleEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
-  srv.request.update.edge_double = other.get();
-  srv.request.update.element_type = bica_msgs::GraphUpdate::DOUBLE_EDGE;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::ADD;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
+  srv.request.update[0].edge_double = other.get();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::DOUBLE_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->add_edge(other);
-    else
-      ROS_ERROR("Failed to add edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->add_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to add node");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->add_edge(other);
+      else
+        ROS_ERROR("Failed to add edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to add node");
+    }
   }
 }
 
@@ -206,23 +268,32 @@ void
 GraphClient::add_edge(const TFEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
-  srv.request.update.static_tf = other.is_static();
-  srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::ADD;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
+  srv.request.update[0].static_tf = other.is_static();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::TF_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->add_edge(other);
-    else
-      ROS_ERROR("Failed to add edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->add_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to add node");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->add_edge(other);
+      else
+        ROS_ERROR("Failed to add edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to add node");
+    }
   }
 }
 
@@ -230,23 +301,32 @@ void
 GraphClient::add_tf_edge(const std::string& source, const std::string& target, bool static_tf)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::ADD;
-  srv.request.update.edge_source = source;
-  srv.request.update.edge_target = target;
-  srv.request.update.static_tf = static_tf;
-  srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::ADD;
+  srv.request.update[0].edge_source = source;
+  srv.request.update[0].edge_target = target;
+  srv.request.update[0].static_tf = static_tf;
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::TF_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->add_tf_edge(source, target, static_tf);
-    else
-      ROS_ERROR("Failed to add edge");
+    graph_->add_tf_edge(source, target, static_tf);
+    request_.push_back(srv.request.update[0]);
   }
   else
   {
-    ROS_ERROR("Failed to call service to add node");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->add_tf_edge(source, target, static_tf);
+      else
+        ROS_ERROR("Failed to add edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to add node");
+    }
   }
 }
 
@@ -296,24 +376,33 @@ void
 GraphClient::remove_edge(const StringEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::REMOVE;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
 
-  srv.request.update.element_type = bica_msgs::GraphUpdate::STRING_EDGE;
-  srv.request.update.edge_type = other.get();
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::STRING_EDGE;
+  srv.request.update[0].edge_type = other.get();
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->remove_edge(other);
-    else
-      ROS_ERROR("Failed to remove edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->remove_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to remove edge");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->remove_edge(other);
+      else
+        ROS_ERROR("Failed to remove edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to remove edge");
+    }
   }
 }
 
@@ -321,23 +410,32 @@ void
 GraphClient::remove_edge(const DoubleEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::REMOVE;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
 
-  srv.request.update.element_type = bica_msgs::GraphUpdate::DOUBLE_EDGE;
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::DOUBLE_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->remove_edge(other);
-    else
-      ROS_ERROR("Failed to remove edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->remove_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to remove node");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->remove_edge(other);
+      else
+        ROS_ERROR("Failed to remove edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to remove node");
+    }
   }
 }
 
@@ -345,23 +443,32 @@ void
 GraphClient::remove_edge(const TFEdge& other)
 {
   bica_msgs::UpdateGraph srv;
-  srv.request.update.stamp = ros::Time::now();
-  srv.request.update.update_type = bica_msgs::GraphUpdate::REMOVE;
-  srv.request.update.edge_source = other.get_source();
-  srv.request.update.edge_target = other.get_target();
+  srv.request.update.resize(1);
+  srv.request.update[0].stamp = ros::Time::now();
+  srv.request.update[0].update_type = bica_msgs::GraphUpdate::REMOVE;
+  srv.request.update[0].edge_source = other.get_source();
+  srv.request.update[0].edge_target = other.get_target();
 
-  srv.request.update.element_type = bica_msgs::GraphUpdate::TF_EDGE;
+  srv.request.update[0].element_type = bica_msgs::GraphUpdate::TF_EDGE;
 
-  if (update_srv_client_.call(srv))
+  if (batch_)
   {
-    if (srv.response.success)
-      graph_->remove_edge(other);
-    else
-      ROS_ERROR("Failed to remove edge");
+    request_.push_back(srv.request.update[0]);
+    graph_->remove_edge(other);
   }
   else
   {
-    ROS_ERROR("Failed to call service to remove edge");
+    if (update_srv_client_.call(srv))
+    {
+      if (srv.response.success)
+        graph_->remove_edge(other);
+      else
+        ROS_ERROR("Failed to remove edge");
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service to remove edge");
+    }
   }
 }
 
