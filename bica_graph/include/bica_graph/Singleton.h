@@ -39,4 +39,35 @@ private:
 template< class C >
 C* Singleton<C>::uniqueInstance = NULL;
 
+template< class C, class D >
+class SingletonRef {
+
+public:
+	static C* getInstance(D& ref)
+	{
+		if( SingletonRef<C, D>::uniqueInstance == NULL )
+			SingletonRef<C, D>::uniqueInstance = new C(ref);
+
+		return SingletonRef<C, D>::uniqueInstance;
+	}
+
+	static void removeInstance()
+	{
+		if( SingletonRef<C, D>::uniqueInstance != NULL )
+		{
+			delete SingletonRef<C, D>::uniqueInstance;
+			SingletonRef<C, D>::uniqueInstance = NULL;
+		}
+	}
+
+private:
+	static C *uniqueInstance;
+};
+
+// Initialize the static member CurrentInstance
+template< class C, class D >
+C* SingletonRef<C, D>::uniqueInstance = NULL;
+
+
+
 #endif /* SINGLETON_H_ */

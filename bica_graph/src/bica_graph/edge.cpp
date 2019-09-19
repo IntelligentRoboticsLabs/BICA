@@ -87,7 +87,8 @@ TFEdge::TFEdge(const std::string& source, const tf2::Transform& data, const std:
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
   tfBuffer = BicaTransformBuffer::getInstance();
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
+  tf_listener_ = BicaTransformListener::getInstance(*tfBuffer);
+  //std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 
   publish_transform(source_, target_, data);
 }
@@ -101,7 +102,7 @@ TFEdge::TFEdge(const std::string& source, const std::string& target, bool static
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
   tfBuffer = BicaTransformBuffer::getInstance();
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
+  tf_listener_ = BicaTransformListener::getInstance(*tfBuffer);
 }
 
 TFEdge::TFEdge(const TFEdge& other)
@@ -113,7 +114,7 @@ TFEdge::TFEdge(const TFEdge& other)
   tf_broadcaster_ = BicaTransformBroadcaster::getInstance();
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
   tfBuffer = BicaTransformBuffer::getInstance();
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
+  tf_listener_ = BicaTransformListener::getInstance(*tfBuffer);
 }
 
 const tf2::Transform

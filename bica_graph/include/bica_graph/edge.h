@@ -102,6 +102,7 @@ private:
 class BicaTransformBuffer: public Singleton<tf2_ros::Buffer> {};
 class BicaTransformBroadcaster: public Singleton<tf2_ros::TransformBroadcaster> {};
 class BicaStaticTransformBroadcaster: public Singleton<tf2_ros::StaticTransformBroadcaster> {};
+class BicaTransformListener: public SingletonRef<tf2_ros::TransformListener, tf2_ros::Buffer>{};
 
 class TFEdge
 {
@@ -125,8 +126,9 @@ private:
 
   ros::NodeHandle nh_;
 
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  // std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
+  tf2_ros::TransformListener *tf_listener_;
   tf2_ros::Buffer *tfBuffer;
   tf2_ros::TransformBroadcaster *tf_broadcaster_;
   tf2_ros::StaticTransformBroadcaster *static_tf_broadcaster_;
