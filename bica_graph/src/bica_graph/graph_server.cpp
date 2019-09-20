@@ -188,7 +188,6 @@ GraphServer::update_service_handler(bica_msgs::UpdateGraph::Request  &req,
         break;
     }
     rep.success = rep.success && success;
-
   }
   publish_graph();
 
