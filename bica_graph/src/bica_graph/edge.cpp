@@ -88,7 +88,7 @@ TFEdge::TFEdge(const std::string& source, const tf2::Transform& data, const std:
   static_tf_broadcaster_ = BicaStaticTransformBroadcaster::getInstance();
   tfBuffer = BicaTransformBuffer::getInstance();
   tf_listener_ = BicaTransformListener::getInstance(*tfBuffer);
-  //std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
+  // std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 
   publish_transform(source_, target_, data);
 }
