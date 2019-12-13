@@ -1,55 +1,72 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(bica)
 
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE DEBUG)
 
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(bica_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
-find_package(catkin REQUIRED COMPONENTS
-  rospy
-  roscpp
-  std_msgs
-  roslint
+set(dependencies
+    rclcpp
+    rclcpp_lifecycle
+    bica_msgs
+    ament_index_cpp
 )
 
-catkin_python_setup()
+include_directories(include)
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES bica
-  CATKIN_DEPENDS roscpp std_msgs
+set(BICA_SOURCES
+  src/bica/Component.cpp
 )
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
+add_library(${PROJECT_NAME} SHARED ${BICA_SOURCES})
+ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+
+add_executable(component_A_node src/component_A_node.cpp)
+ament_target_dependencies(component_A_node ${dependencies})
+target_link_libraries(component_A_node ${PROJECT_NAME})
+
+add_executable(component_B_node src/component_B_node.cpp)
+ament_target_dependencies(component_B_node ${dependencies})
+target_link_libraries(component_B_node ${PROJECT_NAME})
+
+add_executable(component_C_node src/component_C_node.cpp)
+ament_target_dependencies(component_C_node ${dependencies})
+target_link_libraries(component_C_node ${PROJECT_NAME})
+
+add_executable(component_D_node src/component_D_node.cpp)
+ament_target_dependencies(component_D_node ${dependencies})
+target_link_libraries(component_D_node ${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/
 )
 
-set(LINK_LIBS
-  ${catkin_LIBRARIES}
+install(TARGETS
+  ${PROJECT_NAME}
+  component_A_node
+  component_B_node
+  component_C_node
+  component_D_node
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-add_library(bica
-   src/Component.cpp
-   src/Activation.cpp
-   src/Dependency.cpp
-)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
 
-add_executable(launcher src/launcher.cpp)
-target_link_libraries(launcher ${LINK_LIBS} bica)
+  find_package(ament_cmake_gtest REQUIRED)
+  add_subdirectory(test)
+endif()
 
-roslint_cpp(
-   src/Component.cpp include/bica/Component.h
-   src/Activation.cpp include/bica/Activation.h
-   src/Dependency.cpp include/bica/Dependency.h
-   src/launcher.cpp
-   include/bica/HfsmComponent.h
-)
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
 
-
-install(TARGETS bica
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+ament_package()

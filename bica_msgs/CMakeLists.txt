@@ -1,36 +1,17 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(bica_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  std_msgs
-  message_generation
+find_package(ament_cmake REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/ActivateComponent.srv" 
+  "srv/DeactivateComponent.srv" 
+  DEPENDENCIES builtin_interfaces std_msgs
 )
 
+ament_export_dependencies(rosidl_default_runtime)
 
-add_message_files(
-   FILES
-   Node.msg
-   Edge.msg
-   Graph.msg
-   GraphUpdate.msg
- )
-
- add_service_files(
-    FILES
-    UpdateGraph.srv
-)
-  
-generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-   std_msgs
-)
-
-catkin_package(
-   CATKIN_DEPENDS message_runtime geometry_msgs std_msgs
-)
-
-install(DIRECTORY include/bica_msgs/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN "*.h")
+ament_package()
