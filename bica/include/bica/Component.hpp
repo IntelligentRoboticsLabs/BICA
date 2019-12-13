@@ -47,6 +47,7 @@
 
 #include <string>
 #include <set>
+#include <any>
 
 #include "bica/Utils.hpp"
 
@@ -59,6 +60,18 @@
 
 namespace bica
 {
+
+struct ActivationFuture
+{
+  std::shared_future<std::shared_ptr<bica_msgs::srv::ActivateComponent_Response_<std::allocator<void>>>> future;
+  std::string component;
+};
+
+struct DeactivationFuture
+{
+  std::shared_future<std::shared_ptr<bica_msgs::srv::DeactivateComponent_Response_<std::allocator<void>>>> future;
+  std::string component;
+};
 
 using namespace std::chrono_literals;
 
@@ -135,6 +148,9 @@ private:
 
   std::set<std::string> dependencies_;
   std::set<std::string> activators_;
+
+  std::vector<ActivationFuture> pending_act_futures_;
+  std::vector<DeactivationFuture> pending_deact_futures_;
 
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::String>::SharedPtr activation_pub_;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr activation_sub_;

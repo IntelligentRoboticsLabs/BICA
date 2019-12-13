@@ -88,21 +88,21 @@ using CallbackReturnT =
 CallbackReturnT
 Component::on_configure(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_configure start");
+  RCLCPP_DEBUG(get_logger(), "on_configure start");
   activation_pub_->on_activate();
 
   notifyStart();
   
-  RCLCPP_INFO(get_logger(), "on_configure end");
+  RCLCPP_DEBUG(get_logger(), "on_configure end");
   return CallbackReturnT::SUCCESS;
 }
 
 CallbackReturnT
 Component::on_activate(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_activate start");
+  RCLCPP_DEBUG(get_logger(), "on_activate start");
   activateDependencies();
-  RCLCPP_INFO(get_logger(), "on_activate end");
+  RCLCPP_DEBUG(get_logger(), "on_activate end");
 
   return CallbackReturnT::SUCCESS;
 }
@@ -110,9 +110,9 @@ Component::on_activate(const rclcpp_lifecycle::State & state)
 CallbackReturnT
 Component::on_deactivate(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_deactivate start");
+  RCLCPP_DEBUG(get_logger(), "on_deactivate start");
   deActivateDependencies();
-  RCLCPP_INFO(get_logger(), "on_deactivate end");
+  RCLCPP_DEBUG(get_logger(), "on_deactivate end");
  
   return CallbackReturnT::SUCCESS;
 }
@@ -120,9 +120,9 @@ Component::on_deactivate(const rclcpp_lifecycle::State & state)
 CallbackReturnT
 Component::on_cleanup(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_cleanup start");
+  RCLCPP_DEBUG(get_logger(), "on_cleanup start");
   deActivateDependencies();
-  RCLCPP_INFO(get_logger(), "on_cleanup end");
+  RCLCPP_DEBUG(get_logger(), "on_cleanup end");
 
   return CallbackReturnT::SUCCESS;
 }
@@ -130,9 +130,9 @@ Component::on_cleanup(const rclcpp_lifecycle::State & state)
 CallbackReturnT
 Component::on_shutdown(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_shutdown start");
+  RCLCPP_DEBUG(get_logger(), "on_shutdown start");
   deActivateDependencies();
-  RCLCPP_INFO(get_logger(), "on_shutdown end");
+  RCLCPP_DEBUG(get_logger(), "on_shutdown end");
 
   return CallbackReturnT::SUCCESS;
 }
@@ -140,9 +140,9 @@ Component::on_shutdown(const rclcpp_lifecycle::State & state)
 CallbackReturnT
 Component::on_error(const rclcpp_lifecycle::State & state)
 {
-  RCLCPP_INFO(get_logger(), "on_error start");
+  RCLCPP_DEBUG(get_logger(), "on_error start");
   deActivateDependencies();
-  RCLCPP_INFO(get_logger(), "on_error end");
+  RCLCPP_DEBUG(get_logger(), "on_error end");
 
   return CallbackReturnT::SUCCESS;
 }
@@ -168,12 +168,12 @@ Component::isDependency(const std::string& dep)
 void
 Component::notifyStart()
 {
-  RCLCPP_INFO(get_logger(), "notifyStart start");
+  RCLCPP_DEBUG(get_logger(), "notifyStart start");
   std_msgs::msg::String msg;
   msg.data = get_name();
 
   activation_pub_->publish(msg);
-  RCLCPP_INFO(get_logger(), "notifyStart end");
+  RCLCPP_DEBUG(get_logger(), "notifyStart end");
 }
 
 void
@@ -182,15 +182,15 @@ Component::activate_callback(
   const std::shared_ptr<bica_msgs::srv::ActivateComponent::Request> request,
   const std::shared_ptr<bica_msgs::srv::ActivateComponent::Response> response)
 {
-  RCLCPP_INFO(get_logger(), "activate_callback start (in state %s)", this->get_current_state().label().c_str());
+  RCLCPP_DEBUG(get_logger(), "activate_callback start (in state %s)", this->get_current_state().label().c_str());
   if ((this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) && 
     (this->get_current_state().id() != State::TRANSITION_STATE_ACTIVATING)) {
-    RCLCPP_INFO(get_logger(), "notifyStart triggering");
+    RCLCPP_DEBUG(get_logger(), "notifyStart triggering");
     
     this->trigger_transition(Transition::TRANSITION_ACTIVATE);
     activators_.insert(request->activator);
   }
-  RCLCPP_INFO(get_logger(), "activate_callback end");
+  RCLCPP_DEBUG(get_logger(), "activate_callback end");
 }
 
 void
@@ -212,22 +212,21 @@ Component::deactivate_callback(
   const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Request> request,
   const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Response> response)
 {
-  RCLCPP_INFO(get_logger(), "deactivate_callback start (in state %s)", this->get_current_state().label().c_str());
+  RCLCPP_DEBUG(get_logger(), "deactivate_callback start (in state %s)", this->get_current_state().label().c_str());
   if ((this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)) {
 
-    RCLCPP_INFO(get_logger(), "deactivate_callback triggering");
+    RCLCPP_DEBUG(get_logger(), "deactivate_callback triggering");
 
     removeActivator(request->deactivator);
   }
-  RCLCPP_INFO(get_logger(), "deactivate_callback end");
+  RCLCPP_DEBUG(get_logger(), "deactivate_callback end");
 }
 
 void
 Component::activateDependency(const std::string & dep)
 {
-  RCLCPP_INFO(get_logger(), "activateDependency start --> %s", dep.c_str());
-  auto aux = std::make_shared<rclcpp::Node>(get_name() + std::string("_actaux"));
-  auto client = aux->create_client<bica_msgs::srv::ActivateComponent>("/" + dep + "/activate");
+  RCLCPP_DEBUG(get_logger(), "activateDependency start --> %s", dep.c_str());
+  auto client = this->create_client<bica_msgs::srv::ActivateComponent>("/" + dep + "/activate");
 
   if (!client->wait_for_service(100ms)) {
     RCLCPP_ERROR(get_logger(), "Service %s is not available.",
@@ -238,25 +237,18 @@ Component::activateDependency(const std::string & dep)
   auto request = std::make_shared<bica_msgs::srv::ActivateComponent::Request>();
   request->activator = get_name();
 
-  auto future_result = client->async_send_request(request);
-  
-
-  if (rclcpp::spin_until_future_complete(aux->get_node_base_interface(), future_result) !=
-    rclcpp::executor::FutureReturnCode::SUCCESS)
-  {
-    RCLCPP_WARN(get_logger(), "Component [%s] failed to activate", dep.c_str());
-    return;
-  }
-  RCLCPP_INFO(get_logger(), "activateDependency end");
+  auto future = client->async_send_request(request);
+  pending_act_futures_.push_back(ActivationFuture{future, dep});
+ 
+  RCLCPP_DEBUG(get_logger(), "activateDependency end");
 }
 
 void
 Component::deactivateDependency(const std::string & dep)
 {
-  RCLCPP_INFO(get_logger(), "deactivateDependency start --> %s", dep.c_str());
+  RCLCPP_DEBUG(get_logger(), "deactivateDependency start --> %s", dep.c_str());
 
-  auto aux = std::make_shared<rclcpp::Node>(get_name() + std::string("_actaux"));
-  auto client = aux->create_client<bica_msgs::srv::DeactivateComponent>("/" + dep + "/deactivate");
+  auto client = this->create_client<bica_msgs::srv::DeactivateComponent>("/" + dep + "/deactivate");
 
   if (!client->wait_for_service(100ms)) {
     RCLCPP_ERROR(get_logger(), "Service %s is not available.",
@@ -267,15 +259,11 @@ Component::deactivateDependency(const std::string & dep)
   auto request = std::make_shared<bica_msgs::srv::DeactivateComponent::Request>();
   request->deactivator = get_name();
 
-  auto future_result = client->async_send_request(request);
+  auto future = client->async_send_request(request);
 
-  if (rclcpp::spin_until_future_complete(aux->get_node_base_interface(), future_result) !=
-    rclcpp::executor::FutureReturnCode::SUCCESS)
-  {
-    RCLCPP_WARN(get_logger(), "Component [%s] failed to activate", dep.c_str());
-    return;
-  }
-  RCLCPP_INFO(get_logger(), "deactivateDependency end");
+  pending_deact_futures_.push_back(DeactivationFuture{future, dep});
+
+  RCLCPP_DEBUG(get_logger(), "deactivateDependency end");
 }
 
 void
@@ -297,23 +285,46 @@ Component::deActivateDependencies()
 void
 Component::activations_callback(const std_msgs::msg::String::SharedPtr msg)
 {
-  RCLCPP_INFO(get_logger(), "activations_callback start <-- %s", msg->data.c_str());
+  RCLCPP_DEBUG(get_logger(), "activations_callback start <-- %s", msg->data.c_str());
   if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE && isDependency(msg->data)) {
     activateDependency(msg->data);
   }
-  RCLCPP_INFO(get_logger(), "activations_callback end");
+  RCLCPP_DEBUG(get_logger(), "activations_callback end");
 }
 
 bool
 Component::ok()
 {
-  auto nodes = this->get_node_graph_interface()->get_node_names();
-  auto check_activators = activators_;
-  for (auto const & activator : check_activators) {
-    if (std::find(nodes.begin(), nodes.end(), "/" + activator) == nodes.end())
-    {
-      RCLCPP_INFO(get_logger(), "Activator %s is not longer present, removing from activators");
-      removeActivator(activator);
+
+
+  if (rclcpp::ok()) {
+    auto nodes = this->get_node_graph_interface()->get_node_names();
+    auto check_activators = activators_;
+    for (auto const & activator : check_activators) {
+      if (std::find(nodes.begin(), nodes.end(), "/" + activator) == nodes.end())
+      {
+        RCLCPP_DEBUG(get_logger(), "Activator %s is not longer present, removing from activators");
+        removeActivator(activator);
+      }
+    }
+
+    while(!pending_act_futures_.empty()) {
+      auto pending_future = pending_act_futures_.back();
+      if ((rclcpp::spin_until_future_complete(this->get_node_base_interface(), pending_future.future)) !=
+        rclcpp::executor::FutureReturnCode::SUCCESS)
+      {
+        RCLCPP_WARN(get_logger(), "Component [%s] failed to activate", pending_future.component.c_str());
+      }
+      pending_act_futures_.pop_back();
+    }
+    while(!pending_deact_futures_.empty()) {
+      auto pending_future = pending_deact_futures_.back();
+      if ((rclcpp::spin_until_future_complete(this->get_node_base_interface(), pending_future.future)) !=
+        rclcpp::executor::FutureReturnCode::SUCCESS)
+      {
+        RCLCPP_WARN(get_logger(), "Component [%s] failed to deactivate", pending_future.component.c_str());
+      }
+      pending_deact_futures_.pop_back();
     }
   }
 
@@ -324,7 +335,7 @@ void
 Component::execute()
 {
  while (this->ok()) {
-     RCLCPP_INFO(get_logger(), "state: %s", this->get_current_state().label().c_str());
+     RCLCPP_DEBUG(get_logger(), "state: %s", this->get_current_state().label().c_str());
      if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
     {
       RCLCPP_INFO(get_logger(), "step");
