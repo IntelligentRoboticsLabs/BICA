@@ -35,21 +35,22 @@ public:
   {
     graph_->process_updates();
 
-    for (int i = 0; i < dis_(gen_); i++) {
+    /*for (int i = 0; i < dis_(gen_); i++) */
+    {
       int new_value = dis_(gen_);
 
-      if (new_value >= 1 && new_value <= 3) {
+      if (new_value >= 3 && new_value <= 5) {
         std::string name = "node_" + std::to_string(dis_(gen_));
         std::string type = "type_" + std::to_string(dis_(gen_));
        
         bica_graph::Node node{name, type};
 
         graph_->add_node(node);
-      } else if (new_value == 4) {
+      } else if (new_value == 6) {
         std::string name = "node_" + std::to_string(dis_(gen_));
 
         graph_->remove_node(name);
-      } else if (new_value >= 5 && new_value <= 8) {
+      } else if (new_value >= 7 && new_value <= 9) {
         std::string source = "node_" + std::to_string(dis_(gen_));
         std::string target = "node_" + std::to_string(dis_(gen_));
         std::string type = "type_" + std::to_string(dis_(gen_));
@@ -58,7 +59,7 @@ public:
         bica_graph::Edge edge{content, type, source, target};
 
         graph_->add_edge(edge);
-      } else if (new_value >= 9 && new_value <= 10) {
+      } else if (new_value == 10) {
         std::string source = "node_" + std::to_string(dis_(gen_));
         std::string target = "node_" + std::to_string(dis_(gen_));
         std::string type = "type_" + std::to_string(dis_(gen_));
@@ -98,7 +99,7 @@ int main(int argc, char ** argv)
   }
   std::cerr << std::endl;*/
 
-  rclcpp::Rate rate(7);
+  rclcpp::Rate rate(1);
 
   while (rclcpp::ok()) {
     node->do_work();

@@ -60,10 +60,10 @@ GraphNode::GraphNode(rclcpp::Node::SharedPtr provided_node)
 
   using namespace std::placeholders;
   update_pub_ = node_->create_publisher<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates", rclcpp::QoS(1000).keep_last(1000).reliable().transient_local());
+    "/graph_updates", rclcpp::QoS(20).keep_last(20).reliable().transient_local());
   
   update_sub_ = node_->create_subscription<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates", rclcpp::QoS(1000).keep_last(1000).reliable().transient_local(),
+    "/graph_updates", rclcpp::QoS(20).keep_last(20).reliable().transient_local(),
     std::bind(&GraphNode::update_callback, this, _1));
 }
 
@@ -84,79 +84,45 @@ GraphNode::process_updates()
   bool updated_graph = false;
   std::sort (updates_.begin(), updates_.end(), sort_function);  
 
-  
   for (const auto & update : updates_) {
     last_ts_ = rclcpp::Time(update.stamp);
     updated_graph = true;
     
-    if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
-      if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
+    if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
+      Node node;
+      node.from_string(update.object);
 
-        if (last_ts_ > rclcpp::Time(update.stamp)) {
-          std::cout << "Unorderer update" << std::endl;
-        }
-        last_ts_ = rclcpp::Time(update.stamp);
-
-        Node node;
-        node.from_string(update.object);
+      if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
         graph_.add_node(node);
-        std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
-      } else {  // EDGE
-        
-        if (last_ts_ > rclcpp::Time(update.stamp)) {
-          std::cout << "Unorderer update" << std::endl;
-        }
-        last_ts_ = rclcpp::Time(update.stamp);
-
-        Edge edge;
-        edge.from_string(update.object);
-        graph_.add_edge(edge);
-        std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
-      }
-      seq_++;
-    } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
-      if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
-        if (last_ts_ > rclcpp::Time(update.stamp)) {
-          std::cout << "Unorderer update" << std::endl;
-        }
-        last_ts_ = rclcpp::Time(update.stamp);
-
-        Node node;
-        node.from_string(update.object);
+        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
+      } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
         graph_.remove_node(node.name);
-        std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
-      } else {  // EDGE
-
-        if (last_ts_ > rclcpp::Time(update.stamp)) {
-          std::cout << "Unorderer update" << std::endl;
-        }
-        last_ts_ = rclcpp::Time(update.stamp);
-
-        Edge edge;
-        edge.from_string(update.object);
-        graph_.remove_edge(edge);
-        std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
+        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
       }
       seq_++;
-    } else if (update.operation_type == bica_msgs::msg::GraphUpdate::SYNC && !initialized_ && 
-      (update.element_type == bica_msgs::msg::GraphUpdate::GRAPH)) {
-
-        if (last_ts_ > rclcpp::Time(update.stamp)) {
-          std::cout << "Unorderer update" << std::endl;
-        }
-        last_ts_ = rclcpp::Time(update.stamp);
-
+    } else if (update.element_type == bica_msgs::msg::GraphUpdate::EDGE) {
+      Edge edge;
+      edge.from_string(update.object);
+    
+      if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
+        graph_.add_edge(edge);
+        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
+      } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
+        graph_.remove_edge(edge);
+        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
+      }
+      seq_++;
+    } else if (update.element_type == bica_msgs::msg::GraphUpdate::GRAPH) {
+      if (!initialized_) {
         graph_.from_string(update.object);
         seq_ = update.seq;
-      
-        std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "<\tSYNC" <<std::endl;
-
+        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "<\tSYNC" <<std::endl;
         initialized_ = true;
         pending_updates_.clear();
+      }
     }
-    // std::cout << seq_ << std::endl << graph_.to_string() << std::endl;
   }
-
+ 
   if (updated_graph) {
     chached_graph_.from_string(graph_.to_string());
   } else {
@@ -164,8 +130,7 @@ GraphNode::process_updates()
   }
 
   int current_sub_count = node_->count_publishers("/graph_updates");
-  if (initialized_ && current_sub_count > 1 && current_sub_count != last_sub_count_) {
-    std::cout << "send SYNC" << std::endl;
+  if (initialized_ && current_sub_count > 1 && current_sub_count > last_sub_count_) {
     bica_msgs::msg::GraphUpdate msg;
     msg.stamp = last_ts_ + rclcpp::Duration(0.0, 1.0);  // Dt
     msg.node_id = node_->get_name();
@@ -183,7 +148,8 @@ GraphNode::process_updates()
     }
     pending_updates_.clear();
   }
-  std::cout << "==================================================" << std::endl;
+  
+  // std::cout << "==================================================" << std::endl;
   updates_.clear();
 }
 
