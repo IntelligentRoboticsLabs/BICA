@@ -34,41 +34,70 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_CONVERSIONS_H
-#define BICA_GRAPH_CONVERSIONS_H
-#include <string>
+#ifndef BICA_GRAPH_GRAPHNODE__HPP_
+#define BICA_GRAPH_GRAPHNODE__HPP_
 
-#include "bica_msgs/Graph.h"
-#include "bica_graph/graph.h"
-#include "bica_graph/exceptions.h"
+#include <vector>
+#include <map>
+#include <string>
+#include <memory>
+
+#include "bica_graph/GraphInterface.hpp"
+#include "bica_graph/Graph.hpp"
+
+#include "bica_msgs/msg/graph_update.hpp"
+
+#include "rclcpp/rclcpp.hpp"
 
 namespace bica_graph
 {
-  /// Convert a Node to a bica_msgs::Node message.
-  /**
-  * \param[in] node A shared pointer reference to the node to create
-  * \param[out] msg A pointer to a pre-existing bica_msgs::Node
-  */
-  void node_to_msg(const Node& node, bica_msgs::Node* msg);
 
-  /// Convert a bica_graph::Graph to a bica_msgs::Graph message.
-  /**
-  * \param[in] graph The graph
-  * \returns the pointer of a new created message
-  */
-  void graph_to_msg(const bica_graph::Graph& graph, bica_msgs::Graph* msg);
+class GraphNode : public GraphInterface
+{
+public:
+  GraphNode(rclcpp::Node::SharedPtr provided_node);
 
-  /// Convert a bica_graph::Graph to a bica_msgs::Graph message.
-  /**
-  * \param[in] graph The graph
-  * \returns the pointer of a new created message
-  */
-  void msg_to_graph(const bica_msgs::Graph& msg, bica_graph::Graph::SharedPtr& graph);
+  void add_node(const Node & node);
+  void remove_node(const std::string node);
+  bool exist_node(const std::string node);
+  std::optional<Node> get_node(const std::string node);
 
-  void edge_to_msg(const bica_graph::StringEdge& edge, bica_msgs::Edge* msg);
-  void edge_to_msg(const bica_graph::DoubleEdge& edge, bica_msgs::Edge* msg);
-  void edge_to_msg(const bica_graph::TFEdge& edge, bica_msgs::Edge* msg);
+  bool add_edge(const Edge & edge);
 
-}  // namespace bica_graph
+  bool remove_edge(const Edge & edge);
 
-#endif  // BICA_GRAPH_CONVERSIONS_H
+  bool exist_edge(const Edge & edge);
+
+  std::optional<std::vector<Edge>*> get_edges(
+    const std::string & source,
+    const std::string & target);
+
+  std::string to_string() const;
+  void from_string(const std::string & graph_str);
+
+  size_t get_num_edges() const;
+  size_t get_num_nodes() const;
+  
+  void process_updates();
+
+private:
+  void update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg);
+
+  rclcpp::Node::SharedPtr node_;
+  Graph graph_;
+  Graph chached_graph_;
+  int seq_;
+
+  rclcpp::Publisher<bica_msgs::msg::GraphUpdate>::SharedPtr update_pub_;
+  rclcpp::Subscription<bica_msgs::msg::GraphUpdate>::SharedPtr update_sub_;
+
+  std::vector<bica_msgs::msg::GraphUpdate> updates_;
+  std::vector<bica_msgs::msg::GraphUpdate> pending_updates_;
+  bool initialized_;
+  int last_sub_count_;
+  rclcpp::Time last_ts_;
+};
+
+}  // namespace plansys2
+
+#endif  // BICA_GRAPH_GRAPHNODE__HPP_

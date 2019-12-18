@@ -1,46 +1,24 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>bica_graph</name>
+  <version>0.0.1</version>
+  
+  <description>ToDo</description>
 
-  <version>0.1.0</version>
-  <description>The bica_graph package</description>
+  <maintainer email="fmrico@gmail.com">Francisco Martin Rico</maintainer>
+ 
+  <license>Apache License, Version 2.0</license>
 
-  <maintainer email="fmrico@gmail.com">paco</maintainer>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <license>BSD</license>
-
-  <author email="fmrico@gmail.com">Francisco Martin Rico</author>
-
-
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>bica_msgs</build_depend>
-  <build_depend>bica_planning</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_export_depend>bica_planning</build_export_depend>
-
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>tf2</build_export_depend>
-  <build_export_depend>tf2_ros</build_export_depend>
-  <build_export_depend>bica_msgs</build_export_depend>
-  <build_export_depend>tf2_geometry_msgs</build_export_depend>
-  <build_export_depend>bica_planning</build_export_depend>
-
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>bica_msgs</exec_depend>
-  <exec_depend>tf2</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>tf2_geometry_msgs</exec_depend>
-  <exec_depend>bica_planning</exec_depend>
-
-  <build_depend>roslint</build_depend>
-  <test_depend>rostest</test_depend>
+  <depend>rclcpp</depend>
+  <depend>bica_msgs</depend>
+  
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
 
   <export>
-
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

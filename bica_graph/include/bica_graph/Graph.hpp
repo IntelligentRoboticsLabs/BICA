@@ -34,114 +34,56 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_EXCEPTIONS_H
-#define BICA_GRAPH_EXCEPTIONS_H
+#ifndef BICA_GRAPH_GRAPH__HPP_
+#define BICA_GRAPH_GRAPH__HPP_
 
-#include <stdexcept>
+#include <vector>
+#include <map>
 #include <string>
+
+#include "bica_graph/Types.hpp"
+#include "bica_graph/GraphInterface.hpp"
 
 namespace bica_graph
 {
-namespace exceptions
-{
-class OperationNotValid : public std::exception
+
+using ConnectionT = std::pair<std::string, std::string>;
+
+class Graph : public GraphInterface
 {
 public:
-  explicit OperationNotValid(const std::string& message)
-  : std::exception(), message_(message)
-  {}
+  Graph();
 
-  virtual const char * what() const throw()
-  {
-      return message_.c_str();
-  }
+  void add_node(const Node & node);
+  void remove_node(const std::string node);
+  bool exist_node(const std::string node);
+  std::optional<Node> get_node(const std::string node);
+
+  bool add_edge(const Edge & edge);
+
+  bool remove_edge(const Edge & edge);
+
+  bool exist_edge(const Edge & edge);
+
+  std::optional<std::vector<Edge>*> get_edges(
+    const std::string & source,
+    const std::string & target);
+
+  std::string to_string() const;
+  void from_string(const std::string & graph_str);
+
+  std::map<std::string, Node> & get_nodes() {return nodes_;};
+  std::map<ConnectionT, std::vector<Edge>> & get_edges() {return edges_;};
+  
+  size_t get_num_edges() const;
+  size_t get_num_nodes() const;
 
 private:
-  std::string message_;
-};
-
-class NodeNotFound : public std::exception
-{
-public:
-  explicit NodeNotFound(const std::string& message)
-  : std::exception(), message_(message)
-  {}
-
-  virtual const char * what() const throw()
-  {
-      return message_.c_str();
-  }
-
-private:
-  std::string message_;
-};
-
-class EdgeNotFound : public std::exception
-{
-public:
-  explicit EdgeNotFound(const std::string& message)
-  : std::exception(), message_(message)
-  {}
-
-  virtual const char * what() const throw()
-  {
-      return message_.c_str();
-  }
-
-private:
-  std::string message_;
+  std::map<std::string, Node> nodes_;
+  std::map<ConnectionT, std::vector<Edge>> edges_;
 };
 
 
-class NodeTypeMismatch : public std::exception
-{
-public:
-  explicit NodeTypeMismatch(const std::string& message)
-  : std::exception(), message_(message)
-  {}
-
-  virtual const char * what() const throw()
-  {
-    return message_.c_str();
-  }
-
-  private:
-    std::string message_;
-};
-
-class TransformNotPossible : public std::exception
-{
-public:
-  explicit TransformNotPossible(const std::string& message)
-  : std::exception(), message_(message)
-  {}
-
-  virtual const char * what() const throw()
-  {
-      return message_.c_str();
-  }
-
-private:
-  std::string message_;
-};
-
-class TransformError : public std::exception
-{
-public:
-  explicit TransformError(const std::string& message)
-  : std::exception(), message_(message)
-  {}
-
-  virtual const char * what() const throw()
-  {
-      return message_.c_str();
-  }
-
-private:
-  std::string message_;
-};
-
-}  // namespace exceptions
 }  // namespace bica_graph
 
-#endif  // BICA_GRAPH_EXCEPTIONS_H
+#endif  // BICA_GRAPH_GRAPH__HPP_

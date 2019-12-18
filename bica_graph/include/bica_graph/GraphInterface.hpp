@@ -34,44 +34,37 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_NODE_H
-#define BICA_GRAPH_NODE_H
+#ifndef BICA_GRAPH_GRAPHINTERFACE__HPP_
+#define BICA_GRAPH_GRAPHINTERFACE__HPP_
 
-#include <list>
-#include <memory>
+#include <vector>
+#include <map>
 #include <string>
 
+#include "bica_graph/Types.hpp"
 
 namespace bica_graph
 {
 
-class Node
+class GraphInterface
 {
 public:
-  /// Default constructor.
-  /**
-   * Tipically, a Node is not created throught Graph::add_node
-   * \param[in] id The id of the new node.
-   * \param[in] type The type of the node.
-   */
-  Node(const std::string& id, const std::string& type);
-  Node(const std::string& id);
-  Node(const Node& other);
+  virtual void add_node(const Node & node) = 0;
+  virtual void remove_node(const std::string node) = 0;
+  virtual bool exist_node(const std::string node) = 0;
+  virtual std::optional<Node> get_node(const std::string node) = 0;
 
-  const std::string get_id() const;
-  const std::string get_type() const;
-  void set_id(const std::string& id) {id_ = id;}
-  void set_type(const std::string& type) {type_ = type;}
+  virtual bool add_edge(const Edge & edge) = 0;
+  virtual bool remove_edge(const Edge & edge) = 0;
+  virtual bool exist_edge(const Edge & edge) = 0;
 
-  friend bool operator==(const Node& lhs, const Node& rhs);
-  friend bool operator!=(const Node& lhs, const Node& rhs);
+  virtual std::optional<std::vector<Edge>*> get_edges(
+    const std::string & source,
+    const std::string & target) = 0;
 
-protected:
-  std::string type_;
-  std::string id_;
+  virtual std::string to_string() const = 0;
 };
-
 
 }  // namespace bica_graph
 
-#endif  // BICA_GRAPH_NODE_H
+#endif  // BICA_GRAPH_GRAPH_H

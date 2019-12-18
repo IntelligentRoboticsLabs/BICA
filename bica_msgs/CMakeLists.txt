@@ -9,7 +9,8 @@ find_package(std_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ActivateComponent.srv" 
   "srv/DeactivateComponent.srv" 
-  DEPENDENCIES builtin_interfaces std_msgs
+  "msg/GraphUpdate.msg" 
+ DEPENDENCIES builtin_interfaces std_msgs
 )
 
 ament_export_dependencies(rosidl_default_runtime)

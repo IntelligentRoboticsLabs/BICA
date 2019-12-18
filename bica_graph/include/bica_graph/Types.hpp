@@ -34,52 +34,68 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#include <string>
-#include <utility>
-#include <list>
+#ifndef BICA_GRAPH_TYPES__HPP_
+#define BICA_GRAPH_TYPES__HPP_
 
-#include "bica_graph/node.h"
+#include <assert.h> 
+#include <string> 
+#include <vector>
 
 namespace bica_graph
 {
 
-Node::Node(const std::string& id, const std::string& type)
-: id_(id), type_(type)
-{
-}
+std::vector<std::string> tokenize(const std::string & text, const std::string & delim);
 
-Node::Node(const std::string& id)
-: id_(id), type_("no_type")
+struct Node
 {
-}
+  std::string name;
+  std::string type;
 
-Node::Node(const Node& other)
+  std::string to_string() const
+  {
+    return "node::" + name + "::" + type;
+  }
+
+  void from_string(const std::string & node_str)
+  {
+    auto tokens = tokenize(node_str, "::");
+    assert(tokens.size() == 3);
+    name = tokens[1];
+    type = tokens[2];
+  }
+};
+
+struct Edge
 {
-  id_ = other.id_;
-  type_ = other.type_;
-}
+  std::string content;
+  std::string type;
+  
+  std::string source;
+  std::string target;
 
-const std::string
-Node::get_id() const
-{
-  return id_;
-}
+  std::string to_string() const
+  {
+    return "edge::" + source + "->" + target + "::" + content + "::" + type;
+  }
 
-const std::string
-Node::get_type() const
-{
-  return type_;
-}
+  void from_string(const std::string & edge_str)
+  {
+    auto tokens = tokenize(edge_str, "::");
+    assert(tokens.size() == 4);
+    auto conn_tokens = tokenize(tokens[1], "->");
+    assert(conn_tokens.size() == 2);
 
-bool operator==(const Node& lhs, const Node& rhs)
-{
-  return (lhs.get_id() == rhs.get_id());
-}
+    source = conn_tokens[0];
+    target = conn_tokens[1];
 
-bool operator!=(const Node& lhs, const Node& rhs)
-{
-  return !(lhs == rhs);
-}
+    content = tokens[2];
+    type = tokens[3];
+  }
+};
 
+bool operator==(const Node & op1, const Node & op2);
+bool operator==(const Edge & op1, const Edge & op2);
 
 }  // namespace bica_graph
+
+#endif
