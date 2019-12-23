@@ -52,6 +52,8 @@
 namespace bica_graph
 {
 
+using ConnectionT = std::pair<std::string, std::string>;
+
 class GraphNode : public GraphInterface
 {
 public:
@@ -65,7 +67,10 @@ public:
   bool add_edge(const Edge & edge);
   bool remove_edge(const Edge & edge);
   bool exist_edge(const Edge & edge);
-
+  
+  const std::map<std::string, Node> & get_nodes();
+  const std::map<ConnectionT, std::vector<Edge>> & get_edges();
+  
   std::optional<std::vector<Edge>*> get_edges(
     const std::string & source,
     const std::string & target);
@@ -76,22 +81,27 @@ public:
   size_t get_num_edges() const;
   size_t get_num_nodes() const;
 
+protected:
+  rclcpp::Node::SharedPtr node_;
+
 private:
   void update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg);
+  void sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg);
 
-  rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr sync_node_;
+  std::thread sync_spin_t_;
   Graph graph_;
   int seq_;
 
   rclcpp::Publisher<bica_msgs::msg::GraphUpdate>::SharedPtr update_pub_;
   rclcpp::Publisher<bica_msgs::msg::GraphUpdate>::SharedPtr sync_update_pub_;
   rclcpp::Subscription<bica_msgs::msg::GraphUpdate>::SharedPtr update_sub_;
+  rclcpp::Subscription<bica_msgs::msg::GraphUpdate>::SharedPtr sync_update_sub_;
 
   bool initialized_;
   rclcpp::Time last_ts_;
 };
 
-}  // namespace plansys2
+}  // namespace bica_graph
 
 #endif  // BICA_GRAPH_GRAPHNODE__HPP_

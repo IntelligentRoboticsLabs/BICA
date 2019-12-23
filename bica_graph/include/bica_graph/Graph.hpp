@@ -70,8 +70,8 @@ public:
   std::string to_string() const;
   void from_string(const std::string & graph_str);
 
-  std::map<std::string, Node> & get_nodes() {return nodes_;};
-  std::map<ConnectionT, std::vector<Edge>> & get_edges() {return edges_;};
+  const std::map<std::string, Node> & get_nodes() {return nodes_;};
+  const std::map<ConnectionT, std::vector<Edge>> & get_edges() {return edges_;};
   
   size_t get_num_edges() const;
   size_t get_num_nodes() const;

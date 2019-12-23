@@ -41,6 +41,8 @@
 #include <string> 
 #include <vector>
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 namespace bica_graph
 {
 
@@ -93,6 +95,14 @@ public:
     type = tokens[3];
   }
 };
+
+class TFEdge
+{
+public:
+  geometry_msgs::msg::TransformStamped tf_;
+};
+
+
 
 bool operator==(const Node & op1, const Node & op2);
 bool operator==(const Edge & op1, const Edge & op2);

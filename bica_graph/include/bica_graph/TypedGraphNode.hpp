@@ -42,10 +42,12 @@
 #include <string>
 #include <memory>
 
-#include "bica_graph/GraphInterface.hpp"
-#include "bica_graph/Graph.hpp"
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 
-#include "bica_msgs/msg/graph_update.hpp"
+#include "bica_graph/Graph.hpp"
+#include "bica_graph/GraphNode.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -55,14 +57,20 @@ namespace bica_graph
 class TypedGraphNode : public GraphNode
 {
 public:
-  GraphNode(const std::string & provided_node_name);
+  TypedGraphNode(const std::string & provided_node_name);
 
-  bool add_edge(const TFEdge & edge);
-  TFEdge get_tf_edge();
+  bool add_tf_edge(TFEdge & tfedge, bool static_tf = false);
+  std::optional<TFEdge> get_tf_edge(const std::string & source, const std::string & target);
+
 private:
-  
+  void init_tf();
+
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
+  std::shared_ptr<tf2::BufferCore> tfBuffer_;
 };
 
-}  // namespace plansys2
+}  // namespace bica_graph
 
 #endif  // BICA_GRAPH_GRAPHNODE__HPP_

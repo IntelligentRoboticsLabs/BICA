@@ -41,6 +41,8 @@
 
 #include "bica_graph/Graph.hpp"
 #include "bica_graph/GraphNode.hpp"
+#include "bica_graph/TypedGraphNode.hpp"
+#include "bica_graph/Types.hpp"
 
 #include "gtest/gtest.h"
 
@@ -95,6 +97,60 @@ TEST(bica_graph, graph_node_operations)
   ASSERT_EQ(graph_1.get_num_nodes(), 2);
   ASSERT_EQ(graph_2.get_num_nodes(), 2);
   ASSERT_EQ(graph_2.get_num_edges(), 1);
+}
+
+TEST(bica_graph, typedgraph_node_operations)
+{
+  rclcpp::Node node("typedgraph_node_operations");
+
+  bica_graph::TypedGraphNode graph_1("graph_test_node_1");
+  bica_graph::TypedGraphNode graph_2("graph_test_node_2");
+
+  ASSERT_FALSE(graph_1.exist_node("r2d2"));
+  graph_1.add_node(bica_graph::Node{"r2d2", "robot"});
+  graph_1.add_node(bica_graph::Node{"kitchen", "room"});
+  
+  //ASSERT_TRUE(
+  graph_1.add_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"});
+
+  ASSERT_EQ(graph_1.get_num_nodes(), 2);
+  ASSERT_EQ(graph_2.get_num_nodes(), 2);
+  ASSERT_EQ(graph_2.get_num_edges(), 1);
+
+  tf2::Transform tf1(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 0, 0));
+  bica_graph::TFEdge tf_edge_1;
+  tf_edge_1.tf_.header.stamp = node.now();
+  tf_edge_1.tf_.header.frame_id = "kitchen";
+  tf_edge_1.tf_.child_frame_id = "r2d2";
+  tf2::convert(tf1, tf_edge_1.tf_.transform);
+
+  ASSERT_TRUE(graph_1.add_tf_edge(tf_edge_1));
+
+  auto tf_edge_2 = graph_1.get_tf_edge("kitchen", "r2d2");
+  ASSERT_TRUE(tf_edge_2.has_value());
+  tf2::Stamped<tf2::Transform> tf2;
+  tf2::convert(tf_edge_2.value().tf_, tf2);
+  ASSERT_EQ(tf1, tf2);
+
+  auto tf_edge_3 = graph_1.get_tf_edge("r2d2", "kitchen");
+  ASSERT_TRUE(tf_edge_3.has_value());
+  tf2::Stamped<tf2::Transform> tf3;
+  tf2::convert(tf_edge_3.value().tf_, tf3);
+  ASSERT_EQ(tf1, tf3.inverse());
+
+  tf2::Transform tf4(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1, 0, 0));
+  bica_graph::TFEdge tf_edge_4;
+  tf_edge_4.tf_.header.stamp = node.now();
+  tf_edge_4.tf_.header.frame_id = "kitchen";
+  tf_edge_4.tf_.child_frame_id = "r2d2";
+  tf2::convert(tf4, tf_edge_4.tf_.transform);
+  ASSERT_TRUE(graph_1.add_tf_edge(tf_edge_4));
+
+  auto tf_edge_5 = graph_1.get_tf_edge("kitchen", "r2d2");
+  ASSERT_TRUE(tf_edge_5.has_value());
+  tf2::Stamped<tf2::Transform> tf5;
+  tf2::convert(tf_edge_5.value().tf_, tf5);
+  ASSERT_EQ(tf4, tf5);
 }
 
 int main(int argc, char ** argv)

@@ -64,11 +64,15 @@ GraphNode::GraphNode(const std::string & provided_node_name)
   update_pub_ = node_->create_publisher<bica_msgs::msg::GraphUpdate>(
     "/graph_updates", rclcpp::QoS(1000).reliable());
   sync_update_pub_ = sync_node_->create_publisher<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates", rclcpp::QoS(1000).reliable());
+    "/graph_updates_sync", rclcpp::QoS(1000).reliable());
 
   update_sub_ = node_->create_subscription<bica_msgs::msg::GraphUpdate>(
     "/graph_updates", rclcpp::QoS(1000).reliable(),
     std::bind(&GraphNode::update_callback, this, _1));
+
+  sync_update_sub_ = sync_node_->create_subscription<bica_msgs::msg::GraphUpdate>(
+    "/graph_updates_sync", rclcpp::QoS(1000).reliable(),
+    std::bind(&GraphNode::sync_update_callback, this, _1));
 
   if (!initialized_) {
     bica_msgs::msg::GraphUpdate msg;
@@ -79,7 +83,37 @@ GraphNode::GraphNode(const std::string & provided_node_name)
     msg.object =  graph_.to_string();
     msg.seq = 0;
     sync_update_pub_->publish(msg);
-    rclcpp::spin_some(sync_node_);
+  }
+
+  sync_spin_t_ = std::thread([this] {
+    rclcpp::spin(this->sync_node_);
+  });
+}
+
+void
+GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
+{
+  auto update = *msg;
+
+  if (update.operation_type == bica_msgs::msg::GraphUpdate::REQSYNC) {
+    if (initialized_) {
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
+      bica_msgs::msg::GraphUpdate msg;
+      msg.stamp = last_ts_ + rclcpp::Duration(0.0, 1.0);  // Dt
+      msg.node_id = node_->get_name();
+      msg.operation_type = bica_msgs::msg::GraphUpdate::SYNC;
+      msg.element_type = bica_msgs::msg::GraphUpdate::GRAPH;
+      msg.object =  graph_.to_string();
+      msg.seq = seq_;
+      sync_update_pub_->publish(msg);
+    }
+  } else if (update.element_type == bica_msgs::msg::GraphUpdate::GRAPH) {
+    if (!initialized_) {
+      graph_.from_string(update.object);
+      seq_ = update.seq;
+      initialized_ = true;
+      last_ts_ = node_->now();
+    }
   }
 }
 
@@ -89,20 +123,7 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
   auto update = *msg;
   last_ts_ = rclcpp::Time(update.stamp);
   
-  if (update.operation_type == bica_msgs::msg::GraphUpdate::REQSYNC) {
-      if (initialized_) {
-        // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
-        bica_msgs::msg::GraphUpdate msg;
-        msg.stamp = last_ts_ + rclcpp::Duration(0.0, 1.0);  // Dt
-        msg.node_id = node_->get_name();
-        msg.operation_type = bica_msgs::msg::GraphUpdate::SYNC;
-        msg.element_type = bica_msgs::msg::GraphUpdate::GRAPH;
-        msg.object =  graph_.to_string();
-        msg.seq = seq_;
-        sync_update_pub_->publish(msg);
-        rclcpp::spin_some(sync_node_);
-      }
-  } else if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
+  if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
     Node node;
     node.from_string(update.object);
     seq_ = update.seq;
@@ -110,8 +131,8 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
       graph_.add_node(node);
       // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
     } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
-      graph_.remove_node(node.name);
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
+      // graph_.remove_node(node.name);
+      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
   } else if (update.element_type == bica_msgs::msg::GraphUpdate::EDGE) {
@@ -127,15 +148,7 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
       // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
-  } else if (update.element_type == bica_msgs::msg::GraphUpdate::GRAPH) {
-    if (!initialized_) {
-      graph_.from_string(update.object);
-      seq_ = update.seq;
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "<\tSYNC" <<std::endl;
-      initialized_ = true;
-      last_ts_ = node_->now();
-    }
-  }
+  } 
 }
 
 bool
@@ -295,5 +308,20 @@ GraphNode::get_num_nodes() const
   rclcpp::spin_some(node_);
   return graph_.get_num_nodes();
 }
+
+const std::map<std::string, Node> &
+GraphNode::get_nodes()
+{
+  rclcpp::spin_some(node_);
+  return graph_.get_nodes();
+}
+
+const std::map<ConnectionT, std::vector<Edge>> &
+GraphNode::get_edges() 
+{
+  rclcpp::spin_some(node_);
+  return graph_.get_edges();
+}
+  
 
 }  // namespace bica_graph

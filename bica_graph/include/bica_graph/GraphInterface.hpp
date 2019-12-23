@@ -46,6 +46,8 @@
 namespace bica_graph
 {
 
+using ConnectionT = std::pair<std::string, std::string>;
+
 class GraphInterface
 {
 public:
@@ -57,6 +59,9 @@ public:
   virtual bool add_edge(const Edge & edge) = 0;
   virtual bool remove_edge(const Edge & edge) = 0;
   virtual bool exist_edge(const Edge & edge) = 0;
+  
+  virtual const std::map<ConnectionT, std::vector<Edge>> & get_edges() = 0;
+  virtual const std::map<std::string, Node> & get_nodes() = 0;
 
   virtual std::optional<std::vector<Edge>*> get_edges(
     const std::string & source,
