@@ -58,22 +58,39 @@ TEST(bica_graph, graph_operations)
   graph.add_node(bica_graph::Node{"kitchen", "room"});
   ASSERT_TRUE(graph.exist_node("kitchen"));
 
+  graph.add_node(bica_graph::Node{"room1", "room"});
+  graph.add_node(bica_graph::Node{"room2", "room"});
+
   graph.remove_node("r2d2");
   ASSERT_FALSE(graph.exist_node("r2d2"));
   graph.add_node(bica_graph::Node{"r2d2", "robot"});
   ASSERT_TRUE(graph.exist_node("r2d2"));
 
-  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is", "symbolic", "kitchen", "r2d2"}));
-  ASSERT_TRUE(graph.exist_edge(bica_graph::Edge{"is", "symbolic", "kitchen", "r2d2"}));
-  ASSERT_TRUE(graph.remove_edge(bica_graph::Edge{"is", "symbolic", "kitchen", "r2d2"}));
-  ASSERT_FALSE(graph.exist_edge(bica_graph::Edge{"is", "symbolic", "kitchen", "r2d2"}));
-  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is", "symbolic", "kitchen", "r2d2"}));
+  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
+  ASSERT_TRUE(graph.exist_edge(bica_graph::Edge{"is", "symbolic","r2d2", "kitchen"}));
+  ASSERT_TRUE(graph.remove_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
+  ASSERT_FALSE(graph.exist_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
+  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
+  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is_near", "symbolic", "kitchen", "r2d2"}));
+  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is_verynear", "symbolic", "kitchen", "r2d2"}));
+  ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"is_verynear_very", "sympedal", "kitchen", "r2d2"}));
   ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"related", "symbolic", "kitchen", "r2d2"}));
   ASSERT_TRUE(graph.add_edge(bica_graph::Edge{"related", "metric", "kitchen", "r2d2"}));
 
-  ASSERT_EQ(graph.get_num_edges(), 3);
+  ASSERT_EQ(graph.get_node_names_by_id("room[[:alnum:]_]*").size(), 2);
+  ASSERT_EQ(graph.get_node_names_by_id("kitchen").size(), 1);
+  ASSERT_EQ(graph.get_node_names_by_type("room").size(), 3);
+  ASSERT_EQ(graph.get_node_names_by_type("robot").size(), 1);
+  ASSERT_EQ(graph.get_edges_from_node("kitchen").size(), 5);
+  ASSERT_EQ(graph.get_edges_from_node("kitchen", "symbolic").size(), 3);
+  ASSERT_EQ(graph.get_edges_from_node_by_data("kitchen", "is[[:alnum:]_]*").size(), 3);
+  ASSERT_EQ(graph.get_edges_from_node_by_data("kitchen", "is[[:alnum:]_]*", "symbolic").size(), 2);
+  ASSERT_EQ(graph.get_edges_by_data("is[[:alnum:]_]*").size(), 4);
+
+  ASSERT_EQ(graph.get_num_edges(), 6);
   graph.remove_node("r2d2");
   ASSERT_EQ(graph.get_num_edges(), 0);
+
 
   std::string graph_str = graph.to_string();
   bica_graph::Graph graph2;
@@ -94,6 +111,7 @@ TEST(bica_graph, graph_node_operations)
   
   ASSERT_TRUE(graph_1.add_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
 
+  std::cerr << graph_1.to_string() << std::endl;
   ASSERT_EQ(graph_1.get_num_nodes(), 2);
   ASSERT_EQ(graph_2.get_num_nodes(), 2);
   ASSERT_EQ(graph_2.get_num_edges(), 1);

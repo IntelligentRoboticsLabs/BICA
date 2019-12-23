@@ -42,6 +42,7 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include <regex>
 
 #include "bica_graph/Graph.hpp"
 
@@ -216,6 +217,94 @@ size_t
 Graph::get_num_nodes() const
 {
   return nodes_.size();
+}
+
+std::vector<std::string>
+Graph::get_node_names_by_id(const std::string& expr)
+{
+  std::vector<std::string> ret;
+
+  for (auto node : nodes_)
+  {
+    if (std::regex_match (node.first, std::regex(expr)))
+    {
+      ret.push_back(node.first);
+    }
+  }
+
+  return ret;
+}
+
+std::vector<std::string>
+Graph::get_node_names_by_type(const std::string& type)
+{
+  std::vector<std::string> ret;
+
+  for (auto node : nodes_)
+  {
+    if (node.second.type == type) {
+      ret.push_back(node.first);
+    }
+  }
+
+  return ret;
+}
+
+std::vector<Edge>
+Graph::get_edges_from_node(const std::string& node_src_id, const std::string& type)
+{
+  std::vector<Edge> ret;
+
+  for (auto pair_nodes : edges_)
+  {
+    if (pair_nodes.first.first == node_src_id)
+    {
+      for (auto edge : pair_nodes.second) {
+        if ((edge.type == type) || (type == "")) {
+          ret.push_back(edge);
+        }
+      }
+    }
+  }
+
+  return ret;
+}
+
+std::vector<Edge>
+Graph::get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type)
+{
+  std::vector<Edge> ret;
+
+  for (auto pair_nodes : edges_)
+  {
+    if (pair_nodes.first.first == node_src_id)
+    {
+      for (auto edge : pair_nodes.second) {
+        if (((edge.type == type) || (type == "")) && std::regex_match(edge.content, std::regex(expr))) {
+          ret.push_back(edge);
+        }
+      }
+    }
+  }
+
+  return ret;
+}
+
+std::vector<Edge>
+Graph::get_edges_by_data(const std::string& expr, const std::string& type)
+{
+  std::vector<Edge> ret;
+
+  for (auto pair_nodes : edges_)
+  {
+    for (auto edge : pair_nodes.second) {
+      if (((edge.type == type) || (type == "")) && std::regex_match(edge.content, std::regex(expr))) {
+        ret.push_back(edge);
+      }
+    }
+  }
+
+  return ret;
 }
 
 }  // namespace bica_graph

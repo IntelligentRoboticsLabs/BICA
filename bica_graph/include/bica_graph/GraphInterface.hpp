@@ -68,6 +68,12 @@ public:
     const std::string & target) = 0;
 
   virtual std::string to_string() const = 0;
+
+  virtual std::vector<std::string> get_node_names_by_id(const std::string& expr) = 0;
+  virtual std::vector<std::string> get_node_names_by_type(const std::string& type) = 0;
+  virtual std::vector<Edge> get_edges_from_node(const std::string& node_src_id, const std::string& type = "") = 0;
+  virtual std::vector<Edge> get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type = "") = 0;
+  virtual std::vector<Edge> get_edges_by_data(const std::string& expr, const std::string& type = "") = 0;
 };
 
 }  // namespace bica_graph

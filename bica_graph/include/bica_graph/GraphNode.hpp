@@ -81,6 +81,12 @@ public:
   size_t get_num_edges() const;
   size_t get_num_nodes() const;
 
+  std::vector<std::string> get_node_names_by_id(const std::string& expr);
+  std::vector<std::string> get_node_names_by_type(const std::string& type);
+  std::vector<Edge> get_edges_from_node(const std::string& node_src_id, const std::string& type = "");
+  std::vector<Edge> get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type = "");
+  std::vector<Edge> get_edges_by_data(const std::string& expr, const std::string& type = "");
+
 protected:
   rclcpp::Node::SharedPtr node_;
 

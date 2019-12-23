@@ -88,6 +88,7 @@ GraphNode::GraphNode(const std::string & provided_node_name)
   sync_spin_t_ = std::thread([this] {
     rclcpp::spin(this->sync_node_);
   });
+  sync_spin_t_.detach();
 }
 
 void
@@ -323,5 +324,34 @@ GraphNode::get_edges()
   return graph_.get_edges();
 }
   
+std::vector<std::string>
+GraphNode::get_node_names_by_id(const std::string& expr)
+{
+  return graph_.get_node_names_by_id(expr);
+}
+
+std::vector<std::string>
+GraphNode::get_node_names_by_type(const std::string& type)
+{
+  return graph_.get_node_names_by_type(type);
+}
+
+std::vector<Edge>
+GraphNode::get_edges_from_node(const std::string& node_src_id, const std::string& type)
+{
+  return graph_.get_edges_from_node(node_src_id, type);
+}
+
+std::vector<Edge>
+GraphNode::get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type)
+{
+  return graph_.get_edges_from_node_by_data(node_src_id, expr, type);
+}
+
+std::vector<Edge>
+GraphNode::get_edges_by_data(const std::string& expr, const std::string& type)
+{
+  return graph_.get_edges_by_data(expr, type);
+}
 
 }  // namespace bica_graph
