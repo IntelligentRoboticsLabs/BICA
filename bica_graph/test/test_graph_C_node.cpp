@@ -24,16 +24,12 @@ class NodeC : public rclcpp::Node
 public:
   NodeC()
   : rclcpp::Node("node_C"), gen_(rd_()), dis_(1, 10)
-  {}
-
-  void init()
   {
-    graph_ = std::make_shared<bica_graph::GraphNode>(shared_from_this());
+    graph_ = std::make_shared<bica_graph::GraphNode>("node_C");
   }
 
   void do_work()
   {
-    graph_->process_updates();
     //for (int i = 0; i < dis_(gen_); i++) 
     {
       int new_value = dis_(gen_);
@@ -88,15 +84,6 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<NodeC>();
-  
-  node->init();
-
-  /*for (int i = 0; i < 10; i++) {
-    auto start = node->now();
-    while (rclcpp::ok() && (node->now() - start).seconds() < 1) {}
-    std::cerr << i << "...";
-  }
-  std::cerr << std::endl;*/
 
   rclcpp::Rate rate(1);
 
@@ -106,7 +93,6 @@ int main(int argc, char ** argv)
     rate.sleep();
   }
 
-  std::cerr << node->get() <<std::endl;
   rclcpp::shutdown();
 
   return 0;

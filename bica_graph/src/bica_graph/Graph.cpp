@@ -52,24 +52,34 @@ Graph::Graph()
 {
 }
 
-void
+bool
 Graph::add_node(const Node & node)
 {
-  nodes_[node.name] = node;
+  if (nodes_.find(node.name) != nodes_.end()) {
+    return nodes_[node.name].type == node.type;
+  } else {
+    nodes_[node.name] = node;
+    return true;
+  }
 }
 
-void
+bool
 Graph::remove_node(const std::string node)
 {
-  nodes_.erase(node);
+  if (nodes_.find(node) != nodes_.end()) {
+    nodes_.erase(node);
 
-  auto it = edges_.begin();
-  while (it != edges_.end()) {
-    if (it->first.first == node || it->first.second == node) {
-      it = edges_.erase(it);
-    } else {
-      ++it;
+    auto it = edges_.begin();
+    while (it != edges_.end()) {
+      if (it->first.first == node || it->first.second == node) {
+        it = edges_.erase(it);
+      } else {
+        ++it;
+      }
     }
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -92,9 +102,11 @@ Graph::get_node(const std::string node)
 bool
 Graph::add_edge(const Edge & edge)
 {
-  if (exist_node(edge.source) && exist_node(edge.target) && !exist_edge(edge)) {
-    ConnectionT connection {edge.source, edge.target};
-    edges_[connection].push_back(edge);
+  if (exist_node(edge.source) && exist_node(edge.target)) {
+    if (!exist_edge(edge)) {
+      ConnectionT connection {edge.source, edge.target};
+      edges_[connection].push_back(edge);
+    }
     return true;
   } else {
     return false;

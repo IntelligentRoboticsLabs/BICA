@@ -65,8 +65,9 @@ struct Node
   }
 };
 
-struct Edge
+class Edge
 {
+public:
   std::string content;
   std::string type;
   

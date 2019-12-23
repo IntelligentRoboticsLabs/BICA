@@ -83,37 +83,14 @@ TEST(bica_graph, graph_operations)
 
 TEST(bica_graph, graph_node_operations)
 {
-  rclcpp::executors::MultiThreadedExecutor executor;
-
-  auto graph_test_node_1 = std::make_shared<rclcpp::Node>("graph_test_node_1");
-  bica_graph::GraphNode graph_1(graph_test_node_1);
-  auto graph_test_node_2 = std::make_shared<rclcpp::Node>("graph_test_node_2");
-  bica_graph::GraphNode graph_2(graph_test_node_2);
-
-  executor.add_node(graph_test_node_1);
-  executor.add_node(graph_test_node_2);
+  bica_graph::GraphNode graph_1("graph_test_node_1");
+  bica_graph::GraphNode graph_2("graph_test_node_2");
 
   ASSERT_FALSE(graph_1.exist_node("r2d2"));
   graph_1.add_node(bica_graph::Node{"r2d2", "robot"});
   graph_1.add_node(bica_graph::Node{"kitchen", "room"});
-
-  auto start = graph_test_node_1->now();
-  while (rclcpp::ok() && (graph_test_node_1->now() - start).seconds() < 0.5)
-  {
-    graph_1.process_updates();
-    graph_2.process_updates();
-    executor.spin_some();
-  }
   
   ASSERT_TRUE(graph_1.add_edge(bica_graph::Edge{"is", "symbolic", "r2d2", "kitchen"}));
-
-  start = graph_test_node_1->now();
-  while (rclcpp::ok() && (graph_test_node_1->now() - start).seconds() < 0.5)
-  {
-    graph_1.process_updates();
-    graph_2.process_updates();
-    executor.spin_some();
-  }
 
   ASSERT_EQ(graph_1.get_num_nodes(), 2);
   ASSERT_EQ(graph_2.get_num_nodes(), 2);

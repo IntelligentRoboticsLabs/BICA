@@ -34,8 +34,8 @@
 
 /* Author: Francisco Martín Rico - fmrico@gmail.com */
 
-#ifndef BICA_GRAPH_GRAPHNODE__HPP_
-#define BICA_GRAPH_GRAPHNODE__HPP_
+#ifndef BICA_GRAPH_TYPEDGRAPHNODE__HPP_
+#define BICA_GRAPH_TYPEDGRAPHNODE__HPP_
 
 #include <vector>
 #include <map>
@@ -52,44 +52,15 @@
 namespace bica_graph
 {
 
-class GraphNode : public GraphInterface
+class TypedGraphNode : public GraphNode
 {
 public:
   GraphNode(const std::string & provided_node_name);
 
-  bool add_node(const Node & node);
-  bool remove_node(const std::string node);
-  bool exist_node(const std::string node);
-  std::optional<Node> get_node(const std::string node);
-
-  bool add_edge(const Edge & edge);
-  bool remove_edge(const Edge & edge);
-  bool exist_edge(const Edge & edge);
-
-  std::optional<std::vector<Edge>*> get_edges(
-    const std::string & source,
-    const std::string & target);
-
-  std::string to_string() const;
-  void from_string(const std::string & graph_str);
-
-  size_t get_num_edges() const;
-  size_t get_num_nodes() const;
-
+  bool add_edge(const TFEdge & edge);
+  TFEdge get_tf_edge();
 private:
-  void update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg);
-
-  rclcpp::Node::SharedPtr node_;
-  rclcpp::Node::SharedPtr sync_node_;
-  Graph graph_;
-  int seq_;
-
-  rclcpp::Publisher<bica_msgs::msg::GraphUpdate>::SharedPtr update_pub_;
-  rclcpp::Publisher<bica_msgs::msg::GraphUpdate>::SharedPtr sync_update_pub_;
-  rclcpp::Subscription<bica_msgs::msg::GraphUpdate>::SharedPtr update_sub_;
-
-  bool initialized_;
-  rclcpp::Time last_ts_;
+  
 };
 
 }  // namespace plansys2

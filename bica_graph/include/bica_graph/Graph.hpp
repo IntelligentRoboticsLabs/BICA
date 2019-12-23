@@ -54,15 +54,13 @@ class Graph : public GraphInterface
 public:
   Graph();
 
-  void add_node(const Node & node);
-  void remove_node(const std::string node);
+  bool add_node(const Node & node);
+  bool remove_node(const std::string node);
   bool exist_node(const std::string node);
   std::optional<Node> get_node(const std::string node);
 
   bool add_edge(const Edge & edge);
-
   bool remove_edge(const Edge & edge);
-
   bool exist_edge(const Edge & edge);
 
   std::optional<std::vector<Edge>*> get_edges(

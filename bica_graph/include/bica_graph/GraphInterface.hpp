@@ -49,8 +49,8 @@ namespace bica_graph
 class GraphInterface
 {
 public:
-  virtual void add_node(const Node & node) = 0;
-  virtual void remove_node(const std::string node) = 0;
+  virtual bool add_node(const Node & node) = 0;
+  virtual bool remove_node(const std::string node) = 0;
   virtual bool exist_node(const std::string node) = 0;
   virtual std::optional<Node> get_node(const std::string node) = 0;
 
