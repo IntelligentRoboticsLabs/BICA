@@ -1,2 +1,0 @@
-interested_types: ["robot", "room", "person"]
-interested_predicates: ["robot_at"]

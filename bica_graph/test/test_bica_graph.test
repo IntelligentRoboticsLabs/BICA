@@ -1,3 +1,0 @@
-<launch>
-  <test test-name="bica_graph_test" pkg="bica_graph" type="bica_graph_test" />
-</launch>
