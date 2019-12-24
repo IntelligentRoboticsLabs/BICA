@@ -37,22 +37,30 @@
 
 from __future__ import division
 import os
-import rospkg
 
+from ament_index_python import get_resource
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QAbstractListModel, QFile, QIODevice, Qt, Signal
 from python_qt_binding.QtGui import QIcon, QImage, QPainter
 from python_qt_binding.QtWidgets import QCompleter, QFileDialog, QGraphicsScene, QWidget
 from python_qt_binding.QtSvg import QSvgGenerator
 
+import rclpy
+
+from bica_rqt_graph.bicagraph2_impl import BicaGraphImpl
+
 from qt_dotgraph.dot_to_qt import DotToQtGenerator
+# pydot requires some hacks
 from qt_dotgraph.pydotfactory import PydotFactory
 from rqt_gui_py.plugin import Plugin
+# TODO: use pygraphviz instead, but non-deterministic layout will first be resolved in graphviz 2.30
+# from qtgui_plugin.pygraphvizfactory import PygraphvizFactory
 
-
-from .dotcode import BicaGraphDotcodeGenerator
+from .dotcode import \
+    BicaGraphDotcodeGenerator
 from .interactive_graphics_view import InteractiveGraphicsView
-from .bica_graph_impl import BicaGraphImpl
+
+from .bicagraph2_impl import BicaGraphImpl
 
 from PyQt5 import QtGui, QtCore
 
@@ -70,10 +78,13 @@ class BicaGraph(Plugin):
 
     def __init__(self, context):
         super(BicaGraph, self).__init__(context)
-        self.initialized = False
-        self.setObjectName('Bica Graph')
 
-        self._graph = BicaGraphImpl()
+        self._node = context.node
+        self._logger = self._node.get_logger().get_child('bica_rqt_graph.bica_graph.BicaGraph')
+        self.initialized = False
+        self.setObjectName('BicaGraph')
+
+        self._bicagraph = BicaGraphImpl()
         self._current_dotcode = None
 
         self._widget = QWidget()
@@ -82,8 +93,8 @@ class BicaGraph(Plugin):
         self.dotcode_generator = BicaGraphDotcodeGenerator()
         self.dot_to_qt = DotToQtGenerator()
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('bica_rqt_graph'), 'resource', 'BicaGraph.ui')
+        _, package_path = get_resource('packages', 'bica_rqt_graph')
+        ui_file = os.path.join(package_path, 'share', 'bica_rqt_graph', 'resource', 'BicaGraph.ui')
         loadUi(ui_file, self._widget, {'InteractiveGraphicsView': InteractiveGraphicsView})
         self._widget.setObjectName('BicaGraphUi')
         if context.serial_number() > 1:
@@ -93,9 +104,6 @@ class BicaGraph(Plugin):
         self._scene = QGraphicsScene()
         self._scene.setBackgroundBrush(Qt.white)
         self._widget.graphics_view.setScene(self._scene)
-
-        self._widget.refresh_graph_push_button.setIcon(QIcon.fromTheme('view-refresh'))
-        self._widget.refresh_graph_push_button.pressed.connect(self._update_bicagraph)
 
         self._widget.save_as_svg_push_button.setIcon(QIcon.fromTheme('document-save-as'))
         self._widget.save_as_svg_push_button.pressed.connect(self._save_svg)
@@ -111,49 +119,44 @@ class BicaGraph(Plugin):
         self._updateTimer = QtCore.QTimer()
         self._updateTimer.timeout.connect(self.do_update)
         self._updateTimer.start(1000)
-
+    
     def do_update(self):
-        self._update_bicagraph()
+        # print("Spinnning")
+        rclpy.spin_once(self._bicagraph, timeout_sec=0.01)
+        # print("Spinned")
 
+        self.initialized = True
+        self._update_bicagraph()
+        
         self._updateTimer = QtCore.QTimer()
         self._updateTimer.timeout.connect(self.do_update)
         self._updateTimer.start(1000)
 
 
-    def save_settings(self, plugin_settings, instance_settings):
-        pass
-
-    def restore_settings(self, plugin_settings, instance_settings):
-        self.initialized = True
-        #self._refresh_bicagraph()
-
     def _update_bicagraph(self):
-        #self._graph = rosgraph.impl.graph.Graph()
-        #self._graph.update()
-
-        if self._graph.ready:
+        if self._bicagraph.initialized:
             self._refresh_bicagraph()
 
     def _refresh_bicagraph(self):
+        # print("_refresh_bicagraph")
         if not self.initialized:
             return
         self._update_graph_view(self._generate_dotcode())
 
     def _generate_dotcode(self):
         return self.dotcode_generator.generate_dotcode(
-            bicagraphinst=self._graph,
+            bicagraphinst=self._bicagraph,
             dotcode_factory=self.dotcode_factory)
 
     def _update_graph_view(self, dotcode):
+        # print("_update_graph_view")
         if dotcode == self._current_dotcode:
             return
         self._current_dotcode = dotcode
         self._redraw_graph_view()
 
-    def _generate_tool_tip(self, url):
-        return url
-
     def _redraw_graph_view(self):
+        # print("_redraw_graph_view")
         self._scene.clear()
 
         # layout graph and create qt items
@@ -170,7 +173,8 @@ class BicaGraph(Plugin):
 
     def _save_svg(self):
         file_name, _ = QFileDialog.getSaveFileName(
-            self._widget, self.tr('Save as SVG'), 'bicagraph.svg', self.tr('Scalable Vector Graphic (*.svg)'))
+            self._widget, self.tr('Save as SVG'), 'rosgraph.svg',
+            self.tr('Scalable Vector Graphic (*.svg)'))
         if file_name is None or file_name == '':
             return
 
@@ -185,7 +189,8 @@ class BicaGraph(Plugin):
 
     def _save_image(self):
         file_name, _ = QFileDialog.getSaveFileName(
-            self._widget, self.tr('Save as image'), 'bicagraph.png', self.tr('Image (*.bmp *.jpg *.png *.tiff)'))
+            self._widget, self.tr('Save as image'), 'rosgraph.png',
+            self.tr('Image (*.bmp *.jpg *.png *.tiff)'))
         if file_name is None or file_name == '':
             return
 

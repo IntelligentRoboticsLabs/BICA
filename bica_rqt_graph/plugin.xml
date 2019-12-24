@@ -9,9 +9,9 @@
         <icon type="theme">folder</icon>
         <statustip>Plugins related to introspection.</statustip>
       </group>
-      <label>BICA Graph</label>
+      <label>Bica Graph</label>
       <icon type="theme">preferences-system-network</icon>
-      <statustip>A Python GUI plugin for visualizing the BICA computation graph.</statustip>
+      <statustip>A Python GUI plugin for visualizing the BICA graph.</statustip>
     </qtgui>
   </class>
 </library>
