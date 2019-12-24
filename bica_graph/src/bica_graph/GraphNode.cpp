@@ -98,7 +98,7 @@ GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg
 
   if (update.operation_type == bica_msgs::msg::GraphUpdate::REQSYNC) {
     if (initialized_) {
-      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
+      // // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
       bica_msgs::msg::GraphUpdate msg;
       msg.stamp = last_ts_ + rclcpp::Duration(0.0, 1.0);  // Dt
       msg.node_id = node_->get_name();
@@ -130,10 +130,10 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
     seq_ = update.seq;
     if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
       graph_.add_node(node);
-      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
     } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
       graph_.remove_node(node.name);
-      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
   } else if (update.element_type == bica_msgs::msg::GraphUpdate::EDGE) {
@@ -143,10 +143,10 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
 
     if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
       graph_.add_edge(edge);
-      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
     } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
       graph_.remove_edge(edge);
-      std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
   } 

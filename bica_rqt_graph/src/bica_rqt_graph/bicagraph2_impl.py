@@ -166,7 +166,7 @@ class BicaGraphImpl(Node):
         self.seq = msg.seq
 
     def graph_sync_callback(self, msg):
-        self.get_logger().info('I heard: a new graph or update ' + str(msg.operation_type) + ' ' + str(self.initialized))
+        # self.get_logger().info('I heard: a new graph or update ' + str(msg.operation_type) + ' ' + str(self.initialized))
         
         # REQSYNC
         if msg.operation_type == 3 and self.initialized: # msg.REQSYNC
