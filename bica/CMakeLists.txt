@@ -26,32 +26,12 @@ set(BICA_SOURCES
 add_library(${PROJECT_NAME} SHARED ${BICA_SOURCES})
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 
-add_executable(component_A_node src/component_A_node.cpp)
-ament_target_dependencies(component_A_node ${dependencies})
-target_link_libraries(component_A_node ${PROJECT_NAME})
-
-add_executable(component_B_node src/component_B_node.cpp)
-ament_target_dependencies(component_B_node ${dependencies})
-target_link_libraries(component_B_node ${PROJECT_NAME})
-
-add_executable(component_C_node src/component_C_node.cpp)
-ament_target_dependencies(component_C_node ${dependencies})
-target_link_libraries(component_C_node ${PROJECT_NAME})
-
-add_executable(component_D_node src/component_D_node.cpp)
-ament_target_dependencies(component_D_node ${dependencies})
-target_link_libraries(component_D_node ${PROJECT_NAME})
-
 install(DIRECTORY include/
   DESTINATION include/
 )
 
 install(TARGETS
   ${PROJECT_NAME}
-  component_A_node
-  component_B_node
-  component_C_node
-  component_D_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

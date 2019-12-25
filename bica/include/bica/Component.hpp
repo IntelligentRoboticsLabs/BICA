@@ -88,29 +88,36 @@ public:
   using CallbackReturnT =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-  /// This method has to be called iterativelly 
+  /// This method contains the control loop. It is blocking 
   virtual void execute();
+
+  /// This method contains one step of the control loop
+  /**
+   * \param[in] spin If true, it calls to rclcpp::spin_once and sleep to achive the
+   *            execution rate. If False, user should call control freq and spin it.
+   */
+  virtual void execute_once(bool spin = true);
 
   /// Configures domain by creating a DomainExpert object
   /**
    * \param[in] state LifeCycle Node's state
    * \return Success or Failure
    */
-  CallbackReturnT on_configure(const rclcpp_lifecycle::State & state);
+  virtual CallbackReturnT on_configure(const rclcpp_lifecycle::State & state);
 
   /// Activates the node
   /**
    * \param[in] state LifeCycle Node's state
    * \return Success or Failure
    */
-  CallbackReturnT on_activate(const rclcpp_lifecycle::State & state);
+  virtual CallbackReturnT on_activate(const rclcpp_lifecycle::State & state);
 
   /// Deactivates the node
   /**
    * \param[in] state LifeCycle Node's state
    * \return Success or Failure
    */
-  CallbackReturnT on_deactivate(const rclcpp_lifecycle::State & state);
+  virtual CallbackReturnT on_deactivate(const rclcpp_lifecycle::State & state);
 
   /// Cleans up the node
   /**
@@ -138,6 +145,15 @@ public:
    * \return rclcpp::ok();
    */
   bool ok();
+
+  /// It contains the functionality of the process
+  virtual void step() {}
+
+  /// Returns the rate at which this component was configured
+  /**
+   * \return Configured rate
+   */
+  rclcpp::Rate & get_rate() {return rate_;}
 
 protected:
   void addDependency(const std::string & dep);

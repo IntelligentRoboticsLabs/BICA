@@ -80,6 +80,8 @@ Component::Component(const std::string & id, float rate)
     "~/deactivate",
     std::bind(&Component::deactivate_callback, this, _1, _2,_3)
   );
+
+  trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
 }
 
 using CallbackReturnT =
@@ -183,12 +185,12 @@ Component::activate_callback(
   const std::shared_ptr<bica_msgs::srv::ActivateComponent::Response> response)
 {
   RCLCPP_DEBUG(get_logger(), "activate_callback start (in state %s)", this->get_current_state().label().c_str());
+  activators_.insert(request->activator);
   if ((this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) && 
     (this->get_current_state().id() != State::TRANSITION_STATE_ACTIVATING)) {
     RCLCPP_DEBUG(get_logger(), "notifyStart triggering");
     
     this->trigger_transition(Transition::TRANSITION_ACTIVATE);
-    activators_.insert(request->activator);
   }
   RCLCPP_DEBUG(get_logger(), "activate_callback end");
 }
@@ -295,8 +297,6 @@ Component::activations_callback(const std_msgs::msg::String::SharedPtr msg)
 bool
 Component::ok()
 {
-
-
   if (rclcpp::ok()) {
     auto nodes = this->get_node_graph_interface()->get_node_names();
     auto check_activators = activators_;
@@ -335,10 +335,10 @@ void
 Component::execute()
 {
  while (this->ok()) {
-     RCLCPP_DEBUG(get_logger(), "state: %s", this->get_current_state().label().c_str());
-     if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+    RCLCPP_DEBUG(get_logger(), "state: %s", this->get_current_state().label().c_str());
+    if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
     {
-      RCLCPP_INFO(get_logger(), "step");
+      step();
     } 
 
     rclcpp::spin_some(this->get_node_base_interface());
@@ -346,5 +346,21 @@ Component::execute()
   }
 }
 
+void
+Component::execute_once(bool spin)
+{
+ if (this->ok()) {
+     RCLCPP_DEBUG(get_logger(), "state: %s", this->get_current_state().label().c_str());
+     if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE)
+    {
+      step();
+    } 
+
+    if (spin) {
+      rclcpp::spin_some(this->get_node_base_interface());
+      rate_.sleep();
+    }
+  }
+}
 
 } /* namespace bica */

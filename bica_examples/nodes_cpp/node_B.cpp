@@ -18,22 +18,26 @@
 #include "rclcpp/rclcpp.hpp"
 
 
-class CompA : public bica::Component
+class CompB : public bica::Component
 {
 public:
-  CompA() 
-  : bica::Component("A", 1)
+  CompB() 
+  : bica::Component("B", 1)
   {
-    addDependency("B");
+    addDependency("C");
+    addDependency("D");
   }
+
+	void step() {
+		RCLCPP_INFO(get_logger(), "CompB::step()");
+	}
 };
 
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-
-  auto component = std::make_shared<CompA>();
+  auto component = std::make_shared<CompB>();
   
   component->execute();
 
