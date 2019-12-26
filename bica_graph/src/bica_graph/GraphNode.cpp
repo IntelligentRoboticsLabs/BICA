@@ -54,6 +54,7 @@ namespace bica_graph
 GraphNode::GraphNode(const std::string & provided_node_name)
 : seq_(0)
 {
+  std::cerr << "GraphNode::GraphNode start" << std::endl;
   node_ = std::make_shared<rclcpp::Node>(provided_node_name + "_graph");
   sync_node_ = std::make_shared<rclcpp::Node>(provided_node_name + "_graph_sync");
 
@@ -89,6 +90,7 @@ GraphNode::GraphNode(const std::string & provided_node_name)
     rclcpp::spin(this->sync_node_);
   });
   sync_spin_t_.detach();
+  std::cerr << "GraphNode::GraphNode end" << std::endl;
 }
 
 void

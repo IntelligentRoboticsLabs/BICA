@@ -110,14 +110,14 @@ public:
    * \param[in] state LifeCycle Node's state
    * \return Success or Failure
    */
-  virtual CallbackReturnT on_activate(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_activate(const rclcpp_lifecycle::State & state);
 
   /// Deactivates the node
   /**
    * \param[in] state LifeCycle Node's state
    * \return Success or Failure
    */
-  virtual CallbackReturnT on_deactivate(const rclcpp_lifecycle::State & state);
+  CallbackReturnT on_deactivate(const rclcpp_lifecycle::State & state);
 
   /// Cleans up the node
   /**
@@ -149,18 +149,28 @@ public:
   /// It contains the functionality of the process
   virtual void step() {}
 
-  /// Returns the rate at which this component was configured
+  /// Returns the rate (as rclcpp:Rate) at which this component was configured
   /**
    * \return Configured rate
    */
   rclcpp::Rate & get_rate() {return rate_;}
 
-protected:
+  /// Returns the rate (as float) at which this component was configured
+  /**
+   * \return Configured rate
+   */
+  float get_rate_as_freq() {return rate_freq_;}
+
   void addDependency(const std::string & dep);
   void removeDependency(const std::string & dep);
 
+protected:
+  virtual void on_activate() {}
+  virtual void on_deactivate() {}
+
 private:
   rclcpp::Rate rate_;
+  float rate_freq_;
 
   std::set<std::string> dependencies_;
   std::set<std::string> activators_;

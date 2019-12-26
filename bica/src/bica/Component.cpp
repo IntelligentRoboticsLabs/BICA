@@ -61,7 +61,7 @@ using namespace std::chrono_literals;
 using namespace lifecycle_msgs::msg;
 
 Component::Component(const std::string & id, float rate)
-: rclcpp_lifecycle::LifecycleNode(id), rate_(rate)
+: rclcpp_lifecycle::LifecycleNode(id), rate_(rate), rate_freq_(rate)
 {
   using namespace std::placeholders;
 
@@ -104,6 +104,7 @@ Component::on_activate(const rclcpp_lifecycle::State & state)
 {
   RCLCPP_DEBUG(get_logger(), "on_activate start");
   activateDependencies();
+  this->on_activate();
   RCLCPP_DEBUG(get_logger(), "on_activate end");
 
   return CallbackReturnT::SUCCESS;
@@ -114,6 +115,7 @@ Component::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   RCLCPP_DEBUG(get_logger(), "on_deactivate start");
   deActivateDependencies();
+  this->on_deactivate();
   RCLCPP_DEBUG(get_logger(), "on_deactivate end");
  
   return CallbackReturnT::SUCCESS;
