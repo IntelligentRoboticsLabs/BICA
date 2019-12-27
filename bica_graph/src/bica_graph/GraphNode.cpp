@@ -1,38 +1,16 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2019, Intelligent Robotics Core S.L.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Intelligent Robotics Core nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- **********************************************************************/
-
-/* Author: Francisco Martín Rico - fmrico@gmail.com */
+// Copyright 2019 Intelligent Robotics Lab
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <iostream>
 #include <memory>
@@ -42,6 +20,7 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include <vector>
 
 #include "bica_graph/GraphNode.hpp"
 
@@ -81,16 +60,15 @@ GraphNode::GraphNode(const std::string & provided_node_name)
     msg.node_id = node_->get_name();
     msg.operation_type = bica_msgs::msg::GraphUpdate::REQSYNC;
     msg.element_type = bica_msgs::msg::GraphUpdate::GRAPH;
-    msg.object =  graph_.to_string();
+    msg.object = graph_.to_string();
     msg.seq = 0;
     sync_update_pub_->publish(msg);
   }
 
   sync_spin_t_ = std::thread([this] {
-    rclcpp::spin(this->sync_node_);
-  });
+        rclcpp::spin(this->sync_node_);
+      });
   sync_spin_t_.detach();
-  std::cerr << "GraphNode::GraphNode end" << std::endl;
 }
 
 void
@@ -100,13 +78,14 @@ GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg
 
   if (update.operation_type == bica_msgs::msg::GraphUpdate::REQSYNC) {
     if (initialized_) {
-      // // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " <<
+      //   update.node_id << "]\t" << seq_ << "\tREQSYNC" <<std::endl;
       bica_msgs::msg::GraphUpdate msg;
       msg.stamp = last_ts_ + rclcpp::Duration(0.0, 1.0);  // Dt
       msg.node_id = node_->get_name();
       msg.operation_type = bica_msgs::msg::GraphUpdate::SYNC;
       msg.element_type = bica_msgs::msg::GraphUpdate::GRAPH;
-      msg.object =  graph_.to_string();
+      msg.object = graph_.to_string();
       msg.seq = seq_;
       sync_update_pub_->publish(msg);
     }
@@ -125,17 +104,19 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
 {
   auto update = *msg;
   last_ts_ = rclcpp::Time(update.stamp);
-  
+
   if (update.element_type == bica_msgs::msg::GraphUpdate::NODE) {
     Node node;
     node.from_string(update.object);
     seq_ = update.seq;
     if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
       graph_.add_node(node);
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() <<
+      //   ", " << update.node_id << "]\t" << seq_ << "\tADD " <<node.to_string() <<std::endl;
     } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
       graph_.remove_node(node.name);
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " <<
+      //   update.node_id << "]\t" << seq_ << "\tREMOVE " <<node.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
   } else if (update.element_type == bica_msgs::msg::GraphUpdate::EDGE) {
@@ -145,20 +126,22 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
 
     if (update.operation_type == bica_msgs::msg::GraphUpdate::ADD) {
       graph_.add_edge(edge);
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " <<
+      //   update.node_id << "]\t" << seq_ << "\tADD " << edge.to_string() << std::endl;
     } else if (update.operation_type == bica_msgs::msg::GraphUpdate::REMOVE) {
       graph_.remove_edge(edge);
-      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " << update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
+      // std::cout << "[" << std::fixed << rclcpp::Time(update.stamp).seconds() << ", " <<
+      //   update.node_id << "]\t" << seq_ << "\tREMOVE " <<edge.to_string() <<std::endl;
     }
     last_ts_ = node_->now();
-  } 
+  }
 }
 
 bool
 GraphNode::add_node(const Node & node)
 {
   rclcpp::spin_some(node_);
-  
+
   if (!initialized_) {
     RCLCPP_ERROR(node_->get_logger(), "Operation before initialization");
   }
@@ -201,17 +184,16 @@ GraphNode::remove_node(const std::string node)
     msg.operation_type = bica_msgs::msg::GraphUpdate::REMOVE;
     msg.element_type = bica_msgs::msg::GraphUpdate::NODE;
     msg.object = Node{node, "no_type"}.to_string();
-    
+
     update_pub_->publish(msg);
     rclcpp::spin_some(node_);
     return true;
   } else {
     return false;
   }
-
 }
 
-bool 
+bool
 GraphNode::exist_node(const std::string node)
 {
   rclcpp::spin_some(node_);
@@ -239,7 +221,7 @@ GraphNode::add_edge(const Edge & edge)
     msg.operation_type = bica_msgs::msg::GraphUpdate::ADD;
     msg.element_type = bica_msgs::msg::GraphUpdate::EDGE;
     msg.object = edge.to_string();
-    
+
     update_pub_->publish(msg);
     rclcpp::spin_some(node_);
     return true;
@@ -278,7 +260,7 @@ GraphNode::exist_edge(const Edge & edge)
   return graph_.exist_edge(edge);
 }
 
-std::optional<std::vector<Edge>*>
+std::optional<std::vector<Edge> *>
 GraphNode::get_edges(const std::string & source, const std::string & target)
 {
   rclcpp::spin_some(node_);
@@ -320,38 +302,41 @@ GraphNode::get_nodes()
 }
 
 const std::map<ConnectionT, std::vector<Edge>> &
-GraphNode::get_edges() 
+GraphNode::get_edges()
 {
   rclcpp::spin_some(node_);
   return graph_.get_edges();
 }
-  
+
 std::vector<std::string>
-GraphNode::get_node_names_by_id(const std::string& expr)
+GraphNode::get_node_names_by_id(const std::string & expr)
 {
   return graph_.get_node_names_by_id(expr);
 }
 
 std::vector<std::string>
-GraphNode::get_node_names_by_type(const std::string& type)
+GraphNode::get_node_names_by_type(const std::string & type)
 {
   return graph_.get_node_names_by_type(type);
 }
 
 std::vector<Edge>
-GraphNode::get_edges_from_node(const std::string& node_src_id, const std::string& type)
+GraphNode::get_edges_from_node(const std::string & node_src_id, const std::string & type)
 {
   return graph_.get_edges_from_node(node_src_id, type);
 }
 
 std::vector<Edge>
-GraphNode::get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type)
+GraphNode::get_edges_from_node_by_data(
+  const std::string & node_src_id,
+  const std::string & expr,
+  const std::string & type)
 {
   return graph_.get_edges_from_node_by_data(node_src_id, expr, type);
 }
 
 std::vector<Edge>
-GraphNode::get_edges_by_data(const std::string& expr, const std::string& type)
+GraphNode::get_edges_by_data(const std::string & expr, const std::string & type)
 {
   return graph_.get_edges_by_data(expr, type);
 }

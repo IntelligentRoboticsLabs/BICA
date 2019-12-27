@@ -119,7 +119,7 @@ class BicaGraph(Plugin):
         self._updateTimer = QtCore.QTimer()
         self._updateTimer.timeout.connect(self.do_update)
         self._updateTimer.start(1000)
-    
+
     def do_update(self):
         # print("Spinnning")
         rclpy.spin_once(self._bicagraph, timeout_sec=0.01)
@@ -127,7 +127,7 @@ class BicaGraph(Plugin):
 
         self.initialized = True
         self._update_bicagraph()
-        
+
         self._updateTimer = QtCore.QTimer()
         self._updateTimer.timeout.connect(self.do_update)
         self._updateTimer.start(1000)

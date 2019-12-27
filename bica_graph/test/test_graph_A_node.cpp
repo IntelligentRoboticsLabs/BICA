@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <random>
+#include <string>
 
 #include "bica_graph/GraphNode.hpp"
 #include "bica_graph/Types.hpp"
@@ -30,14 +31,13 @@ public:
 
   void do_work()
   {
-    /*for (int i = 0; i < dis_(gen_); i++) */
     {
       int new_value = dis_(gen_);
 
       if (new_value >= 3 && new_value <= 5) {
         std::string name = "node_" + std::to_string(dis_(gen_));
         std::string type = "type_" + std::to_string(dis_(gen_));
-       
+
         bica_graph::Node node{name, type};
 
         graph_->add_node(node);
@@ -50,7 +50,7 @@ public:
         std::string target = "node_" + std::to_string(dis_(gen_));
         std::string type = "type_" + std::to_string(dis_(gen_));
         std::string content = "content_" + std::to_string(dis_(gen_));
-        
+
         bica_graph::Edge edge{content, type, source, target};
 
         graph_->add_edge(edge);
@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<NodeA>();
-  
+
   rclcpp::Rate rate(1);
 
   while (rclcpp::ok()) {

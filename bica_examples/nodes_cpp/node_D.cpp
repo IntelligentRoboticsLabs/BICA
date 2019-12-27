@@ -21,7 +21,7 @@
 class CompD : public bica::Component
 {
 public:
-  CompD() 
+  CompD()
   : bica::Component("D", 3)
   {
   }

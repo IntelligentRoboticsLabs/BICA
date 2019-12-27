@@ -21,7 +21,7 @@
 class CompC : public bica::Component
 {
 public:
-  CompC() 
+  CompC()
   : bica::Component("C", 10)
   {
   }
@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto component = std::make_shared<CompC>();
-  
+
   while (rclcpp::ok()) {
  		component->execute_once();
 	}

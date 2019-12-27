@@ -1,53 +1,24 @@
-/*********************************************************************
-*  Software License Agreement (BSD License)
-*
-*   Copyright (c) 2018, Intelligent Robotics
-*   All rights reserved.
-*
-*   Redistribution and use in source and binary forms, with or without
-*   modification, are permitted provided that the following conditions
-*   are met:
-
-*    * Redistributions of source code must retain the above copyright
-*      notice, this list of conditions and the following disclaimer.
-*    * Redistributions in binary form must reproduce the above
-*      copyright notice, this list of conditions and the following
-*      disclaimer in the documentation and/or other materials provided
-*      with the distribution.
-*    * Neither the name of Intelligent Robotics nor the names of its
-*      contributors may be used to endorse or promote products derived
-*      from this software without specific prior written permission.
-
-*   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*   BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*   POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
-
-/* Author: Francisco Martín fmrico@gmail.com */
-
-/* Mantainer: Francisco Martín fmrico@gmail.com */
-/*
- * Component.h
- *
- *  Created on: 11/05/2016
- *      Author: paco
- */
+// Copyright 2019 Intelligent Robotics Lab
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef BICA__COMPONENT_HPP_
 #define BICA__COMPONENT_HPP_
 
 #include <string>
 #include <set>
-#include <any>
+#include <memory>
+#include <vector>
 
 #include "bica/Utils.hpp"
 
@@ -61,19 +32,24 @@
 namespace bica
 {
 
+
 struct ActivationFuture
 {
-  std::shared_future<std::shared_ptr<bica_msgs::srv::ActivateComponent_Response_<std::allocator<void>>>> future;
+  using ActivateComponent_Response =
+    std::shared_ptr<bica_msgs::srv::ActivateComponent_Response_<std::allocator<void>>>;
+
+  std::shared_future<ActivateComponent_Response> future;
   std::string component;
 };
 
 struct DeactivationFuture
 {
-  std::shared_future<std::shared_ptr<bica_msgs::srv::DeactivateComponent_Response_<std::allocator<void>>>> future;
+  using DeactivateComponent_Response =
+    std::shared_ptr<bica_msgs::srv::DeactivateComponent_Response_<std::allocator<void>>>;
+
+  std::shared_future<DeactivateComponent_Response> future;
   std::string component;
 };
-
-using namespace std::chrono_literals;
 
 class Component : public rclcpp_lifecycle::LifecycleNode
 {
@@ -82,13 +58,13 @@ public:
   /**
    * \param[in] id The name of this component
    */
-  Component(const std::string & id, float rate = 1.0);
+  explicit Component(const std::string & id, float rate = 1.0);
   virtual ~Component() {}
 
   using CallbackReturnT =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-  /// This method contains the control loop. It is blocking 
+  /// This method contains the control loop. It is blocking
   virtual void execute();
 
   /// This method contains one step of the control loop
@@ -194,13 +170,13 @@ private:
 
   void activations_callback(const std_msgs::msg::String::SharedPtr msg);
   void activate_callback(
-  const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<bica_msgs::srv::ActivateComponent::Request> request,
-  const std::shared_ptr<bica_msgs::srv::ActivateComponent::Response> response);
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<bica_msgs::srv::ActivateComponent::Request> request,
+    const std::shared_ptr<bica_msgs::srv::ActivateComponent::Response> response);
   void deactivate_callback(
-  const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Request> request,
-  const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Response> response);
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Request> request,
+    const std::shared_ptr<bica_msgs::srv::DeactivateComponent::Response> response);
 };
 
 }  // namespace bica

@@ -42,7 +42,7 @@ public:
     getFeedback()->progress = 0.0;
 
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
-    
+
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
   }
 

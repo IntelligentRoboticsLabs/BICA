@@ -78,7 +78,7 @@ class BicaGraphDotcodeGenerator:
             ranksep=ranksep,
             simplify=simplify,
             rankdir=orientation)
-        
+
         for node in bicagraphinst.nodes:
              dotcode_factory.add_node_to_graph(
                  dotgraph,

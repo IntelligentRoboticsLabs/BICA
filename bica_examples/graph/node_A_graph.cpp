@@ -22,7 +22,7 @@
 class CompA : public bica::Component
 {
 public:
-  CompA() 
+  CompA()
   : bica::Component("A", 1)
   {
     addDependency("B");
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto component = std::make_shared<CompA>();
-  
+
   component->execute();
 
   rclcpp::shutdown();

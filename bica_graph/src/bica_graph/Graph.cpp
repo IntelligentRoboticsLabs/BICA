@@ -1,38 +1,16 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2019, Intelligent Robotics Core S.L.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of Intelligent Robotics Core nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- **********************************************************************/
-
-/* Author: Francisco Martín Rico - fmrico@gmail.com */
+// Copyright 2019 Intelligent Robotics Lab
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <iostream>
 #include <memory>
@@ -43,6 +21,7 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <vector>
 
 #include "bica_graph/Graph.hpp"
 
@@ -151,11 +130,11 @@ Graph::exist_edge(const Edge & edge)
   }
 }
 
-std::optional<std::vector<Edge>*>
+std::optional<std::vector<Edge> *>
 Graph::get_edges(const std::string & source, const std::string & target)
 {
   ConnectionT connection {source, target};
-  if (exist_node(source) && exist_node(target) &&  edges_.find(connection) != edges_.end()) {
+  if (exist_node(source) && exist_node(target) && edges_.find(connection) != edges_.end()) {
     return &edges_[connection];
   } else {
     return {};
@@ -165,8 +144,8 @@ Graph::get_edges(const std::string & source, const std::string & target)
 std::string
 Graph::to_string() const
 {
-  std::ostringstream graphstr (std::ostringstream::ate);
-  
+  std::ostringstream graphstr(std::ostringstream::ate);
+
   graphstr << "Nodes: " << nodes_.size() << std::endl;
   for (const auto & node : nodes_) {
     graphstr << node.second.to_string() << std::endl;
@@ -175,7 +154,7 @@ Graph::to_string() const
   graphstr << "Edges: " << get_num_edges() << std::endl;
   for (const auto & nodes_pair : edges_) {
     for (const auto & edge : nodes_pair.second) {
-      graphstr << edge.to_string() << std::endl; 
+      graphstr << edge.to_string() << std::endl;
     }
   }
 
@@ -220,14 +199,12 @@ Graph::get_num_nodes() const
 }
 
 std::vector<std::string>
-Graph::get_node_names_by_id(const std::string& expr)
+Graph::get_node_names_by_id(const std::string & expr)
 {
   std::vector<std::string> ret;
 
-  for (auto node : nodes_)
-  {
-    if (std::regex_match (node.first, std::regex(expr)))
-    {
+  for (auto node : nodes_) {
+    if (std::regex_match(node.first, std::regex(expr))) {
       ret.push_back(node.first);
     }
   }
@@ -236,12 +213,11 @@ Graph::get_node_names_by_id(const std::string& expr)
 }
 
 std::vector<std::string>
-Graph::get_node_names_by_type(const std::string& type)
+Graph::get_node_names_by_type(const std::string & type)
 {
   std::vector<std::string> ret;
 
-  for (auto node : nodes_)
-  {
+  for (auto node : nodes_) {
     if (node.second.type == type) {
       ret.push_back(node.first);
     }
@@ -251,14 +227,12 @@ Graph::get_node_names_by_type(const std::string& type)
 }
 
 std::vector<Edge>
-Graph::get_edges_from_node(const std::string& node_src_id, const std::string& type)
+Graph::get_edges_from_node(const std::string & node_src_id, const std::string & type)
 {
   std::vector<Edge> ret;
 
-  for (auto pair_nodes : edges_)
-  {
-    if (pair_nodes.first.first == node_src_id)
-    {
+  for (auto pair_nodes : edges_) {
+    if (pair_nodes.first.first == node_src_id) {
       for (auto edge : pair_nodes.second) {
         if ((edge.type == type) || (type == "")) {
           ret.push_back(edge);
@@ -271,16 +245,19 @@ Graph::get_edges_from_node(const std::string& node_src_id, const std::string& ty
 }
 
 std::vector<Edge>
-Graph::get_edges_from_node_by_data(const std::string& node_src_id, const std::string& expr, const std::string& type)
+Graph::get_edges_from_node_by_data(
+  const std::string & node_src_id,
+  const std::string & expr,
+  const std::string & type)
 {
   std::vector<Edge> ret;
 
-  for (auto pair_nodes : edges_)
-  {
-    if (pair_nodes.first.first == node_src_id)
-    {
+  for (auto pair_nodes : edges_) {
+    if (pair_nodes.first.first == node_src_id) {
       for (auto edge : pair_nodes.second) {
-        if (((edge.type == type) || (type == "")) && std::regex_match(edge.content, std::regex(expr))) {
+        if (((edge.type == type) || (type == "")) &&
+          std::regex_match(edge.content, std::regex(expr)))
+        {
           ret.push_back(edge);
         }
       }
@@ -291,14 +268,15 @@ Graph::get_edges_from_node_by_data(const std::string& node_src_id, const std::st
 }
 
 std::vector<Edge>
-Graph::get_edges_by_data(const std::string& expr, const std::string& type)
+Graph::get_edges_by_data(const std::string & expr, const std::string & type)
 {
   std::vector<Edge> ret;
 
-  for (auto pair_nodes : edges_)
-  {
+  for (auto pair_nodes : edges_) {
     for (auto edge : pair_nodes.second) {
-      if (((edge.type == type) || (type == "")) && std::regex_match(edge.content, std::regex(expr))) {
+      if (((edge.type == type) || (type == "")) &&
+        std::regex_match(edge.content, std::regex(expr)))
+      {
         ret.push_back(edge);
       }
     }

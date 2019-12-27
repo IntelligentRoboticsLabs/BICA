@@ -56,10 +56,10 @@ class GraphNode:
     def __init__(self, node_str):
         self.name = node_str.split('::')[1]
         self.type = node_str.split('::')[2]
-    
+
     def __eq__(self, o):
         return self.name == o.name  # and self.type == o.type
-    
+
     def __repr__(self):
         return 'node::' + self.name + "::" + self.type
 
@@ -72,7 +72,7 @@ class GraphEdge:
         self.type = node_str.split('::')[3]
 
     def __eq__(self, o):
-        return self.source == o.source and self.target == o.target and self.type == o.type and self.content == o.content 
+        return self.source == o.source and self.target == o.target and self.type == o.type and self.content == o.content
 
     def __repr__(self):
         return 'edge::' + self.source + '->' + self.target + '::' + self.content + '::' + self.type
@@ -81,9 +81,9 @@ class BicaGraphImpl(Node):
 
     def __init__(self):
         super().__init__('rqt_bica_graph')
-        
+
         self.initialized = self.count_publishers('/graph_updates') == 0
-        
+
         self.update_sub = self.create_subscription(
             GraphUpdate,
             '/graph_updates',
@@ -93,7 +93,7 @@ class BicaGraphImpl(Node):
                 depth=100,
                 reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE)
             )
-        
+
         self.sync_update_sub = self.create_subscription(
             GraphUpdate,
             '/graph_updates_sync',
@@ -103,9 +103,9 @@ class BicaGraphImpl(Node):
                 depth=100,
                 reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE)
             )
-       
+
         self.graph_sync_pub = self.create_publisher(GraphUpdate,
-            '/graph_updates_sync', 
+            '/graph_updates_sync',
             qos_profile=QoSProfile(
                 history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
                 depth=100,
@@ -131,8 +131,8 @@ class BicaGraphImpl(Node):
         ret = ret + "Edges: " + str(len(self.edges)) + '\n'
         for i in self.edges:
             ret = ret + str(i) + '\n'
-        return ret  
-    
+        return ret
+
     def init_graph(self, msg):
         self.nodes = []
         self.edges = []
@@ -153,7 +153,7 @@ class BicaGraphImpl(Node):
         self.nodes.remove(node_to_remove)
         self.seq = msg.seq
 
-        new_edges = [x for x in self.edges if x.source != node_to_remove.name and x.target != node_to_remove.name] 
+        new_edges = [x for x in self.edges if x.source != node_to_remove.name and x.target != node_to_remove.name]
         self.edges = new_edges
 
     def add_edge(self, msg):
@@ -167,7 +167,7 @@ class BicaGraphImpl(Node):
 
     def graph_sync_callback(self, msg):
         # self.get_logger().info('I heard: a new graph or update ' + str(msg.operation_type) + ' ' + str(self.initialized))
-        
+
         # REQSYNC
         if msg.operation_type == 3 and self.initialized: # msg.REQSYNC
             print("REQSYNC")
@@ -183,14 +183,14 @@ class BicaGraphImpl(Node):
         if msg.operation_type == 2 and not self.initialized:
             print("SYNC")
             self.init_graph(msg)
-        
+
     def graph_update_callback(self, msg):
         self.get_logger().info('I heard: a new graph or update')
 
         # ADD NODE
         if msg.operation_type == 0 and msg.element_type == 0 and self.initialized:
             self.add_node(msg)
-        
+
         # ADD EDGE
         if msg.operation_type == 0 and msg.element_type == 1 and self.initialized:
             self.add_edge(msg)
