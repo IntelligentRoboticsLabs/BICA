@@ -26,9 +26,10 @@ public:
   {
   }
 
-	void step() {
-		RCLCPP_INFO(get_logger(), "CompC::step()");
-	}
+  void step()
+  {
+    RCLCPP_INFO(get_logger(), "CompC::step()");
+  }
 };
 
 
@@ -39,8 +40,8 @@ int main(int argc, char ** argv)
   auto component = std::make_shared<CompC>();
 
   while (rclcpp::ok()) {
- 		component->execute_once();
-	}
+    component->execute_once();
+  }
 
   rclcpp::shutdown();
 

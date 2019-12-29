@@ -41,9 +41,10 @@ public:
     graph_->remove_node(get_name());
   }
 
-	void step() {
-		RCLCPP_INFO(get_logger(), "CompB::step()");
-	}
+  void step()
+  {
+    RCLCPP_INFO(get_logger(), "CompB::step()");
+  }
 
 private:
   std::shared_ptr<bica_graph::TypedGraphNode> graph_;

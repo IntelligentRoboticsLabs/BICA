@@ -69,7 +69,7 @@ private:
     cmd_vel_pub_->publish(cmd);
 
     bica_component_->execute_once(false);
-		rclcpp::spin_some(bica_component_->get_node_base_interface());
+    rclcpp::spin_some(bica_component_->get_node_base_interface());
   }
 
   bool isFinished()

@@ -153,7 +153,7 @@ private:
     getFeedback()->progress = 100.0 * (1.0 - (dist_to_goal / dist_to_move));
 
     bica_component_->execute_once(false);
-		rclcpp::spin_some(bica_component_->get_node_base_interface());
+    rclcpp::spin_some(bica_component_->get_node_base_interface());
   }
 
   bool isFinished()
