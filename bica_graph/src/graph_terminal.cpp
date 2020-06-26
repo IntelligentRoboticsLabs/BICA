@@ -87,7 +87,7 @@ public:
         } else {
           auto tf_edge = graph_->get_tf_edge(edge.source, edge.target);
 
-          if (tf_edge.has_value()) {
+          if (tf_edge) {
             tf2::Stamped<tf2::Transform> tf;
             tf2::convert(tf_edge.value().tf_, tf);
 

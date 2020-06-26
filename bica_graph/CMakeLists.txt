@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(bica_graph)
 
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE DEBUG)
 
 find_package(ament_cmake REQUIRED)
@@ -11,6 +10,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+
+find_package(Boost 1.65.1 REQUIRED)
 
 set(dependencies
     rclcpp

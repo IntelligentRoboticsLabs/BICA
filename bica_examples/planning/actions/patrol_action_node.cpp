@@ -36,19 +36,24 @@ public:
   }
 
 
-  void onActivate()
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state)
   {
-    ActionExecutorClient::onActivate();
     getFeedback()->progress = 0.0;
 
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
 
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
+
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
-  void onFinish()
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State & previous_state)
   {
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE);
+
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
 private:
