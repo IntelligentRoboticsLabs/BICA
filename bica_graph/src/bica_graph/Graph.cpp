@@ -69,7 +69,7 @@ Graph::exist_node(const std::string node)
   return nodes_.find(node) != nodes_.end();
 }
 
-std::optional<Node>
+boost::optional<Node>
 Graph::get_node(const std::string node)
 {
   if (exist_node(node)) {
@@ -123,14 +123,14 @@ Graph::exist_edge(const Edge & edge)
 
   auto edges = get_edges(edge.source, edge.target);
 
-  if (edges.has_value()) {
+  if (edges) {
     return std::find(edges.value()->begin(), edges.value()->end(), edge) != edges.value()->end();
   } else {
     return false;
   }
 }
 
-std::optional<std::vector<Edge> *>
+boost::optional<std::vector<Edge> *>
 Graph::get_edges(const std::string & source, const std::string & target)
 {
   ConnectionT connection {source, target};

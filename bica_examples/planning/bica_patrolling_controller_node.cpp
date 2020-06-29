@@ -78,7 +78,7 @@ public:
             "{" << feedback.current_action << "} [" << feedback.progress_current_action << "%]" <<
             std::endl;
 
-          if (executor_client_->getResult().has_value()) {
+          if (executor_client_->getResult()) {
             if (executor_client_->getResult().value().success) {
               std::cout << "Successful finished " << std::endl;
 
@@ -108,7 +108,7 @@ public:
             "{" << feedback.current_action << "} [" << feedback.progress_current_action << "%]" <<
             std::endl;
 
-          if (executor_client_->getResult().has_value()) {
+          if (executor_client_->getResult()) {
             if (executor_client_->getResult().value().success) {
               std::cout << "Successful finished " << std::endl;
 
@@ -138,7 +138,7 @@ public:
             "{" << feedback.current_action << "} [" << feedback.progress_current_action << "%]" <<
             std::endl;
 
-          if (executor_client_->getResult().has_value()) {
+          if (executor_client_->getResult()) {
             if (executor_client_->getResult().value().success) {
               std::cout << "Successful finished " << std::endl;
 
@@ -168,7 +168,7 @@ public:
             "{" << feedback.current_action << "} [" << feedback.progress_current_action << "%]" <<
             std::endl;
 
-          if (executor_client_->getResult().has_value()) {
+          if (executor_client_->getResult()) {
             if (executor_client_->getResult().value().success) {
               std::cout << "Successful finished " << std::endl;
 

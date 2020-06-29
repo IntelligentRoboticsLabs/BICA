@@ -15,6 +15,8 @@
 #ifndef BICA_GRAPH__GRAPHNODE_HPP_
 #define BICA_GRAPH__GRAPHNODE_HPP_
 
+#include <boost/optional.hpp>
+
 #include <vector>
 #include <map>
 #include <string>
@@ -41,7 +43,7 @@ public:
   bool add_node(const Node & node);
   bool remove_node(const std::string node);
   bool exist_node(const std::string node);
-  std::optional<Node> get_node(const std::string node);
+  boost::optional<Node> get_node(const std::string node);
 
   bool add_edge(const Edge & edge);
   bool remove_edge(const Edge & edge);
@@ -50,7 +52,7 @@ public:
   const std::map<std::string, Node> & get_nodes();
   const std::map<ConnectionT, std::vector<Edge>> & get_edges();
 
-  std::optional<std::vector<Edge> *> get_edges(
+  boost::optional<std::vector<Edge> *> get_edges(
     const std::string & source,
     const std::string & target);
 

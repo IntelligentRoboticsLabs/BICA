@@ -200,7 +200,7 @@ GraphNode::exist_node(const std::string node)
   return graph_.exist_node(node);
 }
 
-std::optional<Node>
+boost::optional<Node>
 GraphNode::get_node(const std::string node)
 {
   rclcpp::spin_some(node_);
@@ -260,7 +260,7 @@ GraphNode::exist_edge(const Edge & edge)
   return graph_.exist_edge(edge);
 }
 
-std::optional<std::vector<Edge> *>
+boost::optional<std::vector<Edge> *>
 GraphNode::get_edges(const std::string & source, const std::string & target)
 {
   rclcpp::spin_some(node_);

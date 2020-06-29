@@ -123,13 +123,13 @@ TEST(bica_graph, typedgraph_node_operations)
   ASSERT_TRUE(graph_1.add_tf_edge(tf_edge_1));
 
   auto tf_edge_2 = graph_1.get_tf_edge("kitchen", "r2d2");
-  ASSERT_TRUE(tf_edge_2.has_value());
+  ASSERT_TRUE(tf_edge_2);
   tf2::Stamped<tf2::Transform> tf2;
   tf2::convert(tf_edge_2.value().tf_, tf2);
   ASSERT_EQ(tf1, tf2);
 
   auto tf_edge_3 = graph_1.get_tf_edge("r2d2", "kitchen");
-  ASSERT_TRUE(tf_edge_3.has_value());
+  ASSERT_TRUE(tf_edge_3);
   tf2::Stamped<tf2::Transform> tf3;
   tf2::convert(tf_edge_3.value().tf_, tf3);
   ASSERT_EQ(tf1, tf3.inverse());
@@ -143,7 +143,7 @@ TEST(bica_graph, typedgraph_node_operations)
   ASSERT_TRUE(graph_1.add_tf_edge(tf_edge_4));
 
   auto tf_edge_5 = graph_1.get_tf_edge("kitchen", "r2d2");
-  ASSERT_TRUE(tf_edge_5.has_value());
+  ASSERT_TRUE(tf_edge_5);
   tf2::Stamped<tf2::Transform> tf5;
   tf2::convert(tf_edge_5.value().tf_, tf5);
   ASSERT_EQ(tf4, tf5);
