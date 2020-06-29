@@ -1,6 +1,6 @@
 # BICA for ROS2
 
-[![Build Status](https://travis-ci.com/IntelligentRoboticsLabs/BICA.svg?branch=master)](https://travis-ci.com/IntelligentRoboticsLabs/BICA)
+[![Build Status](https://travis-ci.com/IntelligentRoboticsLabs/BICA.svg?branch=ros2)](https://travis-ci.com/IntelligentRoboticsLabs/BICA)
 
 
 **BICA (Behavior-based Iterative Component Architecture) provides a way to create ROS applications that implements complex behaviors in robots.**

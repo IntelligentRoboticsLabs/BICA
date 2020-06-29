@@ -75,7 +75,7 @@ TypedGraphNode::add_tf_edge(TFEdge & tfedge, bool static_tf)
 
   bool already_exist = false;
   auto previous_edges = get_edges(edge.source, edge.target);
-  if (previous_edges.has_value()) {
+  if (previous_edges) {
     auto it = previous_edges.value()->begin();
     while (!already_exist && it != previous_edges.value()->end()) {
       if (it->type == "tf") {
@@ -103,7 +103,7 @@ TypedGraphNode::add_tf_edge(TFEdge & tfedge, bool static_tf)
   }
 }
 
-std::optional<TFEdge>
+boost::optional<TFEdge>
 TypedGraphNode::get_tf_edge(const std::string & source, const std::string & target)
 {
   if (tfBuffer_ == nullptr) {

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>bica_examples</name>
-  <version>2.0.0</version>
-  
-  <description>Examples with BICA</description>
+  <name>bica_behavior_tree</name>
+  <version>0.0.1</version>
+
+  <description>ToDo</description>
 
   <maintainer email="fmrico@gmail.com">Francisco Martin Rico</maintainer>
- 
+
   <license>Apache License, Version 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -15,19 +15,10 @@
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>bica</depend>
-  <depend>bica_graph</depend>
-  <depend>geometry_msgs</depend>
-  <depend>nav2_msgs</depend>
-  <depend>lifecycle_msgs</depend>
-  <depend>plansys2_executor</depend>
-  <depend>plansys2_domain_expert</depend>
   <depend>behaviortree_cpp_v3</depend>
-  <depend>ament_index_cpp</depend>
-  <depend>bica_behavior_tree</depend>
-  
+
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -80,7 +80,8 @@ public:
     current_pos_ = msg->pose.pose;
   }
 
-  void onActivate()
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state)
   {
     getFeedback()->progress = 0.0;
 
@@ -116,15 +117,20 @@ public:
     navigation_goal_handle_ = future_navigation_goal_handle_.get();
     if (!navigation_goal_handle_) {
       RCLCPP_ERROR(get_logger(), "Goal was rejected by server");
-      return;
+      return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
     }
 
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
+
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
-  void onFinish()
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State & previous_state)
   {
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE);
+
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
 private:
@@ -153,7 +159,7 @@ private:
     getFeedback()->progress = 100.0 * (1.0 - (dist_to_goal / dist_to_move));
 
     bica_component_->execute_once(false);
-		rclcpp::spin_some(bica_component_->get_node_base_interface());
+    rclcpp::spin_some(bica_component_->get_node_base_interface());
   }
 
   bool isFinished()

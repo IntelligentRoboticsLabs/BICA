@@ -1,0 +1,9 @@
+ <root main_tree_to_execute = "MainTree" >
+     <BehaviorTree ID="MainTree">
+        <ActivationSequence name="root_sequence">
+            <Phase1    name="Phase1"/>
+            <Phase2    name="Phase2"/>
+            <Phase3    name="Phase3"/>
+        </ActivationSequence>
+     </BehaviorTree>
+ </root>

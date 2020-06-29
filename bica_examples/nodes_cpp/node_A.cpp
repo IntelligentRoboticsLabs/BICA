@@ -28,9 +28,10 @@ public:
     addDependency("C");
   }
 
-	void step() {
-		RCLCPP_INFO(get_logger(), "CompA::step()");
-	}
+  void step()
+  {
+    RCLCPP_INFO(get_logger(), "CompA::step()");
+  }
 };
 
 

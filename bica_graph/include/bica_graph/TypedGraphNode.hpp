@@ -15,6 +15,8 @@
 #ifndef BICA_GRAPH__TYPEDGRAPHNODE_HPP_
 #define BICA_GRAPH__TYPEDGRAPHNODE_HPP_
 
+#include <boost/optional.hpp>
+
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -39,7 +41,7 @@ public:
   explicit TypedGraphNode(const std::string & provided_node_name);
 
   bool add_tf_edge(TFEdge & tfedge, bool static_tf = false);
-  std::optional<TFEdge> get_tf_edge(const std::string & source, const std::string & target);
+  boost::optional<TFEdge> get_tf_edge(const std::string & source, const std::string & target);
   void set_tf_identity(const std::string & frame_id_1, const std::string & frame_id_2);
 
 private:

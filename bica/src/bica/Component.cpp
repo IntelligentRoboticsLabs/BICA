@@ -125,12 +125,18 @@ void
 Component::addDependency(const std::string & dep)
 {
   dependencies_.insert(dep);
+  if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+    activateDependency(dep);
+  }
 }
 
 void
 Component::removeDependency(const std::string & dep)
 {
   dependencies_.erase(dep);
+  if (this->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+    deactivateDependency(dep);
+  }
 }
 
 bool

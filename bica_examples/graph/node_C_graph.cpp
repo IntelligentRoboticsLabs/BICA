@@ -40,9 +40,11 @@ public:
     graph_->remove_node(get_name());
   }
 
-	void step() {
-		RCLCPP_INFO(get_logger(), "CompC::step()");
-	}
+  void step()
+  {
+    RCLCPP_INFO(get_logger(), "CompC::step()");
+  }
+
 private:
   std::shared_ptr<bica_graph::TypedGraphNode> graph_;
 };
@@ -55,8 +57,8 @@ int main(int argc, char ** argv)
   auto component = std::make_shared<CompC>();
 
   while (rclcpp::ok()) {
- 		component->execute_once();
-	}
+    component->execute_once();
+  }
 
   rclcpp::shutdown();
 
