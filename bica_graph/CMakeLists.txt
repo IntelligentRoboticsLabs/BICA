@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_ros
   tf2_geometry_msgs
-  bica_planning
 )
 
 find_package(rostest REQUIRED)
@@ -62,11 +61,6 @@ add_executable(graph_master_node src/graph_master_node.cpp)
 add_dependencies(graph_master_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(graph_master_node ${catkin_LIBRARIES} ${PROJECT_NAME} )
 
-add_executable(graph_kms_extractor_node src/graph_kms_extractor_node.cpp)
-add_dependencies(graph_kms_extractor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(graph_kms_extractor_node ${catkin_LIBRARIES} ${PROJECT_NAME} )
-
-
 add_executable(test_publisher_node test/test_publisher_node.cpp)
 add_dependencies(test_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_publisher_node ${catkin_LIBRARIES} ${PROJECT_NAME} )
@@ -93,7 +87,6 @@ roslint_cpp(
   test/test_bica_graph.cpp
   test/test_bica_graph_clientserver.cpp
   src/graph_master_node.cpp
-  src/graph_kms_extractor_node.cpp
 )
 
 if(CATKIN_ENABLE_TESTING)
