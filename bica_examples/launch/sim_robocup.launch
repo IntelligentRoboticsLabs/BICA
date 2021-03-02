@@ -1,0 +1,9 @@
+
+<launch>
+
+  <arg name="world_name" default="$(find bica_examples)/worlds/robocuplab.world"/>
+
+  <include file="$(find robots)/launch/sim.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+  </include>
+ </launch>
